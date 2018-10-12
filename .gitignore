@@ -1,4 +1,4 @@
-uMachines/x64
-uMachines/.vs
+uMachines/x64/
+uMachines/.vs/
 *.sln
 *.vcxproj*
