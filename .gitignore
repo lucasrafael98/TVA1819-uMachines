@@ -1,4 +1,5 @@
 uMachines/x64/
 uMachines/.vs/
+CppProperties.json
 *.sln
 *.vcxproj*
