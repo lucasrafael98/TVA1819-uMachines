@@ -106,6 +106,8 @@ void changeSize(int w, int h) {
 	ratio = (1.0f * w) / h;
 	loadIdentity(PROJECTION);
 	perspective(53.13f, ratio, 0.1f, 1000.0f);
+	WinX = w;
+	WinY = h;
 }
 
 
@@ -130,15 +132,15 @@ void renderScene(void) {
 
 	//send the light position in eye coordinates
 
-		//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lighPos foi definido em eye coord 
+	//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lightPos foi definido em eye coord 
 
-		float res[4];
-		multMatrixPoint(VIEW, lightPos,res);   //lightPos definido em World Coord so is converted to eye space
-		glUniform4fv(lPos_uniformId, 1, res);
+	float res[4];
+	multMatrixPoint(VIEW, lightPos,res);   //lightPos defined in World Coords, therefore converted to eye space (?)
+	glUniform4fv(lPos_uniformId, 1, res);
 
 	objId=0;
-	for (int i = 0 ; i < 2; ++i) {
-		for (int j = 0; j < 2; ++j) {
+	for (int i = 1 ; i < 3; ++i) {
+		for (int j = 1; j < 3; ++j) {
 			// send the material
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 			glUniform4fv(loc, 1, mesh[objId].mat.ambient);
@@ -185,15 +187,15 @@ void processKeys(unsigned char key, int xx, int yy)
 {
 	switch(key) {
 
-		case 27:
+		case 27: // Escape
 			glutLeaveMainLoop();
 			break;
 
-		case 'c': 
+		case 'c': // Print Camera Coords
 			printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
 			break;
-		case 'm': glEnable(GL_MULTISAMPLE); break;
-		case 'n': glDisable(GL_MULTISAMPLE); break;
+		case 'm': glEnable(GL_MULTISAMPLE); break;	// Enable MSAA (how many samples?)
+		case 'n': glDisable(GL_MULTISAMPLE); break;	// Disable MSAA (how many samples?)
 	}
 }
 
@@ -276,7 +278,7 @@ void processMouseMotion(int xx, int yy)
 
 void mouseWheel(int wheel, int direction, int x, int y) {
 
-	r += direction * 0.1f;
+	r += direction * 0.3f;
 	if (r < 0.1f)
 		r = 0.1f;
 
@@ -389,7 +391,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 }
 
@@ -406,7 +408,7 @@ int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA|GLUT_MULTISAMPLE);
 
-	glutInitContextVersion (3, 3);
+	glutInitContextVersion (4, 3);
 	glutInitContextProfile (GLUT_CORE_PROFILE );
 	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
 
@@ -420,8 +422,8 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(changeSize);
 
 	glutTimerFunc(0, timer, 0);
-	glutIdleFunc(renderScene);  // Use it for maximum performance
-	//glutTimerFunc(0, refresh, 0);    //use it to to get 60 FPS whatever
+	//glutIdleFunc(renderScene);			// Use for maximum performance.
+	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 
 //	Mouse and Keyboard Callbacks
 	glutKeyboardFunc(processKeys);
