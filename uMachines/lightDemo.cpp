@@ -39,7 +39,7 @@ unsigned int FrameCount = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[4];
+struct MyMesh mesh[21];
 int objId=0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
@@ -70,7 +70,7 @@ float r = 10.0f;
 // Frame counting and FPS computation
 long myTime,timebase = 0,frame = 0;
 char s[32];
-float lightPos[4] = {4.0f, 6.0f, 2.0f, 1.0f};
+float lightPos[4] = {4.0f, 6.0f, 2.0f, 0.0f};
 
 void timer(int value)
 {
@@ -138,7 +138,73 @@ void renderScene(void) {
 	multMatrixPoint(VIEW, lightPos,res);   //lightPos defined in World Coords, therefore converted to eye space (?)
 	glUniform4fv(lPos_uniformId, 1, res);
 
-	objId=0;
+	objId = 0;
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+	glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+	glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+	glUniform4fv(loc, 1, mesh[objId].mat.specular);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+	glUniform1f(loc, mesh[objId].mat.shininess);
+	pushMatrix(MODEL);
+	translate(MODEL, -20.0f, -0.75f, -20.0f);
+	scale(MODEL, 40.0f, 0.5f, 40.0f);
+
+	// send matrices to OGL
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	// Render mesh
+	glBindVertexArray(mesh[objId].vao);
+
+	if (!shader.isProgramValid()) {
+		printf("Program Not Valid!\n");
+		exit(1);
+	}
+	glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	popMatrix(MODEL);
+	objId++;
+
+	for (int i = 0; i != 20; i++) {
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
+		pushMatrix(MODEL);
+		translate(MODEL, i*1.0f, 0.0f, i*1.0f);
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(mesh[objId].vao);
+
+		if (!shader.isProgramValid()) {
+			printf("Program Not Valid!\n");
+			exit(1);
+		}
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		objId++;
+	}
+
+
+	/*objId=0;
 	for (int i = 1 ; i < 3; ++i) {
 		for (int j = 1; j < 3; ++j) {
 			// send the material
@@ -173,7 +239,8 @@ void renderScene(void) {
 			popMatrix(MODEL);
 			objId++;
 		}
-	}
+	}*/
+
 
 	glutSwapBuffers();
 }
@@ -335,10 +402,10 @@ void init()
 
 	
 	float amb[]= {0.2f, 0.15f, 0.1f, 1.0f};
-	float diff[] = {0.8f, 0.6f, 0.4f, 1.0f};
-	float spec[] = {0.8f, 0.8f, 0.8f, 1.0f};
+	float diff[] = {0.43f, 0.25f, 0.12f, 1.0f};
+	float spec[] = {0.05f, 0.05f, 0.05f, 1.0f};
 	float emissive[] = {0.0f, 0.0f, 0.0f, 1.0f};
-	float shininess= 100.0f;
+	float shininess= 70.0f;
 	int texcount = 0;
 
 	// create geometry and VAO of the pawn
@@ -349,9 +416,30 @@ void init()
 	memcpy(mesh[objId].mat.emissive, emissive,4*sizeof(float));
 	mesh[objId].mat.shininess = shininess;
 	mesh[objId].mat.texCount = texcount;
-	createPawn();
+	createCube();
+	objId++;
 
-	
+
+	for (int i = 0; i != 20; i++) {
+		float amb[] = { 0.2f, 0.0f, 0.0f, 1.0f };
+		float diff[] = { 0.43f, 0.0f, 0.0f, 1.0f };
+		float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+		float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		float shininess = 70.0f;
+		int texcount = 0;
+
+		// create geometry and VAO of the pawn
+		memcpy(mesh[objId].mat.ambient, amb, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createTorus(0.5f, 1.0f, 8, 8);
+		objId++;
+	}
+
+	/*
 	// create geometry and VAO of the sphere
 	objId=1;
 	memcpy(mesh[objId].mat.ambient, amb,4*sizeof(float));
@@ -377,7 +465,7 @@ void init()
 	mesh[objId].mat.texCount = texcount;
 	createCylinder(1.5f,0.5f,20);
 
-	// create geometry and VAO of the 
+	// create geometry and VAO of the cone
 	objId=3;
 	memcpy(mesh[objId].mat.ambient, amb1,4*sizeof(float));
 	memcpy(mesh[objId].mat.diffuse, diff1,4*sizeof(float));
@@ -385,13 +473,13 @@ void init()
 	memcpy(mesh[objId].mat.emissive, emissive,4*sizeof(float));
 	mesh[objId].mat.shininess = shininess;
 	mesh[objId].mat.texCount = texcount;
-	createCone(1.5f,0.5f, 20);
+	createCone(1.5f,0.5f, 20);*/
 
 	// some GL settings
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 }
 
