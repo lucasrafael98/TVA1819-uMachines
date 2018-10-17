@@ -250,8 +250,9 @@ void renderScene(void) {
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
 	pushMatrix(MODEL);
-	translate(MODEL, carPosX, -0.25f, carPosZ);
-	//scale(MODEL, 2.0f, 1.0f, 2.0f);
+	translate(MODEL, carPosX-1.5f, 0.15f, carPosZ-1.0f);
+	pushMatrix(MODEL);
+	scale(MODEL, 3.0f, 1.2f, 2.0f);
 
 	// send matrices to OGL
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -270,8 +271,8 @@ void renderScene(void) {
 	glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
+	popMatrix(MODEL);
 	objId++;
-
 
 	for (int x = -1; x <= 1; x+=2) {
 
@@ -285,7 +286,7 @@ void renderScene(void) {
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 			glUniform1f(loc, mesh[objId].mat.shininess);
 			pushMatrix(MODEL);
-			translate(MODEL, x*1.0f, 0.6f, y*1.0f);
+			translate(MODEL, x*1.0f + 1.5f, 0.10f, y*1.2f + 1.0f);
 			rotate(MODEL, 90.0f, 0.0f, 0.0f, 1.0f);
 			rotate(MODEL, 90.0f, 1.0f, 0.0f, 0.0f);
 			// send matrices to OGL
