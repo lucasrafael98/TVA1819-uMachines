@@ -38,6 +38,10 @@ unsigned int FrameCount = 0;
 float carPosX = 0.0f;
 float carPosZ = 0.0f;
 float carAngle = 0.0f;
+float carVeloc = 0.0f;
+// Static because they're constant.
+static float carAccel = 10.0f;
+static float carMaxVeloc = 100.0f;
 
 VSShaderLib shader;
 
@@ -280,13 +284,19 @@ void processKeys(unsigned char key, int xx, int yy)
 {
 	switch(key) {
 		case 'q': // Forward
-			carPosX += cos(carAngle);
-			carPosZ += sin(carAngle);
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX += cos(carAngle) * (carVeloc * 1/60 + 0.5 * carAccel * 1/60);
+			carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 			break;
 
 		case 'a': // Backward
-			carPosX -= cos(carAngle);
-			carPosZ -= sin(carAngle);
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 			break;
 
 		case 'o': // Left
