@@ -35,7 +35,9 @@ int WinX = 640, WinY = 480;
 
 unsigned int FrameCount = 0;
 
-
+float carPosX = 0.0f;
+float carPosZ = 0.0f;
+float carAngle = 0.0f;
 
 VSShaderLib shader;
 
@@ -244,7 +246,7 @@ void renderScene(void) {
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
 	pushMatrix(MODEL);
-	translate(MODEL, 0.0f, -0.25f, 0.0f);
+	translate(MODEL, carPosX, -0.25f, carPosZ);
 
 	// send matrices to OGL
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -277,6 +279,23 @@ void renderScene(void) {
 void processKeys(unsigned char key, int xx, int yy)
 {
 	switch(key) {
+		case 'q': // Forward
+			carPosX += cos(carAngle);
+			carPosZ += sin(carAngle);
+			break;
+
+		case 'a': // Backward
+			carPosX -= cos(carAngle);
+			carPosZ -= sin(carAngle);
+			break;
+
+		case 'o': // Left
+			carAngle += 2 * 3.14/ 20;
+			break;
+
+		case 'p': // Right
+			carAngle -= 2 * 3.14 / 20;
+			break;
 
 		case 27: // Escape
 			glutLeaveMainLoop();
@@ -432,7 +451,7 @@ void init()
 	float shininess= 70.0f;
 	int texcount = 0;
 
-	// create geometry and VAO of the pawn
+	// create table
 	objId=0;
 	memcpy(mesh[objId].mat.ambient, amb,4*sizeof(float));
 	memcpy(mesh[objId].mat.diffuse, diff,4*sizeof(float));
@@ -443,6 +462,7 @@ void init()
 	createCube();
 	objId++;
 
+	// cheerio materials
 	float amb_c[] = { 0.2f, 0.18f, 0.05f, 1.0f };
 	float diff_c[] = { 1.0f, 0.83f, 0.17f, 1.0f };
 	float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
@@ -452,7 +472,7 @@ void init()
 
 	for (int i = 0; i != 60; i++) {
 
-		// create geometry and VAO of the pawn
+		// create cheerios
 		memcpy(mesh[objId].mat.ambient, amb_c, 4 * sizeof(float));
 		memcpy(mesh[objId].mat.diffuse, diff_c, 4 * sizeof(float));
 		memcpy(mesh[objId].mat.specular, spec_c, 4 * sizeof(float));
@@ -463,6 +483,7 @@ void init()
 		objId++;
 	}
 
+	// create cars
 	float amb_car[] = { 0.2f, 0.15f, 0.1f, 1.0f };
 	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
