@@ -595,27 +595,6 @@ void init()
 	createCube();
 	objId++;
 
-	// butter materials
-	float amb_butt[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_butt[] = { 0.51f, 0.00f, 1.00f, 1.0f };
-	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 5; i++) {
-
-		// create butters
-		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_butt, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
-		createCube();
-		objId++;
-	}
-
 	// wheels materials
 	float amb_wheel[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	float diff_wheel[] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -634,6 +613,27 @@ void init()
 		mesh[objId].mat.shininess = shininess;
 		mesh[objId].mat.texCount = texcount;
 		createTorus(0.2f, 0.7f, 14, 14);
+		objId++;
+	}
+
+	// butter materials
+	float amb_butt[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_butt[] = { 0.51f, 0.00f, 1.00f, 1.0f };
+	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	for (int i = 0; i != 5; i++) {
+
+		// create butters
+		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive_butt, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createCube();
 		objId++;
 	}
 
