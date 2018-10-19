@@ -218,7 +218,6 @@ void renderScene(void) {
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
 	}
-	std::cout << camX << " " << camY << " "<< camZ << std::endl;
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
 
@@ -505,28 +504,30 @@ void registerKeys(unsigned char key, int xx, int yy)
 
 void processMouseButtons(int button, int state, int xx, int yy)
 {
-	// start tracking the mouse
-	if (state == GLUT_DOWN)  {
-		startX = xx;
-		startY = yy;
-		if (button == GLUT_LEFT_BUTTON)
-			tracking = 1;
-		else if (button == GLUT_RIGHT_BUTTON)
-			tracking = 2;
-	}
+	if (cameraMode == 2) { // This is only supposed to work on camera 2.
+		// start tracking the mouse
+		if (state == GLUT_DOWN) {
+			startX = xx;
+			startY = yy;
+			if (button == GLUT_LEFT_BUTTON)
+				tracking = 1;
+			else if (button == GLUT_RIGHT_BUTTON)
+				tracking = 2;
+		}
 
-	//stop tracking the mouse
-	else if (state == GLUT_UP) {
-		if (tracking == 1) {
-			alpha -= (xx - startX);
-			beta += (yy - startY);
+		//stop tracking the mouse
+		else if (state == GLUT_UP) {
+			if (tracking == 1) {
+				alpha -= (xx - startX);
+				beta += (yy - startY);
+			}
+			else if (tracking == 2) {
+				r += (yy - startY) * 0.01f;
+				if (r < 0.1f)
+					r = 0.1f;
+			}
+			tracking = 0;
 		}
-		else if (tracking == 2) {
-			r += (yy - startY) * 0.01f;
-			if (r < 0.1f)
-				r = 0.1f;
-		}
-		tracking = 0;
 	}
 }
 
@@ -535,40 +536,42 @@ void processMouseButtons(int button, int state, int xx, int yy)
 void processMouseMotion(int xx, int yy)
 {
 
-	int deltaX, deltaY;
-	float alphaAux, betaAux;
-	float rAux;
+	if (cameraMode == 2) {
+		int deltaX, deltaY;
+		float alphaAux, betaAux;
+		float rAux;
 
-	deltaX =  - xx + startX;
-	deltaY =    yy - startY;
+		deltaX = -xx + startX;
+		deltaY = yy - startY;
 
-	// left mouse button: move camera
-	if (tracking == 1) {
+		// left mouse button: move camera
+		if (tracking == 1) {
 
 
-		alphaAux = alpha + deltaX;
-		betaAux = beta + deltaY;
+			alphaAux = alpha + deltaX;
+			betaAux = beta + deltaY;
 
-		if (betaAux > 85.0f)
-			betaAux = 85.0f;
-		else if (betaAux < -85.0f)
-			betaAux = -85.0f;
-		rAux = r;
+			if (betaAux > 85.0f)
+				betaAux = 85.0f;
+			else if (betaAux < -85.0f)
+				betaAux = -85.0f;
+			rAux = r;
+		}
+		// right mouse button: zoom
+		else if (tracking == 2) {
+
+			alphaAux = alpha;
+			betaAux = beta;
+			rAux = r + (deltaY * 0.01f);
+			if (rAux < 0.1f)
+				rAux = 0.1f;
+		}
+
+		camX = rAux * sin(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
+		camZ = rAux * cos(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
+		camY = rAux * sin(betaAux * 3.14f / 180.0f);
+
 	}
-	// right mouse button: zoom
-	else if (tracking == 2) {
-
-		alphaAux = alpha;
-		betaAux = beta;
-		rAux = r + (deltaY * 0.01f);
-		if (rAux < 0.1f)
-			rAux = 0.1f;
-	}
-
-	camX = rAux * sin(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
-	camZ = rAux * cos(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
-	camY = rAux *   						       sin(betaAux * 3.14f / 180.0f);
-
 //  uncomment this if not using an idle or refresh func
 //	glutPostRedisplay();
 }
