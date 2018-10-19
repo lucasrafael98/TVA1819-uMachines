@@ -38,12 +38,16 @@ unsigned int FrameCount = 0;
 float carPosX = 0.0f;
 float carPosZ = 0.0f;
 float carAngle = 0.0f;
+float carVeloc = 0.0f;
+// Static because they're constant.
+static float carAccel = 10.0f;
+static float carMaxVeloc = 100.0f;
 
 float butterPos[10];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[67];
+struct MyMesh mesh[71];
 int objId=0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
@@ -248,7 +252,9 @@ void renderScene(void) {
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
 	pushMatrix(MODEL);
-	translate(MODEL, carPosX, -0.25f, carPosZ);
+	translate(MODEL, carPosX-1.5f, 0.15f, carPosZ-1.0f);
+	pushMatrix(MODEL);
+	scale(MODEL, 3.0f, 1.2f, 2.0f);
 
 	// send matrices to OGL
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -269,6 +275,46 @@ void renderScene(void) {
 
 	popMatrix(MODEL);
 	objId++;
+
+	for (int x = -1; x <= 1; x+=2) {
+
+		for (int y = -1; y <= 1; y+=2) {
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+			glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+			glUniform4fv(loc, 1, mesh[objId].mat.specular);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+			glUniform1f(loc, mesh[objId].mat.shininess);
+			pushMatrix(MODEL);
+			translate(MODEL, x*1.0f + 1.5f, 0.10f, y*1.2f + 1.0f);
+			rotate(MODEL, 90.0f, 0.0f, 0.0f, 1.0f);
+			rotate(MODEL, 90.0f, 1.0f, 0.0f, 0.0f);
+			// send matrices to OGL
+			computeDerivedMatrix(PROJ_VIEW_MODEL);
+			glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+			glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+			computeNormalMatrix3x3();
+			glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+			// Render mesh
+			glBindVertexArray(mesh[objId].vao);
+
+			if (!shader.isProgramValid()) {
+				printf("Program Not Valid!\n");
+				exit(1);
+			}
+			glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+
+			popMatrix(MODEL);
+			objId++;
+		}
+
+	}
+
+	popMatrix(MODEL);
 
 	for (int i = 0; i != 5; i++)
 	{
@@ -317,13 +363,19 @@ void processKeys(unsigned char key, int xx, int yy)
 {
 	switch(key) {
 		case 'q': // Forward
-			carPosX += cos(carAngle);
-			carPosZ += sin(carAngle);
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX += cos(carAngle) * (carVeloc * 1/60 + 0.5 * carAccel * 1/60);
+			carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 			break;
 
 		case 'a': // Backward
-			carPosX -= cos(carAngle);
-			carPosZ -= sin(carAngle);
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 			break;
 
 		case 'o': // Left
@@ -561,6 +613,27 @@ void init()
 		mesh[objId].mat.shininess = shininess;
 		mesh[objId].mat.texCount = texcount;
 		createCube();
+		objId++;
+	}
+
+	// wheels materials
+	float amb_wheel[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	float diff_wheel[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float spec_wheel[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_wheel[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	for (int i = 0; i != 4; i++) {
+
+		// create wheels
+		memcpy(mesh[objId].mat.ambient, amb_wheel, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff_wheel, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec_wheel, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive_wheel, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createTorus(0.2f, 0.7f, 14, 14);
 		objId++;
 	}
 
