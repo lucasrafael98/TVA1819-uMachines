@@ -147,6 +147,11 @@ void processKeys(int value) {
 		loadIdentity(PROJECTION);
 		perspective(53.13f, (1.0f * WinX)/WinY, 0.1f, 1000.0f);
 	}
+	if (keystates['3']) {
+		cameraMode = 3;
+		loadIdentity(PROJECTION);
+		perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+	}
 	if (keystates['c']) {
 		printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
 	}
@@ -207,8 +212,12 @@ void renderScene(void) {
 	// load identity matrices
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
-	// set the camera using a function similar to gluLookAt
-	lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+	if (cameraMode == 3) {
+		lookAt(carPosX - cos(-carAngle) * 10, 5, carPosZ - sin(-carAngle) * 10, carPosX, 0, carPosZ, 0, 1, 0);
+	}
+	else {
+		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+	}
 	std::cout << camX << " " << camY << " "<< camZ << std::endl;
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
