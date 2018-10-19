@@ -40,8 +40,8 @@ float carPosZ = 0.0f;
 float carAngle = 0.0f;
 float carVeloc = 0.0f;
 // Static because they're constant.
-static float carAccel = 10.0f;
-static float carMaxVeloc = 100.0f;
+static float carAccel = 5.0f;
+static float carMaxVeloc = 50.0f;
 
 float butterPos[10];
 
@@ -252,6 +252,7 @@ void renderScene(void) {
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
 	pushMatrix(MODEL);
+	rotate(MODEL, carAngle, 0, 10, 0);
 	translate(MODEL, carPosX-1.5f, 0.15f, carPosZ-1.0f);
 	pushMatrix(MODEL);
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
