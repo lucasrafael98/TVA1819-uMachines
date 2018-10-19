@@ -35,6 +35,9 @@ int WinX = 640, WinY = 480;
 
 unsigned int FrameCount = 0;
 
+// Check key presses
+bool keystates[256];
+
 float carPosX = 0.0f;
 float carPosZ = 0.0f;
 float carAngle = 0.0f;
@@ -90,6 +93,42 @@ void timer(int value)
 	glutSetWindowTitle(s.c_str());
     FrameCount = 0;
     glutTimerFunc(1000, timer, 0);
+}
+
+void keyOps(int value) {
+	if (keystates['q']) {
+		carVeloc += carAccel * 1 / 60;
+		if (carVeloc > carMaxVeloc)
+			carVeloc = carMaxVeloc;
+		carPosX += cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+	}
+	if (keystates['a']) {
+		carVeloc += carAccel * 1 / 60;
+		if (carVeloc > carMaxVeloc)
+			carVeloc = carMaxVeloc;
+		carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+	}
+	if (keystates['o']) {
+		carAngle += 2 * 3.14 / 60;
+	}
+	if (keystates['p']) {
+		carAngle -= 2 * 3.14 / 60;
+	}
+	if (keystates[27]) {
+		glutLeaveMainLoop();
+	}
+	if (keystates['c']) {
+		printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
+	}
+	if (keystates['m']) {
+		glEnable(GL_MULTISAMPLE);
+	}
+	if (keystates['n']) {
+		glDisable(GL_MULTISAMPLE);
+	}
+	glutTimerFunc(1000 / 60, keyOps, 0);
 }
 
 void refresh(int value)
@@ -258,9 +297,11 @@ void renderScene(void) {
 	glUniform4fv(loc, 1, mesh[objId].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
+	std::cout << "angle: " << carAngle * 180 / 3.14 << " cos:" << cos(carAngle) << " sin:" << sin(carAngle) << std::endl;
 	pushMatrix(MODEL);
-	rotate(MODEL, carAngle, 0, 10, 0);
-	translate(MODEL, carPosX-1.5f, 0.15f, carPosZ-1.0f);
+	translate(MODEL, carPosX, 0.15f, carPosZ);
+	rotate(MODEL, carAngle * 180 / 3.14, 0.0f, 1.0f, 0.0f);
+	translate(MODEL, -1.5f, 0.15f, -1.0f);
 	pushMatrix(MODEL);
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
 
@@ -402,43 +443,14 @@ void renderScene(void) {
 // Events from the Keyboard
 //
 
+void processKeyUps(unsigned char key, int xx, int yy)
+{
+	keystates[key] = false;
+}
+
 void processKeys(unsigned char key, int xx, int yy)
 {
-	switch(key) {
-		case 'q': // Forward
-			carVeloc += carAccel * 1 / 60;
-			if (carVeloc > carMaxVeloc)
-				carVeloc = carMaxVeloc;
-			carPosX += cos(carAngle) * (carVeloc * 1/60 + 0.5 * carAccel * 1/60);
-			carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			break;
-
-		case 'a': // Backward
-			carVeloc += carAccel * 1 / 60;
-			if (carVeloc > carMaxVeloc)
-				carVeloc = carMaxVeloc;
-			carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			break;
-
-		case 'o': // Left
-			carAngle += 2 * 3.14/ 20;
-			break;
-
-		case 'p': // Right
-			carAngle -= 2 * 3.14 / 20;
-			break;
-
-		case 27: // Escape
-			glutLeaveMainLoop();
-			break;
-
-		case 'c': // Print Camera Coords
-			printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
-			break;
-		case 'm': glEnable(GL_MULTISAMPLE); break;	// Enable MSAA (how many samples?)
-		case 'n': glDisable(GL_MULTISAMPLE); break;	// Disable MSAA (how many samples?)
-	}
+	keystates[key] = true;
 }
 
 
@@ -738,9 +750,11 @@ int main(int argc, char **argv) {
 	glutTimerFunc(0, timer, 0);
 	//glutIdleFunc(renderScene);			// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
+	glutTimerFunc(0, keyOps, 0);
 
 //	Mouse and Keyboard Callbacks
 	glutKeyboardFunc(processKeys);
+	glutKeyboardUpFunc(processKeyUps);
 	glutMouseFunc(processMouseButtons);
 	glutMotionFunc(processMouseMotion);
 	glutMouseWheelFunc ( mouseWheel ) ;
