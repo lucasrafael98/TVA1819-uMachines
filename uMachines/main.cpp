@@ -35,6 +35,8 @@ int WinX = 640, WinY = 480;
 
 unsigned int FrameCount = 0;
 
+int cameraMode = 2;
+
 // Check key presses.
 bool keystates[256];
 
@@ -101,7 +103,7 @@ void timer(int value)
 }
 
 void processKeys(int value) {
-	if (keystates['q']) {
+	if (keystates['q']) { // Forward
 		carVeloc += carAccel * 1 / 60;
 		if (carVeloc > carMaxVeloc)
 			carVeloc = carMaxVeloc;
@@ -109,7 +111,7 @@ void processKeys(int value) {
 		carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 		lastKeyPress = 1;
 	}
-	else if (keystates['a']) {
+	else if (keystates['a']) { // Backward
 		carVeloc += carAccel * 1 / 60;
 		if (carVeloc > carMaxVeloc)
 			carVeloc = carMaxVeloc;
@@ -117,7 +119,7 @@ void processKeys(int value) {
 		carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 		lastKeyPress = -1;
 	}
-	else if (carVeloc > 0) {
+	else if (carVeloc > 0) { // Braking
 		carVeloc -= carBrakeAccel * 1 / 60;
 		carPosX += lastKeyPress * cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 		carPosZ -= lastKeyPress * sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
@@ -125,14 +127,25 @@ void processKeys(int value) {
 	else if (carVeloc < 0) {
 		carVeloc = 0; // If it's negative, the car's brakes are going on overdrive. We don't want that.
 	}
-	if (keystates['o']) {
+	if (keystates['o']) { // Left
 		carAngle += 2 * 3.14 / 200;
 	}
-	if (keystates['p']) {
+	if (keystates['p']) { // Right
 		carAngle -= 2 * 3.14 / 200;
 	}
 	if (keystates[27]) {
 		glutLeaveMainLoop();
+	}
+	if (keystates['1']) {
+		cameraMode = 1;
+		loadIdentity(PROJECTION);
+		ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100, 100);
+		camX = 0.0f; camY = 10.0f; camZ = 0.001f; // FIXME Why can't z be 0?
+	}
+	if (keystates['2']) {
+		cameraMode = 2;
+		loadIdentity(PROJECTION);
+		perspective(53.13f, (1.0f * WinX)/WinY, 0.1f, 1000.0f);
 	}
 	if (keystates['c']) {
 		printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
@@ -167,8 +180,14 @@ void changeSize(int w, int h) {
 	glViewport(0, 0, w, h);
 	// set the projection matrix
 	ratio = (1.0f * w) / h;
-	loadIdentity(PROJECTION);
-	perspective(53.13f, ratio, 0.1f, 1000.0f);
+	if (cameraMode == 1) {
+		loadIdentity(PROJECTION);
+		ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100.0f, 100.0f);
+	}
+	else if (cameraMode == 2) {
+		loadIdentity(PROJECTION);
+		perspective(53.13f, ratio, 0.1f, 1000.0f);
+	}
 	WinX = w;
 	WinY = h;
 }
@@ -189,7 +208,8 @@ void renderScene(void) {
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
 	// set the camera using a function similar to gluLookAt
-	lookAt(camX, camY, camZ, 0,0,0, 0,1,0);
+	lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+	std::cout << camX << " " << camY << " "<< camZ << std::endl;
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
 
@@ -312,7 +332,7 @@ void renderScene(void) {
 	glUniform4fv(loc, 1, mesh[objId].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
-	std::cout << "angle: " << carAngle * 180 / 3.14 << " cos:" << cos(carAngle) << " sin:" << sin(carAngle) << std::endl;
+	// std::cout << "angle: " << carAngle * 180 / 3.14 << " cos:" << cos(carAngle) << " sin:" << sin(carAngle) << std::endl;
 	pushMatrix(MODEL);
 	translate(MODEL, carPosX, 0.15f, carPosZ);
 	rotate(MODEL, carAngle * 180 / 3.14, 0.0f, 1.0f, 0.0f);
