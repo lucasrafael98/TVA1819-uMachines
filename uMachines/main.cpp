@@ -54,10 +54,13 @@ static float carBrakeAccel = 20.0f;
 static float carMaxVeloc = 20.0f;
 
 float butterPos[10];
+float orangePos[10];
+//float orangeAngle[5];
+float orangeVeloc[5];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[76];
+struct MyMesh mesh[86]; //76 before oranges
 int objId=0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
@@ -478,6 +481,72 @@ void renderScene(void) {
 		objId++;
 	}
 
+	for (int i = 0; i != 5; i++)
+	{
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
+		pushMatrix(MODEL);
+		translate(MODEL, orangePos[i], 1.75f, orangePos[i+1]);
+		//rotate(MODEL, 45.0f, 0.0f, 0.0f, 1.0f);
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(mesh[objId].vao);
+
+		if (!shader.isProgramValid()) {
+			printf("Program Not Valid!\n");
+			exit(1);
+		}
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		objId++;
+
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
+		pushMatrix(MODEL);
+		translate(MODEL, 0.0f, 2.5f, 0.0f);
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(mesh[objId].vao);
+
+		if (!shader.isProgramValid()) {
+			printf("Program Not Valid!\n");
+			exit(1);
+		}
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		popMatrix(MODEL);
+		objId++;
+	}
+
 	glutSwapBuffers();
 }
 
@@ -639,6 +708,18 @@ void init()
 		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
 		printf("Butter positions: %f", butterPos[i]);
 	}
+
+	for (int i = 0; i < 10; i++)
+	{
+		orangePos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
+		printf("Orange positions: %f", butterPos[i]);
+	}
+
+	/*for (int i = 0; i < 5; i++)
+	{
+		orangeAngle[i] = 45.0f;
+		printf("Orange angles: %f", orangeAngle[i]);
+	}*/
 	
 	float amb[]= {0.2f, 0.15f, 0.1f, 1.0f};
 	float diff[] = {0.43f, 0.25f, 0.12f, 1.0f};
@@ -747,8 +828,8 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
+	
 	for (int i = 0; i != 5; i++) {
-
 		// create butters
 		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
 		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
@@ -758,6 +839,49 @@ void init()
 		mesh[objId].mat.texCount = texcount;
 		createCone(2.5f,0.25f,20.0f);
 		objId++;
+	}
+
+	// orange materials
+	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_orange[] = { 0.99f, 0.54f, 0.13f, 1.0f };
+	float spec_orange[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_orange[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	for (int i = 0; i != 5; i++) {
+
+		// create oranges
+		memcpy(mesh[objId].mat.ambient, amb_orange, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff_orange, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec_orange, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive_orange, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createSphere(2.5f, 20);
+		objId+=2;
+	}
+
+	// stem materials
+	float amb_stem[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_stem[] = { 0.0f, 0.54f, 0.13f, 1.0f };
+	float spec_stem[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_stem[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	objId = 77; //alternate index with orange
+	for (int i = 0; i != 5; i++) {
+
+		// create stem
+		memcpy(mesh[objId].mat.ambient, amb_stem, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff_stem, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec_stem, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive_stem, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createCylinder(0.6f, 0.3f, 20);
+		objId+=2;
 	}
 
 	// some GL settings
