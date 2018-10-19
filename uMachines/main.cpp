@@ -36,7 +36,8 @@ int WinX = 640, WinY = 480;
 unsigned int FrameCount = 0;
 
 int cameraMode = 2;
-
+bool paused = false;
+bool shouldPause = false;
 // Check key presses.
 bool keystates[256];
 
@@ -105,72 +106,12 @@ void timer(int value)
     glutTimerFunc(1000, timer, 0);
 }
 
-void processKeys(int value) {
-	if (keystates['q']) { // Forward
-		carVeloc += carAccel * 1 / 60;
-		if (carVeloc > carMaxVeloc)
-			carVeloc = carMaxVeloc;
-		carPosX += cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-		carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-		lastKeyPress = 1;
-	}
-	else if (keystates['a']) { // Backward
-		carVeloc += carAccel * 1 / 60;
-		if (carVeloc > carMaxVeloc)
-			carVeloc = carMaxVeloc;
-		carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-		carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-		lastKeyPress = -1;
-	}
-	else if (carVeloc > 0) { // Braking
-		carVeloc -= carBrakeAccel * 1 / 60;
-		carPosX += lastKeyPress * cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-		carPosZ -= lastKeyPress * sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-	}
-	else if (carVeloc < 0) {
-		carVeloc = 0; // If it's negative, the car's brakes are going on overdrive. We don't want that.
-	}
-	if (keystates['o']) { // Left
-		carAngle += 2 * 3.14 / 200;
-	}
-	if (keystates['p']) { // Right
-		carAngle -= 2 * 3.14 / 200;
-	}
-	if (keystates[27]) {
-		glutLeaveMainLoop();
-	}
-	if (keystates['1']) {
-		cameraMode = 1;
-		loadIdentity(PROJECTION);
-		ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100, 100);
-		camX = 0.0f; camY = 10.0f; camZ = 0.001f; // FIXME Why can't z be 0?
-	}
-	if (keystates['2']) {
-		cameraMode = 2;
-		loadIdentity(PROJECTION);
-		perspective(53.13f, (1.0f * WinX)/WinY, 0.1f, 1000.0f);
-	}
-	if (keystates['3']) {
-		cameraMode = 3;
-		loadIdentity(PROJECTION);
-		perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
-	}
-	if (keystates['c']) {
-		printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
-	}
-	if (keystates['m']) {
-		glEnable(GL_MULTISAMPLE);
-	}
-	if (keystates['n']) {
-		glDisable(GL_MULTISAMPLE);
-	}
-	glutTimerFunc(1000 / 60, processKeys, 0);
-}
-
 void refresh(int value)
 {
-	glutPostRedisplay();
-	glutTimerFunc(1000/60, refresh, 0);
+	if (!paused) {
+		glutPostRedisplay();
+		glutTimerFunc(1000 / 60, refresh, 0);
+	}
 }
 
 // ------------------------------------------------------------
@@ -565,6 +506,81 @@ void registerKeys(unsigned char key, int xx, int yy)
 	keystates[key] = true;
 }
 
+void processKeys(int value) {
+	if (keystates['s']) {
+		shouldPause = true;
+	}
+	// FIXME Checks if S has been released. The problem here is that if you hold down S, it'll keep pausing and unpausing.
+	if (shouldPause && !keystates['s']) {
+		shouldPause = false;
+		paused = !paused;
+		if (!paused) {
+			glutTimerFunc(0, refresh, 0);
+		}
+	}
+	if (!paused) {
+		if (keystates['q']) { // Forward
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX += cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			lastKeyPress = 1;
+		}
+		else if (keystates['a']) { // Backward
+			carVeloc += carAccel * 1 / 60;
+			if (carVeloc > carMaxVeloc)
+				carVeloc = carMaxVeloc;
+			carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			lastKeyPress = -1;
+		}
+		else if (carVeloc > 0) { // Braking
+			carVeloc -= carBrakeAccel * 1 / 60;
+			carPosX += lastKeyPress * cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			carPosZ -= lastKeyPress * sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		}
+		else if (carVeloc < 0) {
+			carVeloc = 0; // If it's negative, the car's brakes are going on overdrive. We don't want that.
+		}
+		if (keystates['o']) { // Left
+			carAngle += 2 * 3.14 / 200;
+		}
+		if (keystates['p']) { // Right
+			carAngle -= 2 * 3.14 / 200;
+		}
+		if (keystates[27]) {
+			glutLeaveMainLoop();
+		}
+		if (keystates['1']) {
+			cameraMode = 1;
+			loadIdentity(PROJECTION);
+			ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100, 100);
+			camX = 0.0f; camY = 10.0f; camZ = 0.001f; // FIXME Why can't z be 0?
+		}
+		if (keystates['2']) {
+			cameraMode = 2;
+			loadIdentity(PROJECTION);
+			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+		}
+		if (keystates['3']) {
+			cameraMode = 3;
+			loadIdentity(PROJECTION);
+			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+		}
+		if (keystates['c']) {
+			printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
+		}
+		if (keystates['m']) {
+			glEnable(GL_MULTISAMPLE);
+		}
+		if (keystates['n']) {
+			glDisable(GL_MULTISAMPLE);
+		}
+	}
+	glutTimerFunc(1000 / 60, processKeys, 0);
+}
+
 
 // ------------------------------------------------------------
 //
@@ -706,7 +722,6 @@ void init()
 	for (int i = 0; i < 10; i++)
 	{
 		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-		printf("Butter positions: %f", butterPos[i]);
 	}
 
 	for (int i = 0; i < 10; i++)
@@ -740,8 +755,8 @@ void init()
 	objId++;
 
 	// cheerio materials
-	float amb_c[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_c[] = { 1.0f, 0.83f, 0.17f, 1.0f };
+	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
+	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
 	float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
@@ -761,7 +776,7 @@ void init()
 	}
 
 	// create cars
-	float amb_car[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
 	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -800,8 +815,8 @@ void init()
 	}
 
 	// butter materials
-	float amb_butt[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_butt[] = { 0.51f, 0.00f, 1.00f, 1.0f };
+	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
+	float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
 	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
