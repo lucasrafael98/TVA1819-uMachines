@@ -35,16 +35,21 @@ int WinX = 640, WinY = 480;
 
 unsigned int FrameCount = 0;
 
-// Check key presses
+// Check key presses.
 bool keystates[256];
 
+// Multiplier that will only be 1 or -1 (depending on whether Q or A was the last key press).
+int lastKeyPress = 0;
+
+// Car attributes.
 float carPosX = 0.0f;
 float carPosZ = 0.0f;
 float carAngle = 0.0f;
 float carVeloc = 0.0f;
 // Static because they're constant.
 static float carAccel = 5.0f;
-static float carMaxVeloc = 50.0f;
+static float carBrakeAccel = 20.0f;
+static float carMaxVeloc = 20.0f;
 
 float butterPos[10];
 
@@ -95,26 +100,36 @@ void timer(int value)
     glutTimerFunc(1000, timer, 0);
 }
 
-void keyOps(int value) {
+void processKeys(int value) {
 	if (keystates['q']) {
 		carVeloc += carAccel * 1 / 60;
 		if (carVeloc > carMaxVeloc)
 			carVeloc = carMaxVeloc;
 		carPosX += cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 		carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		lastKeyPress = 1;
 	}
-	if (keystates['a']) {
+	else if (keystates['a']) {
 		carVeloc += carAccel * 1 / 60;
 		if (carVeloc > carMaxVeloc)
 			carVeloc = carMaxVeloc;
 		carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 		carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		lastKeyPress = -1;
+	}
+	else if (carVeloc > 0) {
+		carVeloc -= carBrakeAccel * 1 / 60;
+		carPosX += lastKeyPress * cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		carPosZ -= lastKeyPress * sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+	}
+	else if (carVeloc < 0) {
+		carVeloc = 0; // If it's negative, the car's brakes are going on overdrive. We don't want that.
 	}
 	if (keystates['o']) {
-		carAngle += 2 * 3.14 / 60;
+		carAngle += 2 * 3.14 / 200;
 	}
 	if (keystates['p']) {
-		carAngle -= 2 * 3.14 / 60;
+		carAngle -= 2 * 3.14 / 200;
 	}
 	if (keystates[27]) {
 		glutLeaveMainLoop();
@@ -128,7 +143,7 @@ void keyOps(int value) {
 	if (keystates['n']) {
 		glDisable(GL_MULTISAMPLE);
 	}
-	glutTimerFunc(1000 / 60, keyOps, 0);
+	glutTimerFunc(1000 / 60, processKeys, 0);
 }
 
 void refresh(int value)
@@ -443,12 +458,12 @@ void renderScene(void) {
 // Events from the Keyboard
 //
 
-void processKeyUps(unsigned char key, int xx, int yy)
+void registerKeyUps(unsigned char key, int xx, int yy)
 {
 	keystates[key] = false;
 }
 
-void processKeys(unsigned char key, int xx, int yy)
+void registerKeys(unsigned char key, int xx, int yy)
 {
 	keystates[key] = true;
 }
@@ -750,11 +765,11 @@ int main(int argc, char **argv) {
 	glutTimerFunc(0, timer, 0);
 	//glutIdleFunc(renderScene);			// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
-	glutTimerFunc(0, keyOps, 0);
+	glutTimerFunc(0, processKeys, 0);
 
 //	Mouse and Keyboard Callbacks
-	glutKeyboardFunc(processKeys);
-	glutKeyboardUpFunc(processKeyUps);
+	glutKeyboardFunc(registerKeys);
+	glutKeyboardUpFunc(registerKeyUps);
 	glutMouseFunc(processMouseButtons);
 	glutMotionFunc(processMouseMotion);
 	glutMouseWheelFunc ( mouseWheel ) ;
