@@ -653,7 +653,6 @@ void init()
 	for (int i = 0; i < 10; i++)
 	{
 		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-		printf("Butter positions: %f", butterPos[i]);
 	}
 	
 	float amb[]= {0.2f, 0.15f, 0.1f, 1.0f};
@@ -675,8 +674,8 @@ void init()
 	objId++;
 
 	// cheerio materials
-	float amb_c[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_c[] = { 1.0f, 0.83f, 0.17f, 1.0f };
+	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
+	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
 	float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
@@ -696,7 +695,7 @@ void init()
 	}
 
 	// create cars
-	float amb_car[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
 	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -735,8 +734,8 @@ void init()
 	}
 
 	// butter materials
-	float amb_butt[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_butt[] = { 0.51f, 0.00f, 1.00f, 1.0f };
+	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
+	float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
 	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
