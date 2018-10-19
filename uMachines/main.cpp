@@ -47,7 +47,7 @@ float butterPos[10];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[71];
+struct MyMesh mesh[76];
 int objId=0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
@@ -79,6 +79,7 @@ float r = 10.0f;
 long myTime,timebase = 0,frame = 0;
 char s[32];
 float lightPos[4] = {4.0f, 6.0f, 2.0f, 0.0f};
+float lightPos2[4] = { 5.0f, 2.6f, -5.0f, 1.0f };
 
 void timer(int value)
 {
@@ -145,6 +146,12 @@ void renderScene(void) {
 	float res[4];
 	multMatrixPoint(VIEW, lightPos,res);   //lightPos defined in World Coords, therefore converted to eye space (?)
 	glUniform4fv(lPos_uniformId, 1, res);
+
+	//glUniform4fv(lPos_uniformId, 1, lightPos2); //efeito capacete do mineiro, ou seja lightPos2 foi definido em eye coord 
+
+	float res2[4];
+	multMatrixPoint(VIEW, lightPos2, res2);   //lightPos defined in World Coords, therefore converted to eye space (?)
+	glUniform4fv(lPos_uniformId, 1, res2);
 
 	objId = 0;
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -330,6 +337,41 @@ void renderScene(void) {
 		pushMatrix(MODEL);
 		translate(MODEL, butterPos[i], -0.25f, butterPos[i+1]);
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(mesh[objId].vao);
+
+		if (!shader.isProgramValid()) {
+			printf("Program Not Valid!\n");
+			exit(1);
+		}
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		objId++;
+	}
+
+	for (int i = 0; i != 5; i++)
+	{
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
+		pushMatrix(MODEL);
+		translate(MODEL, -i * 2.5f + 5.0f, -0.25f, -i + 5.0f);
+		scale(MODEL, 2.5f, 1.0f, 2.5f);
 
 		// send matrices to OGL
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -635,6 +677,27 @@ void init()
 		mesh[objId].mat.shininess = shininess;
 		mesh[objId].mat.texCount = texcount;
 		createCube();
+		objId++;
+	}
+
+	// light materials
+	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_amb_candle[] = { 1.00f, 0.00f, 0.00f, 1.0f };
+	float spec_amb_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_amb_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	for (int i = 0; i != 5; i++) {
+
+		// create butters
+		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.specular, spec_butt, 4 * sizeof(float));
+		memcpy(mesh[objId].mat.emissive, emissive_butt, 4 * sizeof(float));
+		mesh[objId].mat.shininess = shininess;
+		mesh[objId].mat.texCount = texcount;
+		createCone(2.5f,0.25f,20.0f);
 		objId++;
 	}
 
