@@ -53,9 +53,12 @@ bool cheerioCollision = false;
 // Multiplier that will only be 1 or -1 (depending on whether Q or A was the last key press).
 int lastKeyPress = 0;
 
+// true if the car collided with a cheerio/butter.
+bool hasToStop = false;
+
 // Car attributes.
-float carPosX = 0.0f;
-float carPosZ = 0.0f;
+float carPosX = 100.0f;
+float carPosZ = 100.0f;
 float carAngle = 0.0f;
 float carVeloc = 0.0f;
 // Static because they're constant.
@@ -64,7 +67,17 @@ static float carBrakeAccel = 20.0f;
 static float carMaxVeloc = 20.0f;
 
 float cheerioPos[120];
+float cheerioAccel[60];
+float cheerioDirection[60];
+float cheerioVeloc[60];
+float cheerioAngle[60];
+
 float butterPos[10];
+float butterAccel[60];
+float butterDirection[60];
+float butterVeloc[60];
+float butterAngle[60];
+
 float orangePos[10];
 float orangeAngle[10];
 float orangeVeloc[5];
@@ -251,7 +264,17 @@ void renderScene(void) {
 	glUniform1i(texMode_uniformId, 1);
 
 	// inner cheerio ring
+	// FIXME We uh... probably shouldn't leave position changes in the render function.
 	for (int i = 0; i != 20; i++) {
+		if (cheerioVeloc[objId - 1]) {
+			if (cheerioVeloc[objId - 1] * cheerioDirection[objId-1] < 0)
+				cheerioVeloc[objId - 1] = 0;
+			else {
+				cheerioVeloc[objId - 1] += cheerioAccel[objId - 1] / 60;
+				cheerioPos[(objId * 2) - 2] += cos(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+				cheerioPos[(objId * 2) - 1] -= sin(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+			}
+		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cheerioPos[(objId * 2) - 2], 0.0f, cheerioPos[(objId * 2) - 1]);
@@ -262,6 +285,15 @@ void renderScene(void) {
 
 	// outer cheerio ring
 	for (int i = 0; i != 40; i++) {
+		if (cheerioVeloc[objId - 1]) {
+			if (cheerioVeloc[objId - 1] * cheerioDirection[objId - 1] < 0)
+				cheerioVeloc[objId - 1] = 0;
+			else {
+				cheerioVeloc[objId - 1] += cheerioAccel[objId - 1] / 60;
+				cheerioPos[(objId * 2) - 2] += cos(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+				cheerioPos[(objId * 2) - 1] -= sin(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+			}
+		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cheerioPos[(objId * 2) - 2], 0.0f, cheerioPos[(objId * 2) - 1]);
@@ -303,6 +335,15 @@ void renderScene(void) {
 	// butters
 	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
+		if (butterVeloc[i / 2]) {
+			if (butterVeloc[i / 2] * butterDirection[i / 2] < 0)
+				butterVeloc[i / 2] = 0;
+			else {
+				butterVeloc[i / 2] += butterAccel[i / 2] / 60;
+				butterPos[i] += cos(butterAngle[i / 2]) * (butterVeloc[i / 2] * 1 / 60 + 0.5) * butterDirection[i / 2];
+				butterPos[i + 1] -= sin(butterAngle[i / 2]) * (butterVeloc[i / 2] * 1 / 60 + 0.5) * butterDirection[i / 2];
+			}
+		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, butterPos[i], -0.25f, butterPos[i+1]);
@@ -312,6 +353,8 @@ void renderScene(void) {
 		objId++;
 	}
 
+
+	// candles
 	for (int i = 0; i != 5; i++)
 	{
 		getMaterials();
@@ -402,60 +445,72 @@ float sphDistance(float x1, float x2, float y1, float y2, float z1, float z2) {
 
 void handleCollisions() {
 	if (cheerioCollision) {
+		hasToStop = true;
 		cheerioCollision = false;
 	}
 	if (butterCollision) {
+		hasToStop = true;
 		butterCollision = false;
 	}
-	if (orangeCollision) {
+	if (orangeCollision) { // If the car collides with an orange, its position is reset.
+		// FIXME Lose a life!
 		orangeCollision = false;
+		carPosX = 0;
+		carPosZ = 0;
+		carAngle = 0;
+		carVeloc = 0;
 	}
 }
 
 void checkCollisions(int value) {
-	for (int i = 0; i != 60; i++) {
-		if (pow(0.9f + 2.4f, 2) > sphDistance(cheerioPos[(i*2)], carPosX, 0.0f, 0.85f, cheerioPos[(i * 2) + 1], carPosZ)) {
-			cheerioCollision = true;
-			std::cout << "colliding with cheerio!" << std::endl;
+	if (!paused) {
+		for (int i = 0; i != 60; i++) {
+			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerioPos[(i * 2)], carPosX, 0.0f, 0.85f, cheerioPos[(i * 2) + 1], carPosZ)) {
+				cheerioCollision = true;
+				cheerioDirection[i] = lastKeyPress;
+				cheerioVeloc[i] = lastKeyPress * 0.00001f;
+				cheerioAccel[i] = lastKeyPress * -0.00075f;
+				cheerioAngle[i] = carAngle;
+			}
 		}
-	}
-	for (int i = 0; i != 5; i++) {
-		if (pow(2.5f + 2.4f, 2) > sphDistance(butterPos[(i * 2)]+2.5f, carPosX, 0.0f, 0.85f, butterPos[(i * 2) + 1]+1.25f, carPosZ)) {
-			butterCollision = true;
-			std::cout << "colliding with butter!" << std::endl;
+		for (int i = 0; i != 5; i++) {
+			if (pow(2.5f + 2.4f, 2) > sphDistance(butterPos[(i * 2)] + 2.5f, carPosX, 0.0f, 0.85f, butterPos[(i * 2) + 1] + 1.25f, carPosZ)) {
+				butterCollision = true;
+				butterDirection[i] = lastKeyPress;
+				butterVeloc[i] = lastKeyPress * 0.00001f;
+				butterAccel[i] = lastKeyPress * -0.0075f;
+				butterAngle[i] = carAngle;
+			}
 		}
-	}
-	for (int i = 0; i != 5; i++) {
-		if (pow(2.5f + 2.4f, 2) > sphDistance(orangePos[(i * 2)], carPosX, 0.0f, 0.85f, orangePos[(i * 2) + 1], carPosZ)) {
-			orangeCollision = true;
-			std::cout << "colliding with orange!" << std::endl;
+		for (int i = 0; i != 5; i++) {
+			if (pow(2.5f + 2.4f, 2) > sphDistance(orangePos[(i * 2)], carPosX, 0.0f, 0.85f, orangePos[(i * 2) + 1], carPosZ)) {
+				orangeCollision = true;
+			}
 		}
+		handleCollisions();
+		glutTimerFunc(1000 / 60, checkCollisions, 0);
 	}
-	if (!cheerioCollision && !butterCollision && !orangeCollision) {
-		std::cout << "not colliding!" << std::endl;
-	}
-	handleCollisions();
-	glutTimerFunc(1000 / 60, checkCollisions, 0);
 }
 
 void updateOranges(int value) {
+	if (!paused) {
+		for (int i = 0; i != 10; i += 2) {
+			if (orangePos[i] > 20.0f + 2.5f || orangePos[i] < -20.0f - 2.5f) { //2.5f radius from orange
+				calculateRespawnOrange(i);
+			}
+			else if (orangePos[i + 1] > 20.0f + 2.5f || orangePos[i + 1] < -20.0f - 2.5f) { //2.5f radius from orange
+				calculateRespawnOrange(i);
+			}
+			else {
+				orangePos[i] += cos(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60);
+				orangePos[i + 1] -= sin(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60);
+				orangeAngle[i + 1] += orangeVeloc[i / 2] / 2;
+			}
 
-	for (int i = 0; i != 10; i+=2) {
-		if (orangePos[i] > 20.0f +2.5f || orangePos[i] < -20.0f - 2.5f) { //2.5f radius from orange
-			calculateRespawnOrange(i);
 		}
-		else if (orangePos[i+1] > 20.0f + 2.5f || orangePos[i+1] < -20.0f - 2.5f) { //2.5f radius from orange
-			calculateRespawnOrange(i);
-		}
-		else {
-			orangePos[i] += cos(orangeAngle[i]) * (orangeVeloc[i/2] * 1 / 60);
-			orangePos[i+1] -= sin(orangeAngle[i]) * (orangeVeloc[i/2] * 1 / 60);
-			orangeAngle[i + 1] += orangeVeloc[i / 2] / 2;
-		}
-		
+
+		glutTimerFunc(1000 / 60, updateOranges, 0);
 	}
-
-	glutTimerFunc(1000 / 60, updateOranges, 0);
 }
 
 void processKeys(int value) {
@@ -468,10 +523,19 @@ void processKeys(int value) {
 		paused = !paused;
 		if (!paused) {
 			glutTimerFunc(0, refresh, 0);
+			glutTimerFunc(0, updateOranges, 0);
+			glutTimerFunc(0, checkCollisions, 0);
 		}
 	}
 	if (!paused) {
-		if (keystates['q']) { // Forward
+		if (keystates['q'] && hasToStop && lastKeyPress == 1) {
+			carVeloc = 0;
+		}
+		else if (keystates['q']) { // Forward
+			if (hasToStop) {
+				hasToStop = false;
+				carVeloc = 10;
+			}
 			carVeloc += carAccel * 1 / 60;
 			if (carVeloc > carMaxVeloc)
 				carVeloc = carMaxVeloc;
@@ -479,7 +543,14 @@ void processKeys(int value) {
 			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
 			lastKeyPress = 1;
 		}
+		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
+			carVeloc = 0;
+		}
 		else if (keystates['a']) { // Backward
+			if (hasToStop) {
+				hasToStop = false;
+				carVeloc = 1;
+			}
 			carVeloc += carAccel * 1 / 60;
 			if (carVeloc > carMaxVeloc)
 				carVeloc = carMaxVeloc;
