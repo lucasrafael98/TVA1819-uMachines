@@ -57,8 +57,8 @@ int lastKeyPress = 0;
 bool hasToStop = false;
 
 // Car attributes.
-float carPosX = 100.0f;
-float carPosZ = 100.0f;
+float carPosX = 0.0f;
+float carPosZ = 10.0f;
 float carAngle = 0.0f;
 float carVeloc = 0.0f;
 // Static because they're constant.
@@ -456,7 +456,7 @@ void handleCollisions() {
 		// FIXME Lose a life!
 		orangeCollision = false;
 		carPosX = 0;
-		carPosZ = 0;
+		carPosZ = 10;
 		carAngle = 0;
 		carVeloc = 0;
 	}
