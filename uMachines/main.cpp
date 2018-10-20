@@ -523,7 +523,7 @@ void calculateRespawnOrange(int index) {
 
 	float randomX = 0.0f;
 	float randomY = 0.0f;
-	float randomRotation = 0.0f; // para não ir em linha reta numa das extremidades forma melhor e' dividir em 8 quartos a tabela e/ou definir melhor os angulos e nao 0 a 180
+	float randomRotation = 0.0f;
 	if (randomEnd == 0) {
 		randomX = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 . 20 (width), divido por 3 pra sair mais do centro
 		randomY = -(40.0f / 2 + 2.5f) + 1; //top table, 2.5f do raio
@@ -537,12 +537,12 @@ void calculateRespawnOrange(int index) {
 	else if (randomEnd == 2) {
 		randomX = 40.0f / 2 + 2.5f - 1; //right table, 2.5f do raio
 		randomY = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 , 20 (height), divido por 3 pra sair mais do centro
-		randomRotation = DegToRad(120.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 120 , 180 em float
+		randomRotation = DegToRad(120.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 120 , 240 em float
 	}
 	else if (randomEnd == 3) {
 		randomX = -(40.0f / 2 + 2.5f) + 1; //left table, 2.5f do raio
 		randomY = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 , 20 (height), divido por 3 pra sair mais do centro
-		randomRotation = DegToRad(300.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 300 , 360 em float
+		randomRotation = DegToRad(300.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 300 , 420 em float
 	}
 
 	orangePos[index] = randomX;
