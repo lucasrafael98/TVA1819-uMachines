@@ -29,6 +29,7 @@
 #include "AVTmathLib.h"
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
+#include "TGA.h"
 
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
@@ -83,6 +84,10 @@ GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
 GLint lPos_uniformId;
+GLint tex_loc, tex_loc1;
+GLint texMode_uniformId;
+
+GLuint TextureArray[2];
 	
 // Camera Position
 float camX, camY, camZ;
@@ -189,6 +194,7 @@ void renderScene(void) {
 	multMatrixPoint(VIEW, lightPos2, res2);   //lightPos defined in World Coords, therefore converted to eye space (?)
 	glUniform4fv(lPos_uniformId, 1, res2);
 
+	// Render table
 	objId = 0;
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 	glUniform4fv(loc, 1, mesh[objId].mat.ambient);
@@ -202,14 +208,22 @@ void renderScene(void) {
 	translate(MODEL, -20.0f, -0.75f, -20.0f);
 	scale(MODEL, 40.0f, 0.5f, 40.0f);
 
-	// send matrices to OGL
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
 	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
 	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
 	computeNormalMatrix3x3();
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
-	// Render mesh
+	glUniform1i(texMode_uniformId, 0);
+	// checker.tga loaded in TU0; lightwood.tga loaded in TU1.
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[0]);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[1]);
+
+	glUniform1i(tex_loc, 0);
+	glUniform1i(tex_loc1, 1);
 	glBindVertexArray(mesh[objId].vao);
 
 	if (!shader.isProgramValid()) {
@@ -221,6 +235,10 @@ void renderScene(void) {
 
 	popMatrix(MODEL);
 	objId++;
+
+	// unbind textures and stop applying anything to colorOut
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
 
 	for (int i = 0; i != 20; i++) {
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -499,6 +517,7 @@ void renderScene(void) {
 		objId++;
 	}
 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glutSwapBuffers();
 }
 
@@ -759,14 +778,18 @@ GLuint setupShaders() {
 	glBindFragDataLocation(shader.getProgramIndex(), 0,"colorOut");
 	glBindAttribLocation(shader.getProgramIndex(), VERTEX_COORD_ATTRIB, "position");
 	glBindAttribLocation(shader.getProgramIndex(), NORMAL_ATTRIB, "normal");
+	glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 	//glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 
 	glLinkProgram(shader.getProgramIndex());
 
+	texMode_uniformId = glGetUniformLocation(shader.getProgramIndex(), "texMode");
 	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_pvm");
 	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_viewModel");
 	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_normal");
 	lPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "l_pos");
+	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
+	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
 	
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
 	
@@ -784,6 +807,12 @@ void init()
 	camX = r * sin(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
 	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
 	camY = r *   						     sin(beta * 3.14f / 180.0f);
+
+	char checker[] = "textures/checker.tga";
+	char lightwood[] = "textures/lightwood.tga";
+	glGenTextures(2, TextureArray);
+	TGA_Texture(TextureArray, checker, 0);
+	TGA_Texture(TextureArray, lightwood, 1);
 
 	srand(time(NULL));
 	for (int i = 0; i < 10; i++)
