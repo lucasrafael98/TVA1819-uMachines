@@ -156,7 +156,7 @@ void changeSize(int w, int h) {
 }
 
 
-void setMaterials() {
+void getMaterials() {
 	GLint loc;
 
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -221,7 +221,7 @@ void renderScene(void) {
 
 	// Render table
 	objId = 0;
-	setMaterials();
+	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, -20.0f, -0.75f, -20.0f);
 	scale(MODEL, 40.0f, 0.5f, 40.0f);
@@ -246,7 +246,7 @@ void renderScene(void) {
 	glUniform1i(texMode_uniformId, 1);
 
 	for (int i = 0; i != 20; i++) {
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cos(2* M_PI * i / 20) * 7.0f, 0.0f, sin(2*M_PI*i/20)*7.0f);
 		drawMesh();
@@ -255,7 +255,7 @@ void renderScene(void) {
 	}
 
 	for (int i = 0; i != 40; i++) {
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cos(2 * M_PI * i / 40) * 15.0f, 0.0f, sin(2 * M_PI*i / 40)*15.0f);
 		drawMesh();
@@ -263,7 +263,7 @@ void renderScene(void) {
 		objId++;
 	}
 
-	setMaterials();
+	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, carPosX, 0.15f, carPosZ);
 	rotate(MODEL, carAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
@@ -277,7 +277,7 @@ void renderScene(void) {
 	for (int x = -1; x <= 1; x+=2) {
 
 		for (int y = -1; y <= 1; y+=2) {
-			setMaterials();
+			getMaterials();
 			pushMatrix(MODEL);
 			translate(MODEL, x*1.0f + 1.5f, 0.10f, y*1.2f + 1.0f);
 			rotate(MODEL, 90.0f, 0.0f, 0.0f, 1.0f);
@@ -293,7 +293,7 @@ void renderScene(void) {
 
 	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, butterPos[i], -0.25f, butterPos[i+1]);
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
@@ -304,7 +304,7 @@ void renderScene(void) {
 
 	for (int i = 0; i != 5; i++)
 	{
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, -i * 2.5f + 5.0f, -0.25f, -i + 5.0f);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
@@ -315,7 +315,7 @@ void renderScene(void) {
 
 	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, orangePos[i], 1.75f, orangePos[i+1]);
 		rotate(MODEL, orangeAngle[i] * 180 / M_PI , 0.0f, 1.0f, 0.0f); //angulo do movimento
@@ -323,7 +323,7 @@ void renderScene(void) {
 		drawMesh();
 		objId++;
 
-		setMaterials();
+		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, 0.0f, 2.5f, 0.0f);
 		drawMesh();
@@ -611,6 +611,15 @@ GLuint setupShaders() {
 	return(shader.isProgramLinked());
 }
 
+void setMaterials(float* amb, float* diff, float* spec, float* emissive, float shininess, int texcount) {
+	memcpy(mesh[objId].mat.ambient, amb, 4 * sizeof(float));
+	memcpy(mesh[objId].mat.diffuse, diff, 4 * sizeof(float));
+	memcpy(mesh[objId].mat.specular, spec, 4 * sizeof(float));
+	memcpy(mesh[objId].mat.emissive, emissive, 4 * sizeof(float));
+	mesh[objId].mat.shininess = shininess;
+	mesh[objId].mat.texCount = texcount;
+}
+
 // ------------------------------------------------------------
 //
 // Model loading and OpenGL setup
@@ -658,16 +667,11 @@ void init()
 	float spec[] = {0.05f, 0.05f, 0.05f, 1.0f};
 	float emissive[] = {0.0f, 0.0f, 0.0f, 1.0f};
 	float shininess= 70.0f;
-	int texcount = 0;
+	int texcount = 2;
 
 	// create table
 	objId=0;
-	memcpy(mesh[objId].mat.ambient, amb,4*sizeof(float));
-	memcpy(mesh[objId].mat.diffuse, diff,4*sizeof(float));
-	memcpy(mesh[objId].mat.specular, spec,4*sizeof(float));
-	memcpy(mesh[objId].mat.emissive, emissive,4*sizeof(float));
-	mesh[objId].mat.shininess = shininess;
-	mesh[objId].mat.texCount = texcount;
+	setMaterials(amb, diff, spec, emissive, shininess, texcount);
 	createCube();
 	objId++;
 
@@ -682,12 +686,7 @@ void init()
 	for (int i = 0; i != 60; i++) {
 
 		// create cheerios
-		memcpy(mesh[objId].mat.ambient, amb_c, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_c, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_c, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_c, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
 		createTorus(0.5f, 1.0f, 14, 14);
 		objId++;
 	}
@@ -700,13 +699,8 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-	// create geometry and VAO of the pawn
-	memcpy(mesh[objId].mat.ambient, amb_car, 4 * sizeof(float));
-	memcpy(mesh[objId].mat.diffuse, diff_car, 4 * sizeof(float));
-	memcpy(mesh[objId].mat.specular, spec_car, 4 * sizeof(float));
-	memcpy(mesh[objId].mat.emissive, emissive_car, 4 * sizeof(float));
-	mesh[objId].mat.shininess = shininess;
-	mesh[objId].mat.texCount = texcount;
+	// create geometry and VAO of the car
+	setMaterials(amb_car, diff_car, spec_car, emissive_car, shininess, texcount);
 	createCube();
 	objId++;
 
@@ -721,12 +715,7 @@ void init()
 	for (int i = 0; i != 4; i++) {
 
 		// create wheels
-		memcpy(mesh[objId].mat.ambient, amb_wheel, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_wheel, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_wheel, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_wheel, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_wheel, diff_wheel, spec_wheel, emissive_wheel, shininess, texcount);
 		createTorus(0.2f, 0.7f, 14, 14);
 		objId++;
 	}
@@ -742,33 +731,23 @@ void init()
 	for (int i = 0; i != 5; i++) {
 
 		// create butters
-		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_butt, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_butt, diff_butt, spec_butt, emissive_butt, shininess, texcount);
 		createCube();
 		objId++;
 	}
 
 	// light materials
 	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_amb_candle[] = { 1.00f, 0.00f, 0.00f, 1.0f };
-	float spec_amb_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_amb_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float diff_candle[] = { 1.00f, 0.00f, 0.00f, 1.0f };
+	float spec_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
 	texcount = 0;
 
 	
 	for (int i = 0; i != 5; i++) {
 		// create butters
-		memcpy(mesh[objId].mat.ambient, amb_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_butt, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_butt, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
 		createCone(2.5f,0.25f,20.0f);
 		objId++;
 	}
@@ -784,12 +763,7 @@ void init()
 	for (int i = 0; i != 5; i++) {
 
 		// create oranges
-		memcpy(mesh[objId].mat.ambient, amb_orange, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_orange, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_orange, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_orange, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_orange, diff_orange, spec_orange, emissive_orange, shininess, texcount);
 		createSphere(2.5f, 20);
 		objId+=2;
 	}
@@ -805,13 +779,7 @@ void init()
 	objId = 77; //alternate index with orange
 	for (int i = 0; i != 5; i++) {
 
-		// create stem
-		memcpy(mesh[objId].mat.ambient, amb_stem, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.diffuse, diff_stem, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.specular, spec_stem, 4 * sizeof(float));
-		memcpy(mesh[objId].mat.emissive, emissive_stem, 4 * sizeof(float));
-		mesh[objId].mat.shininess = shininess;
-		mesh[objId].mat.texCount = texcount;
+		setMaterials(amb_stem, diff_stem, spec_stem, emissive_stem, shininess, texcount);
 		createCylinder(0.6f, 0.3f, 20);
 		objId+=2;
 	}
