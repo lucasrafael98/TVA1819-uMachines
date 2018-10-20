@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include <string>
+#include <ctime>
 
 // include GLEW to access OpenGL 3.3 functions
 #include <GL/glew.h>
@@ -28,6 +29,10 @@
 #include "AVTmathLib.h"
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
+
+#ifdef _WIN32
+#define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
+#endif
 
 #define CAPTION "AVT Per Fragment Phong Lightning Demo"
 int WindowHandle = 0;
@@ -56,7 +61,7 @@ static float carMaxVeloc = 20.0f;
 
 float butterPos[10];
 float orangePos[10];
-//float orangeAngle[5];
+float orangeAngle[10];
 float orangeVeloc[5];
 
 VSShaderLib shader;
@@ -94,6 +99,11 @@ long myTime,timebase = 0,frame = 0;
 char s[32];
 float lightPos[4] = {4.0f, 6.0f, 2.0f, 0.0f};
 float lightPos2[4] = { 5.0f, 2.6f, -5.0f, 1.0f };
+
+float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
+{
+	return (float)(degrees * (M_PI / 180.0f));
+};
 
 void timer(int value)
 {
@@ -352,7 +362,7 @@ void renderScene(void) {
 
 	popMatrix(MODEL);
 
-	for (int i = 0; i != 5; i++)
+	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
@@ -422,7 +432,7 @@ void renderScene(void) {
 		objId++;
 	}
 
-	for (int i = 0; i != 5; i++)
+	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
@@ -434,7 +444,8 @@ void renderScene(void) {
 		glUniform1f(loc, mesh[objId].mat.shininess);
 		pushMatrix(MODEL);
 		translate(MODEL, orangePos[i], 1.75f, orangePos[i+1]);
-		//rotate(MODEL, 45.0f, 0.0f, 0.0f, 1.0f);
+		rotate(MODEL, orangeAngle[i] * 180 / 3.14 , 0.0f, 1.0f, 0.0f); //angulo do movimento
+		rotate(MODEL, orangeAngle[i+1], 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
 
 		// send matrices to OGL
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -504,6 +515,61 @@ void registerKeyUps(unsigned char key, int xx, int yy)
 void registerKeys(unsigned char key, int xx, int yy)
 {
 	keystates[key] = true;
+}
+
+void calculateRespawnOrange(int index) {
+
+	int randomEnd = rand() % 4; //decidir qual é a nova extremidade da table para a laranja (up,down,right,left)
+
+	float randomX = 0.0f;
+	float randomY = 0.0f;
+	float randomRotation = 0.0f; // para não ir em linha reta numa das extremidades forma melhor e' dividir em 8 quartos a tabela e/ou definir melhor os angulos e nao 0 a 180
+	if (randomEnd == 0) {
+		randomX = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 . 20 (width), divido por 3 pra sair mais do centro
+		randomY = -(40.0f / 2 + 2.5f) + 1; //top table, 2.5f do raio
+		randomRotation = DegToRad(210.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 210 , 330 em float
+	}
+	else if (randomEnd == 1) {
+		randomX = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 . 20 (width), divido por 3 pra sair mais do centro
+		randomY = 40.0f / 2 + 2.5f - 1; //down table, 2.5f do raio
+		randomRotation = DegToRad(30.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 30 , 150 em float
+	}
+	else if (randomEnd == 2) {
+		randomX = 40.0f / 2 + 2.5f - 1; //right table, 2.5f do raio
+		randomY = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 , 20 (height), divido por 3 pra sair mais do centro
+		randomRotation = DegToRad(120.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 120 , 180 em float
+	}
+	else if (randomEnd == 3) {
+		randomX = -(40.0f / 2 + 2.5f) + 1; //left table, 2.5f do raio
+		randomY = (-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))) / 3.0; //intervalo entre -20 , 20 (height), divido por 3 pra sair mais do centro
+		randomRotation = DegToRad(300.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 300 , 360 em float
+	}
+
+	orangePos[index] = randomX;
+	orangePos[index + 1] = randomY;
+	orangeAngle[index] = randomRotation;
+	orangeAngle[index + 1] = 0.0f;
+	orangeVeloc[index / 2] += 1.0f; //aumenta a cada respawn
+}
+
+void updateOranges(int value) {
+
+	for (int i = 0; i != 10; i+=2) {
+		if (orangePos[i] > 20.0f +2.5f || orangePos[i] < -20.0f - 2.5f) { //2.5f radius from orange
+			calculateRespawnOrange(i);
+		}
+		else if (orangePos[i+1] > 20.0f + 2.5f || orangePos[i+1] < -20.0f - 2.5f) { //2.5f radius from orange
+			calculateRespawnOrange(i);
+		}
+		else {
+			orangePos[i] += cos(orangeAngle[i]) * (orangeVeloc[i/2] * 1 / 60);
+			orangePos[i+1] -= sin(orangeAngle[i]) * (orangeVeloc[i/2] * 1 / 60);
+			orangeAngle[i + 1] += orangeVeloc[i / 2] / 2;
+		}
+		
+	}
+
+	glutTimerFunc(1000 / 60, updateOranges, 0);
 }
 
 void processKeys(int value) {
@@ -719,22 +785,29 @@ void init()
 	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
 	camY = r *   						     sin(beta * 3.14f / 180.0f);
 
+	srand(time(NULL));
 	for (int i = 0; i < 10; i++)
 	{
 		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
+		printf("Butter positions: %f\n", butterPos[i]);
 	}
 
 	for (int i = 0; i < 10; i++)
 	{
 		orangePos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-		printf("Orange positions: %f", butterPos[i]);
+		printf("Orange positions: %f\n", orangePos[i]);
 	}
 
-	/*for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 10; i+=2)
 	{
-		orangeAngle[i] = 45.0f;
+		orangeAngle[i] = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f)));
 		printf("Orange angles: %f", orangeAngle[i]);
-	}*/
+	}
+
+	for (int i = 0; i < 5; i ++)
+	{
+		orangeVeloc[i] = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f)));
+	}
 	
 	float amb[]= {0.2f, 0.15f, 0.1f, 1.0f};
 	float diff[] = {0.43f, 0.25f, 0.12f, 1.0f};
@@ -937,6 +1010,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);			// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
+	glutTimerFunc(0, updateOranges, 0);
 
 //	Mouse and Keyboard Callbacks
 	glutKeyboardFunc(registerKeys);
