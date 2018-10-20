@@ -1,4 +1,4 @@
-//
+ï»¿//
 // AVT demo light 
 // based on demos from GLSL Core Tutorial in Lighthouse3D.com   
 //
@@ -84,8 +84,8 @@ float orangeVeloc[5];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[86]; //76 before oranges
-int objId=0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
+struct MyMesh mesh[87]; //76 before oranges
+int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
 //External array storage defined in AVTmathLib.cpp
@@ -100,12 +100,11 @@ extern float mNormal3x3[9];
 GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
-GLint lPos_uniformId;
 GLint tex_loc, tex_loc1;
 GLint texMode_uniformId;
 
 GLuint TextureArray[2];
-	
+
 // Camera Position
 float camX, camY, camZ;
 
@@ -117,10 +116,12 @@ float alpha = 39.0f, beta = 51.0f;
 float r = 10.0f;
 
 // Frame counting and FPS computation
-long myTime,timebase = 0,frame = 0;
+long myTime, timebase = 0, frame = 0;
 char s[32];
-float lightPos[4] = {4.0f, 6.0f, 2.0f, 0.0f};
-float lightPos2[4] = { 5.0f, 2.6f, -5.0f, 1.0f };
+float amb_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
+float color_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
+float lightPos[4] = { 4.0f, 6.0f, 2.0f, 0.0f };
+float vectorPointLightPos[6][4];
 
 float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 {
@@ -134,8 +135,8 @@ void timer(int value)
 	std::string s = oss.str();
 	glutSetWindow(WindowHandle);
 	glutSetWindowTitle(s.c_str());
-    FrameCount = 0;
-    glutTimerFunc(1000, timer, 0);
+	FrameCount = 0;
+	glutTimerFunc(1000, timer, 0);
 }
 
 void refresh(int value)
@@ -155,7 +156,7 @@ void changeSize(int w, int h) {
 
 	float ratio;
 	// Prevent a divide by zero, when window is too short
-	if(h == 0)
+	if (h == 0)
 		h = 1;
 	// set the viewport to be the entire window
 	glViewport(0, 0, w, h);
@@ -209,6 +210,8 @@ void drawMesh() {
 
 void renderScene(void) {
 
+	GLint loc;
+
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// load identity matrices
@@ -223,19 +226,113 @@ void renderScene(void) {
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
 
-	//send the light position in eye coordinates
-
-	//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lightPos foi definido em eye coord 
-
-	float res[4];
-	multMatrixPoint(VIEW, lightPos,res);   //lightPos defined in World Coords, therefore converted to eye space (?)
-	glUniform4fv(lPos_uniformId, 1, res);
-
-	//glUniform4fv(lPos_uniformId, 1, lightPos2); //efeito capacete do mineiro, ou seja lightPos2 foi definido em eye coord 
-
-	float res2[4];
-	multMatrixPoint(VIEW, lightPos2, res2);   //lightPos defined in World Coords, therefore converted to eye space (?)
-	glUniform4fv(lPos_uniformId, 1, res2);
+	for (int i = 0; i < 9; i++)
+	{
+		std::string target;
+		if (i == 0) {
+			target = "Lights[].isEnabled";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, false);
+			target = "Lights[].isLocal";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, false);
+			target = "Lights[].isSpot";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, false);
+			target = "Lights[].ambient";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, amb_lightPos);
+			target = "Lights[].color";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, color_lightPos);
+			target = "Lights[].position";
+			float res[4];
+			multMatrixPoint(VIEW, lightPos, res);
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, res);
+			target = "Lights[].halfVector";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, lightPos);
+		}
+		else if (i > 0 && i < 7) {
+			target = "Lights[].isEnabled";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, true);
+			target = "Lights[].isLocal";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, true);
+			target = "Lights[].isSpot";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, false);
+			target = "Lights[].ambient";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, amb_lightPos);
+			target = "Lights[].color";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, color_lightPos);
+			target = "Lights[].position";
+			float res1[4];
+			multMatrixPoint(VIEW, vectorPointLightPos[i - 1], res1);
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, res1);
+			target = "Lights[].constantAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 1.0f);
+			target = "Lights[].linearAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 0.2f);
+			target = "Lights[].quadraticAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 0.1f);
+		}
+		else {
+			target = "Lights[].isEnabled";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, false);
+			target = "Lights[].isLocal";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, true);
+			target = "Lights[].isSpot";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1i(loc, true);
+			target = "Lights[].ambient";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, amb_lightPos);
+			target = "Lights[].color";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, color_lightPos);
+			target = "Lights[].position";
+			float res2[4];
+			if (i == 7) {
+				float spotPos[4] = { carPosX - 4.5f, 0.15f, carPosZ - 3.0f };
+				multMatrixPoint(VIEW, spotPos, res2);
+			}
+			else {
+				float spotPos[4] = { carPosX + 4.5f, 0.15f, carPosZ - 3.0f };
+				multMatrixPoint(VIEW, spotPos, res2);
+			}
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, res2);
+			target = "Lights[].constantAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 1.0f);
+			target = "Lights[].linearAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 0.2f);
+			target = "Lights[].quadraticAttenuation";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 0.1f);
+			target = "Lights[].coneDirection";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform4fv(loc, 1, res2);
+			target = "Lights[].spotCosCutoff";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 70.0f);
+			target = "Lights[].spotExponent";
+			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
+			glUniform1f(loc, 100.0f);
+		}
+	}
 
 	// Render table
 	objId = 0;
@@ -267,7 +364,7 @@ void renderScene(void) {
 	// FIXME We uh... probably shouldn't leave position changes in the render function.
 	for (int i = 0; i != 20; i++) {
 		if (cheerioVeloc[objId - 1]) {
-			if (cheerioVeloc[objId - 1] * cheerioDirection[objId-1] < 0)
+			if (cheerioVeloc[objId - 1] * cheerioDirection[objId - 1] < 0)
 				cheerioVeloc[objId - 1] = 0;
 			else {
 				cheerioVeloc[objId - 1] += cheerioAccel[objId - 1] / 60;
@@ -315,9 +412,9 @@ void renderScene(void) {
 	objId++;
 
 	// car wheels
-	for (int x = -1; x <= 1; x+=2) {
+	for (int x = -1; x <= 1; x += 2) {
 
-		for (int y = -1; y <= 1; y+=2) {
+		for (int y = -1; y <= 1; y += 2) {
 			getMaterials();
 			pushMatrix(MODEL);
 			translate(MODEL, x*1.0f + 1.5f, 0.10f, y*1.2f + 1.0f);
@@ -333,7 +430,7 @@ void renderScene(void) {
 	popMatrix(MODEL);
 
 	// butters
-	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
+	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		if (butterVeloc[i / 2]) {
 			if (butterVeloc[i / 2] * butterDirection[i / 2] < 0)
@@ -346,7 +443,7 @@ void renderScene(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butterPos[i], -0.25f, butterPos[i+1]);
+		translate(MODEL, butterPos[i], -0.25f, butterPos[i + 1]);
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -355,24 +452,65 @@ void renderScene(void) {
 
 
 	// candles
-	for (int i = 0; i != 5; i++)
+	for (int i = 0; i != 6; i++)
 	{
-		getMaterials();
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
 		pushMatrix(MODEL);
-		translate(MODEL, -i * 2.5f + 5.0f, -0.25f, -i + 5.0f);
+		if (i == 0) {
+			translate(MODEL, 1.0f, 2.0f, 0.0f);
+		}
+		else if (i == 1) {
+			translate(MODEL, -15.0f, -0.25f, -15.0f);
+		}
+		else if (i == 2) {
+			translate(MODEL, -15.0f, -0.25f, 15.0f);
+		}
+		else if (i == 3) {
+			translate(MODEL, 15.0f, -0.25f, -15.0f);
+		}
+		else if (i == 4) {
+			translate(MODEL, 15.0f, -0.25f, 15.0f);
+		}
+		else if (i == 5) {
+			translate(MODEL, -1.0f, 2.0f, 0.0f);
+		}
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
-		drawMesh();
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(mesh[objId].vao);
+
+		if (!shader.isProgramValid()) {
+			printf("Program Not Valid!\n");
+			exit(1);
+		}
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
 		popMatrix(MODEL);
 		objId++;
 	}
 
-	for (int i = 0; i/2 != 5; i+=2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
+	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, orangePos[i], 2.5f, orangePos[i+1]);
-		rotate(MODEL, orangeAngle[i] * 180 / M_PI , 0.0f, 1.0f, 0.0f); //angulo do movimento
-		rotate(MODEL, orangeAngle[i+1], 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
+		translate(MODEL, orangePos[i], 2.5f, orangePos[i + 1]);
+		rotate(MODEL, orangeAngle[i] * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
+		rotate(MODEL, orangeAngle[i + 1], 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 		objId++;
 
@@ -406,7 +544,7 @@ void registerKeys(unsigned char key, int xx, int yy)
 
 void calculateRespawnOrange(int index) {
 
-	int randomEnd = rand() % 4; //decidir qual é a nova extremidade da table para a laranja (up,down,right,left)
+	int randomEnd = rand() % 4; //decidir qual ï¿½ a nova extremidade da table para a laranja (up,down,right,left)
 
 	float randomX = 0.0f;
 	float randomY = 0.0f;
@@ -680,8 +818,8 @@ void processMouseMotion(int xx, int yy)
 		camY = rAux * sin(betaAux * M_PI / 180.0f);
 
 	}
-//  uncomment this if not using an idle or refresh func
-//	glutPostRedisplay();
+	//  uncomment this if not using an idle or refresh func
+	//	glutPostRedisplay();
 }
 
 
@@ -693,10 +831,10 @@ void mouseWheel(int wheel, int direction, int x, int y) {
 
 	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camY = r *   						     sin(beta * M_PI / 180.0f);
+	camY = r * sin(beta * M_PI / 180.0f);
 
-//  uncomment this if not using an idle or refresh func
-//	glutPostRedisplay();
+	//  uncomment this if not using an idle or refresh func
+	//	glutPostRedisplay();
 }
 
 // --------------------------------------------------------
@@ -713,24 +851,23 @@ GLuint setupShaders() {
 	shader.loadShader(VSShaderLib::FRAGMENT_SHADER, "shaders/pointlight.frag");
 
 	// set semantics for the shader variables
-	glBindFragDataLocation(shader.getProgramIndex(), 0,"colorOut");
-	glBindAttribLocation(shader.getProgramIndex(), VERTEX_COORD_ATTRIB, "position");
-	glBindAttribLocation(shader.getProgramIndex(), NORMAL_ATTRIB, "normal");
+	glBindFragDataLocation(shader.getProgramIndex(), 0, "FragColor");
+	glBindAttribLocation(shader.getProgramIndex(), VERTEX_COORD_ATTRIB, "VertexPosition");
+	glBindAttribLocation(shader.getProgramIndex(), NORMAL_ATTRIB, "VertexNormal");
 	glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 	//glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 
 	glLinkProgram(shader.getProgramIndex());
 
 	texMode_uniformId = glGetUniformLocation(shader.getProgramIndex(), "texMode");
-	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_pvm");
-	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_viewModel");
-	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_normal");
-	lPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "l_pos");
+	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVPMatrix");
+	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVMatrix");
+	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "NormalMatrix");
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
 	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
-	
+
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
-	
+
 	return(shader.isProgramLinked());
 }
 
@@ -753,7 +890,47 @@ void init()
 	// set the camera position based on its spherical coordinates
 	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camY = r *   						     sin(beta * M_PI / 180.0f);
+	camY = r * sin(beta * M_PI / 180.0f);
+
+	for (int i = 0; i < 10; i++)
+	{
+		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
+	}
+
+	vectorPointLightPos[0][0] = -15.0f;
+	vectorPointLightPos[0][1] = 2.0f;
+	vectorPointLightPos[0][2] = 15.0f;
+	vectorPointLightPos[0][3] = 1.0f;
+
+	vectorPointLightPos[1][0] = 15.0f;
+	vectorPointLightPos[1][1] = 2.0f;
+	vectorPointLightPos[1][2] = -15.0f;
+	vectorPointLightPos[1][3] = 1.0f;
+
+	vectorPointLightPos[2][0] = 15.0f;
+	vectorPointLightPos[2][1] = 2.0f;
+	vectorPointLightPos[2][2] = 15.0f;
+	vectorPointLightPos[2][3] = 1.0f;
+
+	vectorPointLightPos[3][0] = 1.0f;
+	vectorPointLightPos[3][1] = 2.0f;
+	vectorPointLightPos[3][2] = 0.0f;
+	vectorPointLightPos[3][3] = 1.0f;
+
+	vectorPointLightPos[4][0] = -15.0f;
+	vectorPointLightPos[4][1] = 2.0f;
+	vectorPointLightPos[4][2] = -15.0f;
+	vectorPointLightPos[4][3] = 1.0f;
+
+	vectorPointLightPos[5][0] = -1.0f;
+	vectorPointLightPos[5][1] = 2.0f;
+	vectorPointLightPos[5][2] = 0.0f;
+	vectorPointLightPos[5][3] = 1.0f;
+
+	for (int i = 0; i < 6; i++)
+	{
+		printf("VECTOR: [%f, %f, %f, %f]\n", vectorPointLightPos[i][0], vectorPointLightPos[i][1], vectorPointLightPos[i][2], vectorPointLightPos[i][3]);
+	}
 
 	char checker[] = "textures/checker.tga";
 	char lightwood[] = "textures/lightwood.tga";
@@ -774,13 +951,13 @@ void init()
 		printf("Orange positions: %f\n", orangePos[i]);
 	}
 
-	for (int i = 0; i < 10; i+=2)
+	for (int i = 0; i < 10; i += 2)
 	{
 		orangeAngle[i] = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f)));
 		printf("Orange angles: %f", orangeAngle[i]);
 	}
 
-	for (int i = 0; i < 5; i ++)
+	for (int i = 0; i < 5; i++)
 	{
 		orangeVeloc[i] = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f)));
 	}
@@ -794,15 +971,15 @@ void init()
 		cheerioPos[(i * 2) + 1] = static_cast <float>(sin(2 * M_PI * i / 40) * 16.0f);
 	}
 
-	float amb[]= {0.2f, 0.15f, 0.1f, 1.0f};
-	float diff[] = {0.43f, 0.25f, 0.12f, 1.0f};
-	float spec[] = {0.05f, 0.05f, 0.05f, 1.0f};
-	float emissive[] = {0.0f, 0.0f, 0.0f, 1.0f};
-	float shininess= 70.0f;
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float shininess = 70.0f;
 	int texcount = 2;
 
 	// create table
-	objId=0;
+	objId = 0;
 	setMaterials(amb, diff, spec, emissive, shininess, texcount);
 	createCube();
 	objId++;
@@ -876,11 +1053,11 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-	
-	for (int i = 0; i != 5; i++) {
+
+	for (int i = 0; i != 6; i++) {
 		// create butters
 		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
-		createCone(2.5f,0.25f,20.0f);
+		createCone(2.5f, 0.25f, 20.0f);
 		objId++;
 	}
 
@@ -897,7 +1074,7 @@ void init()
 		// create oranges
 		setMaterials(amb_orange, diff_orange, spec_orange, emissive_orange, shininess, texcount);
 		createSphere(2.5f, 20);
-		objId+=2;
+		objId += 2;
 	}
 
 	// stem materials
@@ -908,12 +1085,12 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-	objId = 77; //alternate index with orange
+	objId = 78; //alternate index with orange
 	for (int i = 0; i != 5; i++) {
 
 		setMaterials(amb_stem, diff_stem, spec_stem, emissive_stem, shininess, texcount);
 		createCylinder(0.6f, 0.3f, 20);
-		objId+=2;
+		objId += 2;
 	}
 
 	// some GL settings
@@ -933,20 +1110,20 @@ void init()
 
 int main(int argc, char **argv) {
 
-//  GLUT initialization
+	//  GLUT initialization
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA|GLUT_MULTISAMPLE);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 
-	glutInitContextVersion (4, 3);
-	glutInitContextProfile (GLUT_CORE_PROFILE );
+	glutInitContextVersion(4, 3);
+	glutInitContextProfile(GLUT_CORE_PROFILE);
 	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
 
-	glutInitWindowPosition(100,100);
+	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WinX, WinY);
 	WindowHandle = glutCreateWindow(CAPTION);
 
 
-//  Callback Registration
+	//  Callback Registration
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 
@@ -957,26 +1134,26 @@ int main(int argc, char **argv) {
 	glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, checkCollisions, 0);
 
-//	Mouse and Keyboard Callbacks
+	//	Mouse and Keyboard Callbacks
 	glutKeyboardFunc(registerKeys);
 	glutKeyboardUpFunc(registerKeyUps);
 	glutMouseFunc(processMouseButtons);
 	glutMotionFunc(processMouseMotion);
-	glutMouseWheelFunc ( mouseWheel ) ;
-	
+	glutMouseWheelFunc(mouseWheel);
 
 
-//	return from main loop
+
+	//	return from main loop
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
-//	Init GLEW
+	//	Init GLEW
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	printf ("Vendor: %s\n", glGetString (GL_VENDOR));
-	printf ("Renderer: %s\n", glGetString (GL_RENDERER));
-	printf ("Version: %s\n", glGetString (GL_VERSION));
-	printf ("GLSL: %s\n", glGetString (GL_SHADING_LANGUAGE_VERSION));
+	printf("Vendor: %s\n", glGetString(GL_VENDOR));
+	printf("Renderer: %s\n", glGetString(GL_RENDERER));
+	printf("Version: %s\n", glGetString(GL_VERSION));
+	printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	if (!setupShaders())
 		return(1);
@@ -989,4 +1166,3 @@ int main(int argc, char **argv) {
 	return(0);
 
 }
-
