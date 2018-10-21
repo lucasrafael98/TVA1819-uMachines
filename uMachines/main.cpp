@@ -43,10 +43,12 @@ unsigned int FrameCount = 0;
 int cameraMode = 2;
 bool paused = false;
 bool shouldPause = false;
-bool enableDL = false;
+bool toggleDL = false;
 bool directionalLight = true;
-bool enablePL = false;
+bool togglePL = false;
 bool pointLight = true;
+bool toggleSL = false;
+bool spotLight = true;
 // Check key presses.
 bool keystates[256];
 
@@ -292,7 +294,7 @@ void renderScene(void) {
 		else {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false);
+			glUniform1i(loc, false); // replace with glUniform1i(loc, spotLight); when it works, please.
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, true);
@@ -741,18 +743,25 @@ void processKeys(int value) {
 		}
 		//if (keystates['n']) {glDisable(GL_MULTISAMPLE);}
 		if (keystates['n']) {
-			enableDL = true;
+			toggleDL = true;
 		}
-		if (enableDL && !keystates['n']) {
+		if (toggleDL && !keystates['n']) {
 			directionalLight = !directionalLight;
-			enableDL = false;
+			toggleDL = false;
 		}
 		if (keystates['c']) {
-			enablePL = true;
+			togglePL = true;
 		}
-		if (enablePL && !keystates['c']) {
+		if (togglePL && !keystates['c']) {
 			pointLight = !pointLight;
-			enablePL = false;
+			togglePL = false;
+		}
+		if (keystates['h']) {
+			toggleSL = true;
+		}
+		if (toggleSL && !keystates['h']) {
+			spotLight = !spotLight;
+			toggleSL = false;
 		}
 	}
 	glutTimerFunc(1000 / 60, processKeys, 0);
