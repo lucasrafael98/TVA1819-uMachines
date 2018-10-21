@@ -8,7 +8,7 @@ struct LightProperties {
 	vec4 color;
 	vec4 position;
 	vec3 halfVector;
-	vec3 coneDirection;
+	vec4 coneDirection;
 	float spotCosCutoff;
 	float spotExponent;
 	float constantAttenuation;
@@ -64,7 +64,7 @@ void main() {
 			//lightDirection = lightDirection / lightDistance;
 			attenuation = 1.0 /(Lights[light].constantAttenuation + Lights[light].linearAttenuation * lightDistance + Lights[light].quadraticAttenuation * lightDistance * lightDistance);
 			if (Lights[light].isSpot) {
-				spotCos = 69.0f;
+				float spotCos = dot(lightDirection / lightDistance, normalize(vec3(-Lights[light].coneDirection)));
 				if (spotCos < Lights[light].spotCosCutoff){
 					attenuation = 0.0;
 				}
@@ -91,8 +91,6 @@ void main() {
 		reflectedLight += Lights[light].color.rgb * mat.specular.rgb * specular * attenuation;
 	}
 
-	float intensity = max(dot(normalize(DataIn.Normal),normalize(vec3(DataIn.Position))), 0.0);
-	vec4 spec;
 	vec3 rgb = min(mat.emissive.rgb + scatteredLight + reflectedLight, vec3(1.0));
 	if(texMode == 0){ // Use textures for colorOut.
 		texel = texture(texmap, DataIn.tex_coord);  // texel from lighwood.tga

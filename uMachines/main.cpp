@@ -44,11 +44,11 @@ int cameraMode = 2;
 bool paused = false;
 bool shouldPause = false;
 bool toggleDL = false;
-bool directionalLight = true;
+bool directionalLight = false;
 bool togglePL = false;
-bool pointLight = true;
+bool pointLight = false;
 bool toggleSL = false;
-bool spotLight = true;
+bool spotLight = false;
 // Check key presses.
 bool keystates[256];
 
@@ -90,7 +90,7 @@ float orangeVeloc[5];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[87]; //76 before oranges
+struct MyMesh mesh[89]; //76 before oranges, 1 candles and headlights
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 
@@ -294,7 +294,7 @@ void renderScene(void) {
 		else {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false); // replace with glUniform1i(loc, spotLight); when it works, please.
+			glUniform1i(loc, spotLight); // replace with glUniform1i(loc, spotLight); when it works, please.
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, true);
@@ -310,11 +310,11 @@ void renderScene(void) {
 			target = "Lights[].position";
 			float res2[4];
 			if (i == 7) {
-				float spotPos[4] = { carPosX - 4.5f, 0.15f, carPosZ - 3.0f };
+				float spotPos[4] = { carPosX + 1.0f, 3.00f, carPosZ - 1.0f, 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			else {
-				float spotPos[4] = { carPosX + 4.5f, 0.15f, carPosZ - 3.0f };
+				float spotPos[4] = { carPosX + 1.0f, 3.00f, carPosZ + 1.0f, 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
@@ -330,13 +330,28 @@ void renderScene(void) {
 			glUniform1f(loc, 0.1f);
 			target = "Lights[].coneDirection";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, res2);
+			float spotCPos[4];
+			float res3[4];
+			if (i == 7) {
+				spotCPos[0] = carPosX + 1.0f - cos(-carAngle) * 90;
+				spotCPos[1] = 0.0f;
+				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * 90;
+				spotCPos[3] = 0.0f;
+			}
+			else {
+				spotCPos[0] = carPosX + 1.0f - cos(-carAngle) * 90;
+				spotCPos[1] = 0.0f;
+				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * 90;
+				spotCPos[3] = 0.0f;
+			}
+			multMatrixPoint(VIEW, spotCPos, res3);
+			glUniform4fv(loc, 1, res3);
 			target = "Lights[].spotCosCutoff";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 70.0f);
+			glUniform1f(loc, 0.8f);
 			target = "Lights[].spotExponent";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 100.0f);
+			glUniform1f(loc, 0.3f);
 		}
 	}
 
@@ -430,6 +445,19 @@ void renderScene(void) {
 			popMatrix(MODEL);
 			objId++;
 		}
+
+	}
+
+	// car headlights
+	for (int i = -1; i <= 1; i += 2) {
+
+		getMaterials();
+		pushMatrix(MODEL);
+		translate(MODEL, -0.25f, 0.5f, i*0.5f + 0.8);
+		scale(MODEL, 0.35f, 0.35f, 0.35f);
+		drawMesh();
+		popMatrix(MODEL);
+		objId++;
 
 	}
 
@@ -1054,6 +1082,22 @@ void init()
 		objId++;
 	}
 
+	// headlight materials
+	float amb_hl[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	float diff_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float spec_hl[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+	float emissive_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	shininess = 70.0f;
+	texcount = 0;
+
+	for (int i = 0; i != 2; i++) {
+
+		// create headlights
+		setMaterials(amb_hl, diff_hl, spec_hl, emissive_hl, shininess, texcount);
+		createCube();
+		objId++;
+	}
+
 	// butter materials
 	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
 	float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
@@ -1070,7 +1114,7 @@ void init()
 		objId++;
 	}
 
-	// light materials
+	// candles materials
 	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
 	float diff_candle[] = { 1.00f, 0.00f, 0.00f, 1.0f };
 	float spec_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
@@ -1080,7 +1124,7 @@ void init()
 
 
 	for (int i = 0; i != 6; i++) {
-		// create butters
+		// create candles
 		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
 		createCone(2.5f, 0.25f, 20.0f);
 		objId++;
@@ -1110,7 +1154,7 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-	objId = 78; //alternate index with orange
+	objId = 84; //alternate index with orange
 	for (int i = 0; i != 5; i++) {
 
 		setMaterials(amb_stem, diff_stem, spec_stem, emissive_stem, shininess, texcount);
