@@ -294,7 +294,7 @@ void renderScene(void) {
 		else {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, spotLight); // replace with glUniform1i(loc, spotLight); when it works, please.
+			glUniform1i(loc, spotLight); 
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, true);
@@ -310,11 +310,11 @@ void renderScene(void) {
 			target = "Lights[].position";
 			float res2[4];
 			if (i == 7) {
-				float spotPos[4] = { carPosX + 1.0f, 3.00f, carPosZ - 1.0f, 1.0f };
+				float spotPos[4] = { carPosX - 1.35f * sin(-carAngle + M_PI / 2) + 0.55f * sin(-carAngle), 0.95f, carPosZ - 0.62f * cos(-carAngle) + 1.3f * cos(-carAngle + M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			else {
-				float spotPos[4] = { carPosX + 1.0f, 3.00f, carPosZ + 1.0f, 1.0f };
+				float spotPos[4] = { carPosX - 1.35f * sin(-carAngle + M_PI / 2) - 0.55f * sin(-carAngle), 0.95f, carPosZ + 0.45f * cos(-carAngle) + 1.3f * cos(-carAngle + M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
@@ -486,56 +486,26 @@ void renderScene(void) {
 
 
 	// candles
-	for (int i = 0; i != 6; i++)
+
+	for (int x = -1; x < 2; x+=2)
 	{
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, mesh[objId].mat.ambient);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, mesh[objId].mat.specular);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, mesh[objId].mat.shininess);
+		getMaterials();
 		pushMatrix(MODEL);
-		if (i == 0) {
-			translate(MODEL, 1.0f, 2.0f, 0.0f);
-		}
-		else if (i == 1) {
-			translate(MODEL, -15.0f, -0.25f, -15.0f);
-		}
-		else if (i == 2) {
-			translate(MODEL, -15.0f, -0.25f, 15.0f);
-		}
-		else if (i == 3) {
-			translate(MODEL, 15.0f, -0.25f, -15.0f);
-		}
-		else if (i == 4) {
-			translate(MODEL, 15.0f, -0.25f, 15.0f);
-		}
-		else if (i == 5) {
-			translate(MODEL, -1.0f, 2.0f, 0.0f);
-		}
+		translate(MODEL, x, 2.0f, 0.0f);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
-
-		// send matrices to OGL
-		computeDerivedMatrix(PROJ_VIEW_MODEL);
-		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-		computeNormalMatrix3x3();
-		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
-
-		// Render mesh
-		glBindVertexArray(mesh[objId].vao);
-
-		if (!shader.isProgramValid()) {
-			printf("Program Not Valid!\n");
-			exit(1);
-		}
-		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-
+		drawMesh();
 		popMatrix(MODEL);
 		objId++;
+		for (int y = -1; y < 2 ; y+=2)
+		{
+			getMaterials();
+			pushMatrix(MODEL);
+			translate(MODEL, x*15.0f, 2.0f, y*15.0f);
+			scale(MODEL, 2.5f, 1.0f, 2.5f);
+			drawMesh();
+			popMatrix(MODEL);
+			objId++;
+		}
 	}
 
 	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
@@ -1087,7 +1057,7 @@ void init()
 	float diff_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float spec_hl[] = { 0.7f, 0.7f, 0.7f, 1.0f };
 	float emissive_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	shininess = 70.0f;
+	shininess = 800.0f;
 	texcount = 0;
 
 	for (int i = 0; i != 2; i++) {
@@ -1116,7 +1086,7 @@ void init()
 
 	// candles materials
 	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_candle[] = { 1.00f, 0.00f, 0.00f, 1.0f };
+	float diff_candle[] = { 1.00f, 1.00f, 1.00f, 1.0f };
 	float spec_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	shininess = 70.0f;
@@ -1126,7 +1096,7 @@ void init()
 	for (int i = 0; i != 6; i++) {
 		// create candles
 		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
-		createCone(2.5f, 0.25f, 20.0f);
+		createCylinder(2.5f, 0.25f, 20.0);
 		objId++;
 	}
 
