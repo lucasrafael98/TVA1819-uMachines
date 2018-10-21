@@ -90,8 +90,18 @@ float orangeVeloc[5];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[89]; //76 before oranges, 1 candles and headlights
+struct MyMesh mesh[9];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
+
+int tableMeshID;
+int cheerioMeshID;
+int carMeshID;
+int wheelMeshID;
+int headlightMeshID;
+int butterMeshID;
+int candleMeshID;
+int orangeMeshID;
+int stemMeshID;
 
 
 //External array storage defined in AVTmathLib.cpp
@@ -355,8 +365,9 @@ void renderScene(void) {
 		}
 	}
 
-	// Render table
-	objId = 0;
+	//table
+	objId = tableMeshID;
+
 	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, -20.0f, -0.75f, -20.0f);
@@ -375,52 +386,57 @@ void renderScene(void) {
 
 	drawMesh();
 	popMatrix(MODEL);
-	objId++;
+
+
 
 	// unbind textures and stop applying anything to colorOut
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUniform1i(texMode_uniformId, 1);
 
+	//cheerio
+	objId = cheerioMeshID;
+
 	// inner cheerio ring
 	// FIXME We uh... probably shouldn't leave position changes in the render function.
 	for (int i = 0; i != 20; i++) {
-		if (cheerioVeloc[objId - 1]) {
-			if (cheerioVeloc[objId - 1] * cheerioDirection[objId - 1] < 0)
-				cheerioVeloc[objId - 1] = 0;
+		if (cheerioVeloc[i]) {
+			if (cheerioVeloc[i] * cheerioDirection[i] < 0)
+				cheerioVeloc[i] = 0;
 			else {
-				cheerioVeloc[objId - 1] += cheerioAccel[objId - 1] / 60;
-				cheerioPos[(objId * 2) - 2] += cos(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
-				cheerioPos[(objId * 2) - 1] -= sin(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+				cheerioVeloc[i] += cheerioAccel[i] / 60;
+				cheerioPos[(i * 2)] += cos(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
+				cheerioPos[(i * 2)+1] -= sin(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
 			}
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerioPos[(objId * 2) - 2], 0.0f, cheerioPos[(objId * 2) - 1]);
+		translate(MODEL, cheerioPos[(i * 2)], 0.0f, cheerioPos[(i * 2)+1]);
 		drawMesh();
 		popMatrix(MODEL);
-		objId++;
 	}
 
 	// outer cheerio ring
-	for (int i = 0; i != 40; i++) {
-		if (cheerioVeloc[objId - 1]) {
-			if (cheerioVeloc[objId - 1] * cheerioDirection[objId - 1] < 0)
-				cheerioVeloc[objId - 1] = 0;
+	for (int i = 20; i != 60; i++) {
+		if (cheerioVeloc[i]) {
+			if (cheerioVeloc[i] * cheerioDirection[i] < 0)
+				cheerioVeloc[i] = 0;
 			else {
-				cheerioVeloc[objId - 1] += cheerioAccel[objId - 1] / 60;
-				cheerioPos[(objId * 2) - 2] += cos(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
-				cheerioPos[(objId * 2) - 1] -= sin(cheerioAngle[objId - 1]) * (cheerioVeloc[objId - 1] * 1 / 60 + 0.5) * cheerioDirection[objId - 1];
+				cheerioVeloc[i] += cheerioAccel[i] / 60;
+				cheerioPos[(i * 2)] += cos(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
+				cheerioPos[(i * 2)+1] -= sin(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
 			}
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerioPos[(objId * 2) - 2], 0.0f, cheerioPos[(objId * 2) - 1]);
+		translate(MODEL, cheerioPos[(i * 2)], 0.0f, cheerioPos[(i * 2)+1]);
 		drawMesh();
 		popMatrix(MODEL);
-		objId++;
 	}
 
+	
 	// car cube
+	objId = carMeshID;
+
 	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, carPosX, 0.15f, carPosZ);
@@ -430,9 +446,9 @@ void renderScene(void) {
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
 	drawMesh();
 	popMatrix(MODEL);
-	objId++;
-
+	
 	// car wheels
+	objId = wheelMeshID;
 	for (int x = -1; x <= 1; x += 2) {
 
 		for (int y = -1; y <= 1; y += 2) {
@@ -443,12 +459,12 @@ void renderScene(void) {
 			rotate(MODEL, 90.0f, 1.0f, 0.0f, 0.0f);
 			drawMesh();
 			popMatrix(MODEL);
-			objId++;
 		}
 
 	}
 
 	// car headlights
+	objId = headlightMeshID;
 	for (int i = -1; i <= 1; i += 2) {
 
 		getMaterials();
@@ -457,13 +473,12 @@ void renderScene(void) {
 		scale(MODEL, 0.35f, 0.35f, 0.35f);
 		drawMesh();
 		popMatrix(MODEL);
-		objId++;
-
 	}
 
 	popMatrix(MODEL);
 
 	// butters
+	objId = butterMeshID;
 	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		if (butterVeloc[i / 2]) {
@@ -481,11 +496,12 @@ void renderScene(void) {
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
-		objId++;
 	}
 
+	
 
 	// candles
+	objId = candleMeshID;
 
 	for (int x = -1; x < 2; x+=2)
 	{
@@ -495,7 +511,6 @@ void renderScene(void) {
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
-		objId++;
 		for (int y = -1; y < 2 ; y+=2)
 		{
 			getMaterials();
@@ -504,27 +519,29 @@ void renderScene(void) {
 			scale(MODEL, 2.5f, 1.0f, 2.5f);
 			drawMesh();
 			popMatrix(MODEL);
-			objId++;
 		}
 	}
 
+
+	//oranges
+
 	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
+		objId = orangeMeshID;
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, orangePos[i], 2.5f, orangePos[i + 1]);
 		rotate(MODEL, orangeAngle[i] * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
 		rotate(MODEL, orangeAngle[i + 1], 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
-		objId++;
 
+		objId = stemMeshID;
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, 0.0f, 2.5f, 0.0f);
 		drawMesh();
 		popMatrix(MODEL);
 		popMatrix(MODEL);
-		objId++;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -651,7 +668,7 @@ void updateOranges(int value) {
 
 		}
 
-		//glutTimerFunc(1000 / 60, updateOranges, 0);
+		glutTimerFunc(1000 / 60, updateOranges, 0);
 	}
 }
 
@@ -994,6 +1011,18 @@ void init()
 		cheerioPos[(i * 2) + 1] = static_cast <float>(sin(2 * M_PI * i / 40) * 16.0f);
 	}
 
+	/* vars de mesh
+	int tableMeshID;
+	int cheerioMeshID;
+	int carMeshID;
+	int wheelMeshID;
+	int headlightMeshID;
+	int butterMeshID;
+	int candleMeshID;
+	int orangeMeshID;
+	int stemMeshID;
+	*/
+
 	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
 	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
 	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
@@ -1003,8 +1032,10 @@ void init()
 
 	// create table
 	objId = 0;
+
 	setMaterials(amb, diff, spec, emissive, shininess, texcount);
 	createCube();
+	tableMeshID = objId;
 	objId++;
 
 	// cheerio materials
@@ -1020,8 +1051,9 @@ void init()
 		// create cheerios
 		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
 		createTorus(0.5f, 1.0f, 14, 14);
-		objId++;
 	}
+	cheerioMeshID = objId;
+	objId++;
 
 	// create car
 	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
@@ -1034,6 +1066,7 @@ void init()
 	// create geometry and VAO of the car
 	setMaterials(amb_car, diff_car, spec_car, emissive_car, shininess, texcount);
 	createCube();
+	carMeshID = objId;
 	objId++;
 
 	// wheels materials
@@ -1049,8 +1082,10 @@ void init()
 		// create wheels
 		setMaterials(amb_wheel, diff_wheel, spec_wheel, emissive_wheel, shininess, texcount);
 		createTorus(0.2f, 0.7f, 14, 14);
-		objId++;
+		
 	}
+	wheelMeshID = objId;
+	objId++;
 
 	// headlight materials
 	float amb_hl[] = { 0.1f, 0.1f, 0.1f, 1.0f };
@@ -1065,8 +1100,10 @@ void init()
 		// create headlights
 		setMaterials(amb_hl, diff_hl, spec_hl, emissive_hl, shininess, texcount);
 		createCube();
-		objId++;
+		
 	}
+	headlightMeshID = objId;
+	objId++;
 
 	// butter materials
 	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
@@ -1081,8 +1118,10 @@ void init()
 		// create butters
 		setMaterials(amb_butt, diff_butt, spec_butt, emissive_butt, shininess, texcount);
 		createCube();
-		objId++;
+		
 	}
+	butterMeshID = objId;
+	objId++;
 
 	// candles materials
 	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
@@ -1097,8 +1136,10 @@ void init()
 		// create candles
 		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
 		createCylinder(2.5f, 0.25f, 20.0);
-		objId++;
+		
 	}
+	candleMeshID = objId;
+	objId++;
 
 	// orange materials
 	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
@@ -1113,8 +1154,10 @@ void init()
 		// create oranges
 		setMaterials(amb_orange, diff_orange, spec_orange, emissive_orange, shininess, texcount);
 		createSphere(2.5f, 20);
-		objId += 2;
+		
 	}
+	orangeMeshID = objId;
+	objId++;
 
 	// stem materials
 	float amb_stem[] = { 0.2f, 0.18f, 0.05f, 1.0f };
@@ -1124,13 +1167,13 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-	objId = 84; //alternate index with orange
 	for (int i = 0; i != 5; i++) {
 
 		setMaterials(amb_stem, diff_stem, spec_stem, emissive_stem, shininess, texcount);
 		createCylinder(0.6f, 0.3f, 20);
-		objId += 2;
 	}
+	stemMeshID = objId;
+	objId++;
 
 	// some GL settings
 	glEnable(GL_DEPTH_TEST);
