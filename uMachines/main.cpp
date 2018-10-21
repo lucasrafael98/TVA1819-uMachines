@@ -43,6 +43,10 @@ unsigned int FrameCount = 0;
 int cameraMode = 2;
 bool paused = false;
 bool shouldPause = false;
+bool enableDL = false;
+bool directionalLight = true;
+bool enablePL = false;
+bool pointLight = true;
 // Check key presses.
 bool keystates[256];
 
@@ -232,7 +236,7 @@ void renderScene(void) {
 		if (i == 0) {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false);
+			glUniform1i(loc, directionalLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, false);
@@ -257,7 +261,7 @@ void renderScene(void) {
 		else if (i > 0 && i < 7) {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, true);
+			glUniform1i(loc, pointLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, true);
@@ -735,8 +739,20 @@ void processKeys(int value) {
 		if (keystates['m']) {
 			glEnable(GL_MULTISAMPLE);
 		}
+		//if (keystates['n']) {glDisable(GL_MULTISAMPLE);}
 		if (keystates['n']) {
-			glDisable(GL_MULTISAMPLE);
+			enableDL = true;
+		}
+		if (enableDL && !keystates['n']) {
+			directionalLight = !directionalLight;
+			enableDL = false;
+		}
+		if (keystates['c']) {
+			enablePL = true;
+		}
+		if (enablePL && !keystates['c']) {
+			pointLight = !pointLight;
+			enablePL = false;
 		}
 	}
 	glutTimerFunc(1000 / 60, processKeys, 0);
