@@ -310,11 +310,11 @@ void renderScene(void) {
 			target = "Lights[].position";
 			float res2[4];
 			if (i == 7) {
-				float spotPos[4] = { carPosX - 1.35f * sin(-carAngle + M_PI / 2) + 0.55f * sin(-carAngle), 0.95f, carPosZ - 0.62f * cos(-carAngle) + 1.3f * cos(-carAngle + M_PI / 2), 1.0f };
+				float spotPos[4] = { carPosX - 1.4f * sin(carAngle - M_PI / 2) - 0.55f * sin(carAngle), 0.95f, carPosZ - 0.62f * cos(carAngle) - 1.5f * cos(carAngle - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			else {
-				float spotPos[4] = { carPosX - 1.35f * sin(-carAngle + M_PI / 2) - 0.55f * sin(-carAngle), 0.95f, carPosZ + 0.45f * cos(-carAngle) + 1.3f * cos(-carAngle + M_PI / 2), 1.0f };
+				float spotPos[4] = { carPosX - 1.4f * sin(carAngle - M_PI / 2) + 0.55f * sin(carAngle), 0.95f, carPosZ + 0.45f * cos(carAngle) - 1.5f * cos(carAngle - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
@@ -333,15 +333,15 @@ void renderScene(void) {
 			float spotCPos[4];
 			float res3[4];
 			if (i == 7) {
-				spotCPos[0] = carPosX + 1.0f - cos(-carAngle) * 90;
+				spotCPos[0] = carPosX - 1.0f - cos(-carAngle) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * 90;
+				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			else {
-				spotCPos[0] = carPosX + 1.0f - cos(-carAngle) * 90;
+				spotCPos[0] = carPosX - 1.0f - cos(-carAngle) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * 90;
+				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			multMatrixPoint(VIEW, spotCPos, res3);
@@ -453,7 +453,7 @@ void renderScene(void) {
 
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, -0.25f, 0.5f, i*0.5f + 0.8);
+		translate(MODEL, 3.0f, 0.5f, i*0.5f + 0.8);
 		scale(MODEL, 0.35f, 0.35f, 0.35f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -651,7 +651,7 @@ void updateOranges(int value) {
 
 		}
 
-		glutTimerFunc(1000 / 60, updateOranges, 0);
+		//glutTimerFunc(1000 / 60, updateOranges, 0);
 	}
 }
 
