@@ -1,6 +1,8 @@
 #ifndef CAR_H
 #define CAR_H
 #include "GameElement.h"
+#include "Wheel.h"
+#include "Headlight.h"
 
 class Car: public GameElement {
     private:    
@@ -9,8 +11,13 @@ class Car: public GameElement {
         float _acceleration;
         float _brakeAcceleration;
         float _maxVelocity;
+		Wheel* _wheels[4];
+		Headlight* _headlights[2];
     public:
-        Car(int id,float x,float y,float z, float *ambient,float *diffuse,float *specular,float *emissive, float shininess, int texcount, float angle, float velocity, float acceleration, float brakeAcceleration, float maxVelocity);
+        Car(int id,float x,float y,float z, float *ambient,
+			float *diffuse,float *specular,float *emissive, 
+			float shininess, int texcount, float angle, float velocity, 
+			float acceleration, float brakeAcceleration, float maxVelocity);
 
         float getAngle() const {return _angle;}
         float getVelocity() const {return _velocity;}

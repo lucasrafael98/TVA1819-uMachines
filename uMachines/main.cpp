@@ -17,6 +17,15 @@
 #include <string>
 #include <ctime>
 
+// include gameElement classes
+#include "GameElement.h"
+#include "Car.h"
+#include "Cheerio.h"
+#include "Butter.h"
+#include "Orange.h"
+#include "Light.h"
+#include "Table.h"
+
 // include GLEW to access OpenGL 3.3 functions
 #include <GL/glew.h>
 
@@ -33,6 +42,12 @@
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 #endif
+
+#define N_BUTTERS 5
+#define N_CHEERIOS_INNER 20
+#define N_CHEERIOS_OUTER 40
+#define N_ORANGES 5
+#define N_CANDLES 6
 
 #define CAPTION "AVT Per Fragment Phong Lightning Demo"
 int WindowHandle = 0;
@@ -71,6 +86,14 @@ float carVeloc = 0.0f;
 static float carAccel = 5.0f;
 static float carBrakeAccel = 20.0f;
 static float carMaxVeloc = 20.0f;
+
+Table* table;
+Car* car;
+Butter* butters[N_BUTTERS];
+Orange* oranges[N_ORANGES];
+Cheerio* cheerios[N_CHEERIOS_INNER + N_CHEERIOS_OUTER];
+Light* lights[9];
+Candle* candles[N_CANDLES];
 
 float cheerioPos[120];
 float cheerioAccel[60];
@@ -993,6 +1016,30 @@ void init()
 		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
 	}
 
+	//POR ACABAR!!!!
+	lights[0] = new Light(0, false, false, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f }, 
+							{ 4.0f, 6.0f, 2.0f, 0.0f }, {0.0f,0.0f,0.0f,0.0f}, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+							0.0f,0.0f,0.0f,0.0f);
+	int i = 1;
+	for (int x = -1; x < 2; x += 2)
+	{
+		for (int z = -1; y < 2; z += 2)
+		{
+			lights[i] = new Light(i, false, true, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+				{ x*15.0f, 2.0f, z*15.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+				0.0f, 1.0f, 0.2f, 0.1f);
+			i++;
+		}
+	}
+
+	for (int i = 7; i < 9; i++)
+	{
+		lights[i] = new Light(i, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+			{ x*15.0f, 2.0f, z*15.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+			0.0f, 1.0f, 0.2f, 0.1f);
+		i++;
+	}
+
 	vectorPointLightPos[0][0] = -15.0f;
 	vectorPointLightPos[0][1] = 2.0f;
 	vectorPointLightPos[0][2] = 15.0f;
@@ -1082,45 +1129,68 @@ void init()
 	int hudMeshID;
 	*/
 
-	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
-	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
-	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	float shininess = 70.0f;
-	int texcount = 2;
+	//float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	//float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	//float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	//float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	//float shininess = 70.0f;
+	//int texcount = 2;
 
 	// create table
 	objId = 0;
 
+	table = new Table(objId, -20.0f, -0.75f, -20.0f, { 0.2f, 0.15f, 0.1f, 1.0f },
+						{ 0.43f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+						{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 2);
 	setMaterials(amb, diff, spec, emissive, shininess, texcount);
 	createCube();
 	tableMeshID = objId;
 	objId++;
 
 	// cheerio materials
-	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
-	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
-	float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
+	//float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
+	//float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
+	//float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	//float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	//shininess = 70.0f;
+	//texcount = 0;
 
-	for (int i = 0; i != 60; i++) {
+	//Table(int id, float x, float y, float z, float *ambient,
+//	float *diffuse, float *specular, float *emissive,
+//	float shininess, int texcount);
+
+	for (int i = 0; i != N_CHEERIOS_INNER; i++) {
 
 		// create cheerios
+		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f), 
+								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f)
+								{ 0.2f, 0.15f, 0.1f, 1.0f }, { 0.43f, 0.25f, 0.12f, 1.0f }, 
+								{ 0.05f, 0.05f, 0.05f, 1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
+		createTorus(0.5f, 1.0f, 14, 14);
+	}
+	for (int i = N_CHEERIOS_INNER; i != N_CHEERIOS_OUTER + N_CHEERIOS_INNER; i++) {
+
+		// create cheerios
+		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f),
+					0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f)
+					{0.2f, 0.15f, 0.1f, 1.0f}, { 0.43f, 0.25f, 0.12f, 1.0f },
+					{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
 		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
 		createTorus(0.5f, 1.0f, 14, 14);
 	}
 	cheerioMeshID = objId;
 	objId++;
 
-	// create car
-	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
-	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
-	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
+	//float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
+	//float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
+	//float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	//float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	//shininess = 70.0f;
+	//texcount = 0;
+	car = new Car(objId, 0.0f, 0.3f, 10.0f, { 0.2f, 0.02f, 0.0f, 1.0f },
+				{ 1.0f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f }, 
+				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
 
 	// create geometry and VAO of the car
 	setMaterials(amb_car, diff_car, spec_car, emissive_car, shininess, texcount);
@@ -1175,6 +1245,10 @@ void init()
 	for (int i = 0; i != 5; i++) {
 
 		// create butters
+		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))f),
+									0.0f, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))))
+									{ 0.22f, 0.15f, 0.00f, 1.0f }, { 1.0f, 0.80f, 0.00f, 1.0f },
+									{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
 		setMaterials(amb_butt, diff_butt, spec_butt, emissive_butt, shininess, texcount);
 		createCube();
 		
@@ -1190,13 +1264,26 @@ void init()
 	shininess = 70.0f;
 	texcount = 0;
 
-
-	for (int i = 0; i != 6; i++) {
-		// create candles
+	int i = 0;
+	for (int x = -1; x < 2; x += 2)
+	{
+		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
+			{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
 		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
 		createCylinder(2.5f, 0.25f, 20.0);
-		
+		i++;
+		for (int z = -1; y < 2; z += 2)
+		{
+			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
+				{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
+			setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
+			createCylinder(2.5f, 0.25f, 20.0);
+			i++;
+		}
 	}
+
 	candleMeshID = objId;
 	objId++;
 
