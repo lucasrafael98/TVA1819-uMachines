@@ -250,23 +250,7 @@ void drawMesh() {
 // Render stufff
 //
 
-void renderScene(void) {
-
-	GLint loc;
-
-	FrameCount++;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// load identity matrices
-	loadIdentity(VIEW);
-	loadIdentity(MODEL);
-	if (cameraMode == 3) {
-		lookAt(carPosX - cos(-carAngle) * 10, 5, carPosZ - sin(-carAngle) * 10, carPosX, 0, carPosZ, 0, 1, 0);
-	}
-	else {
-		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
-	}
-	// use our shader
-	glUseProgram(shader.getProgramIndex());
+void renderLights(void) {
 
 	for (int i = 0; i < 9; i++)
 	{
@@ -277,24 +261,24 @@ void renderScene(void) {
 			glUniform1i(loc, directionalLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false);
+			glUniform1i(loc, lights[0]->getIslocal());
 			target = "Lights[].isSpot";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false);
+			glUniform1i(loc, lights[0]->getIsspot());
 			target = "Lights[].ambient";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, amb_lightPos);
+			glUniform4fv(loc, 1, lights[0]->getAmbient());
 			target = "Lights[].color";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, color_lightPos);
+			glUniform4fv(loc, 1, lights[0]->getColor());
 			target = "Lights[].position";
 			float res[4];
-			multMatrixPoint(VIEW, lightPos, res);
+			multMatrixPoint(VIEW, lights[0]->getPosition(), res);
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform4fv(loc, 1, res);
 			target = "Lights[].halfVector";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, lightPos);
+			glUniform4fv(loc, 1, lights[0]->getPosition());
 		}
 		else if (i > 0 && i < 7) {
 			target = "Lights[].isEnabled";
@@ -330,7 +314,7 @@ void renderScene(void) {
 		else {
 			target = "Lights[].isEnabled";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, spotLight); 
+			glUniform1i(loc, spotLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform1i(loc, true);
@@ -390,6 +374,27 @@ void renderScene(void) {
 			glUniform1f(loc, 0.3f);
 		}
 	}
+}
+
+void renderScene(void) {
+
+	GLint loc;
+
+	FrameCount++;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// load identity matrices
+	loadIdentity(VIEW);
+	loadIdentity(MODEL);
+	if (cameraMode == 3) {
+		lookAt(carPosX - cos(-carAngle) * 10, 5, carPosZ - sin(-carAngle) * 10, carPosX, 0, carPosZ, 0, 1, 0);
+	}
+	else {
+		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+	}
+	// use our shader
+	glUseProgram(shader.getProgramIndex());
+
+	renderLights();
 
 	//table
 	objId = tableMeshID;
@@ -729,17 +734,17 @@ void checkCollisions(int value) {
 
 void updateOranges(int value) {
 	if (!paused) {
-		for (int i = 0; i != 10; i += 2) {
-			if (orangePos[i] > 20.0f + 2.5f || orangePos[i] < -20.0f - 2.5f) { //2.5f radius from orange
+		for (int i = 0; i != 5; i ++) {
+			if (oranges[i]->getX() > 20.0f + 2.5f || oranges[i]->getX() < -20.0f - 2.5f) { //2.5f radius from orange
 				calculateRespawnOrange(i);
 			}
-			else if (orangePos[i + 1] > 20.0f + 2.5f || orangePos[i + 1] < -20.0f - 2.5f) { //2.5f radius from orange
+			else if (oranges[i]->getZ() > 20.0f + 2.5f || oranges[i]->getZ() < -20.0f - 2.5f) { //2.5f radius from orange
 				calculateRespawnOrange(i);
 			}
 			else {
-				orangePos[i] += cos(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60);
-				orangePos[i + 1] -= sin(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60);
-				orangeAngle[i + 1] += orangeVeloc[i / 2] / 2;
+				oranges[i]->setX(oranges[i]->getX() + cos(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60));
+				oranges[i]->setZ(oranges[i]->getZ() - sin(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60));
+				oranges[i]->setAngleZ(oranges[i]->getAngleZ() + oranges[i]->getVelocity() / 2);
 			}
 
 		}
@@ -797,8 +802,10 @@ void processKeys(int value) {
 		}
 		else if (car->getVelocity() > 0) { // Braking
 			car->setVelocity(car->getVelocity() - car->getBrakeAcceleration() * 1 / 60);
-			carPosX += lastKeyPress * cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
-			carPosZ -= lastKeyPress * sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
+			car->setX(car->getX() + lastKeyPress * cos(car->getAngle())
+					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car->setZ(car->getZ() - lastKeyPress * sin(car->getAngle()) * (car->getVelocity()
+					* 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 		}
 		else if (car->getVelocity() < 0) {
 			car->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
@@ -973,7 +980,6 @@ GLuint setupShaders() {
 	glBindAttribLocation(shader.getProgramIndex(), VERTEX_COORD_ATTRIB, "VertexPosition");
 	glBindAttribLocation(shader.getProgramIndex(), NORMAL_ATTRIB, "VertexNormal");
 	glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
-	//glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 
 	glLinkProgram(shader.getProgramIndex());
 
