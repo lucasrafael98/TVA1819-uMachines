@@ -10,6 +10,10 @@ Orange::Orange(int id, float x, float y, float z, float *ambient,
 	_angleX = angleX;
 	_angleZ = angleZ;
 	_velocity = velocity;
+	_stem = new Stem(id + 1, 0.0f, 2.5f, 0.0f,
+		{ 0.2f, 0.18f, 0.05f, 1.0f }, { 0.0f, 0.54f, 0.13f, 1.0f },
+		{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f },
+		70.0f, 0);
 }
 
 

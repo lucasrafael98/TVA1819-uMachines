@@ -23,7 +23,9 @@ class Car: public GameElement {
         float getVelocity() const {return _velocity;}
         float getAcceleration() const {return _acceleration;}
         float getBrakeAcceleration() const {return _brakeAcceleration;}
-        float getMaxvelocity() const {return _maxVelocity;}
+        float getMaxVelocity() const {return _maxVelocity;}
+		Wheel* getWheel(int i) const { return _wheels[i]; }
+		Headlight* getHeadlight(int i) const { return _headlights[i]; }
 
         void setAngle (float angle) { _angle = angle;}
         void setVelocity (float velocity) { _velocity = velocity;}

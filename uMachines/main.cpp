@@ -654,11 +654,12 @@ void calculateRespawnOrange(int index) {
 		randomRotation = DegToRad(300.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (120.0f))));//intervalo entre 300 , 420 em float
 	}
 
-	orangePos[index] = randomX;
-	orangePos[index + 1] = randomY;
-	orangeAngle[index] = randomRotation;
-	orangeAngle[index + 1] = 0.0f;
-	orangeVeloc[index / 2] += 1.0f; //aumenta a cada respawn
+	oranges[index]->setX(randomX);
+	oranges[index]->setX(randomX);
+	oranges[index]->setAngleX(randomRotation);
+	oranges[index]->setAngleZ(0.0f);
+	// FIXME original orangeVeloc[index / 2] += 1.0f; why idx / 2?
+	oranges[index]->setVelocity(oranges[index]->getVelocity() + 1.0f);
 }
 
 float sphDistance(float x1, float x2, float y1, float y2, float z1, float z2) {
@@ -685,10 +686,10 @@ void handleCollisions() {
 			life[numberLives] = false; // depois da subtração pq indices é de 0 a 2, enquanto numberLives é de 1 a 3
 
 			orangeCollision = false;
-			carPosX = 0;
-			carPosZ = 10;
-			carAngle = 0;
-			carVeloc = 0;
+			car->setX(0);
+			car->setX(10);
+			car->setAngle(0);
+			car->setVelocity(0);
 		}
 	}
 }
@@ -696,25 +697,28 @@ void handleCollisions() {
 void checkCollisions(int value) {
 	if (!paused) {
 		for (int i = 0; i != 60; i++) {
-			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerioPos[(i * 2)], carPosX, 0.0f, 0.85f, cheerioPos[(i * 2) + 1], carPosZ)) {
+			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car->getX(), 0.0f,
+													0.85f, cheerios[i]->getZ(), car->getZ()) {
 				cheerioCollision = true;
-				cheerioDirection[i] = lastKeyPress;
-				cheerioVeloc[i] = lastKeyPress * 0.00001f;
-				cheerioAccel[i] = lastKeyPress * -0.00075f;
-				cheerioAngle[i] = carAngle;
+				cheerios[i]->setDirection(lastKeyPress);
+				cheerios[i]->setVelocity(lastKeyPress * 0.00001f);
+				cheerios[i]->setAcceleration(lastKeyPress * -0.00075f);
+				cheerios[i]->setAngle(carAngle);
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(butterPos[(i * 2)] + 2.5f, carPosX, 0.0f, 0.85f, butterPos[(i * 2) + 1] + 1.25f, carPosZ)) {
+			if (pow(2.5f + 2.4f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
+													0.85f, butters[i]->getZ() + 1.25f, car->getZ())) {
 				butterCollision = true;
-				butterDirection[i] = lastKeyPress;
-				butterVeloc[i] = lastKeyPress * 0.00001f;
-				butterAccel[i] = lastKeyPress * -0.0075f;
-				butterAngle[i] = carAngle;
+				butters[i]->setDirection(lastKeyPress);
+				butters[i]->setVelocity(lastKeyPress * 0.00001f);
+				butters[i]->setAcceleration(lastKeyPress * -0.0075f);
+				butters[i]->setAngle(carAngle);
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(orangePos[(i * 2)], carPosX, 0.0f, 0.85f, orangePos[(i * 2) + 1], carPosZ)) {
+			if (pow(2.5f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
+													0.85f, butter[i]->getZ(), car->getZ())) {
 				orangeCollision = true;
 			}
 		}
@@ -760,48 +764,50 @@ void processKeys(int value) {
 	}
 	if (!paused) {
 		if (keystates['q'] && hasToStop && lastKeyPress == 1) {
-			carVeloc = 0;
+			car->setVelocity(0);
 		}
 		else if (keystates['q']) { // Forward
 			if (hasToStop) {
 				hasToStop = false;
-				carVeloc = 10;
+				car->setVelocity(10);
 			}
-			carVeloc += carAccel * 1 / 60;
-			if (carVeloc > carMaxVeloc)
-				carVeloc = carMaxVeloc;
-			carPosX += cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			carPosZ -= sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
+			if (car->getVelocity() > car->getMaxVelocity())
+				car->setVelocity(car->getMaxVelocity());
+			carPosX += cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
+			carPosZ -= sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
 			lastKeyPress = 1;
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
-			carVeloc = 0;
+			car->setVelocity(0);
 		}
 		else if (keystates['a']) { // Backward
 			if (hasToStop) {
 				hasToStop = false;
-				carVeloc = 1;
+				car->setVelocity(1);
 			}
-			carVeloc += carAccel * 1 / 60;
-			if (carVeloc > carMaxVeloc)
-				carVeloc = carMaxVeloc;
-			carPosX -= cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			carPosZ += sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
+			if (car->getVelocity() > car->getMaxVelocity())
+				car->setVelocity(car->getMaxVelocity());
+			car->setX(car->getX - cos(car->getAngle()) 
+					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car->setZ( car->getZ() + sin(car->getAngle()) 
+					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = -1;
 		}
-		else if (carVeloc > 0) { // Braking
-			carVeloc -= carBrakeAccel * 1 / 60;
-			carPosX += lastKeyPress * cos(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
-			carPosZ -= lastKeyPress * sin(carAngle) * (carVeloc * 1 / 60 + 0.5 * carAccel * 1 / 60);
+		else if (car->getVelocity() > 0) { // Braking
+			car->setVelocity(car->getVelocity() - car->getBrakeAcceleration() * 1 / 60);
+			carPosX += lastKeyPress * cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
+			carPosZ -= lastKeyPress * sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
 		}
-		else if (carVeloc < 0) {
-			carVeloc = 0; // If it's negative, the car's brakes are going on overdrive. We don't want that.
+		else if (car->getVelocity() < 0) {
+			car->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
 		}
 		if (keystates['o']) { // Left
-			carAngle += 2 * M_PI / 200;
+			car->setAngle(car->getAngle() + 2 * M_PI / 200);
 		}
 		if (keystates['p']) { // Right
-			carAngle -= 2 * M_PI / 200;
+			car->setAngle(car->getAngle() - 2 * M_PI / 200);
 		}
 		if (keystates[27]) {
 			glutLeaveMainLoop();
@@ -993,36 +999,17 @@ void setMaterials(float* amb, float* diff, float* spec, float* emissive, float s
 	mesh[objId].mat.texCount = texcount;
 }
 
-// ------------------------------------------------------------
-//
-// Model loading and OpenGL setup
-//
-
-void init()
-{
-	// set the camera position based on its spherical coordinates
-	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camY = r * sin(beta * M_PI / 180.0f);
-
-	numberLives = 0;
-	for (int i = 0;i < 3; i++) {
-		life[i] = true;
-		numberLives++;
-	}
-
-	for (int i = 0; i < 10; i++)
-	{
-		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-	}
-
-	//POR ACABAR!!!!
-	lights[0] = new Light(0, false, false, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f }, 
-							{ 4.0f, 6.0f, 2.0f, 0.0f }, {0.0f,0.0f,0.0f,0.0f}, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
-							0.0f,0.0f,0.0f,0.0f);
+void createLights(void) {
+	lights[0] = new Light(0, false, false, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+		{ 4.0f, 6.0f, 2.0f, 0.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f);
 	int i = 1;
 	for (int x = -1; x < 2; x += 2)
 	{
+		lights[i] = new Light(i, false, true, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+			{ x*1.0f, 2.0f, 0.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+			0.0f, 1.0f, 0.2f, 0.1f);
+		i++;
 		for (int z = -1; y < 2; z += 2)
 		{
 			lights[i] = new Light(i, false, true, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
@@ -1032,47 +1019,186 @@ void init()
 		}
 	}
 
-	for (int i = 7; i < 9; i++)
-	{
-		lights[i] = new Light(i, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-			{ x*15.0f, 2.0f, z*15.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
-			0.0f, 1.0f, 0.2f, 0.1f);
-		i++;
+	lights[7] = new Light(7, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+		{ carPosX - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()), 0.95f,
+		carPosZ - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f },
+		{ 0.0f,0.0f,0.0f,0.0f },
+		{ carPosX - 1.0f - cos(-car->getAngle()) * (-90),0.0f, carPosZ + 1.0f - sin(-car->getAngle()) * (-90),0.0f },
+		0.0f,
+		0.0f, 1.0f, 0.2f, 0.1f);
+
+	lights[8] = new Light(8, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
+		{ carPosX - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()), 0.95f,
+		carPosZ + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f },
+		{ 0.0f,0.0f,0.0f,0.0f },
+		{ carPosX - 1.0f - cos(-car->getAngle()) * (-90),0.0f, carPosZ + 1.0f - sin(-car->getAngle()) * (-90),0.0f },
+		0.8f,
+		0.3f, 1.0f, 0.2f, 0.1f);
+}
+
+// ------------------------------------------------------------
+//
+// Model loading and OpenGL setup
+//
+
+void createTable(void) {
+	table = new Table(objId, -20.0f, -0.75f, -20.0f, { 0.2f, 0.15f, 0.1f, 1.0f },
+					{ 0.43f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+					{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 2);
+	setMaterials(table->ambient, table->diffuse, table->specular, 
+				table->emissive, table->shininess, table->texcount);
+	createCube();
+	tableMeshID = objId;
+	objId++;
+}
+
+void createCheerios(void) {
+		for (int i = 0; i != N_CHEERIOS_INNER; i++) {
+
+		// create cheerios
+		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f), 
+								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f)
+								{ 0.2f, 0.15f, 0.1f, 1.0f }, { 0.43f, 0.25f, 0.12f, 1.0f }, 
+								{ 0.05f, 0.05f, 0.05f, 1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(cheerios[i]->ambient, cheerios[i]->diffuse, cheerios[i]->specular,
+					cheerios[i]->emissive, cheerios[i]->shininess, cheerios[i]->texcount);
+		createTorus(0.5f, 1.0f, 14, 14);
 	}
+	for (int i = N_CHEERIOS_INNER; i != N_CHEERIOS_OUTER + N_CHEERIOS_INNER; i++) {
 
-	vectorPointLightPos[0][0] = -15.0f;
-	vectorPointLightPos[0][1] = 2.0f;
-	vectorPointLightPos[0][2] = 15.0f;
-	vectorPointLightPos[0][3] = 1.0f;
+		// create cheerios
+		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f),
+					0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f)
+					{0.2f, 0.15f, 0.1f, 1.0f}, { 0.43f, 0.25f, 0.12f, 1.0f },
+					{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(cheerios[i]->ambient, cheerios[i]->diffuse, cheerios[i]->specular,
+					cheerios[i]->emissive, cheerios[i]->shininess, cheerios[i]->texcount);
+		createTorus(0.5f, 1.0f, 14, 14);
+	}
+	cheerioMeshID = objId;
+	objId++;
+}
 
-	vectorPointLightPos[1][0] = 15.0f;
-	vectorPointLightPos[1][1] = 2.0f;
-	vectorPointLightPos[1][2] = -15.0f;
-	vectorPointLightPos[1][3] = 1.0f;
+void createCar(void){
+	car = new Car(objId, 0.0f, 0.3f, 10.0f, { 0.2f, 0.02f, 0.0f, 1.0f },
+				{ 1.0f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f }, 
+				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
 
-	vectorPointLightPos[2][0] = 15.0f;
-	vectorPointLightPos[2][1] = 2.0f;
-	vectorPointLightPos[2][2] = 15.0f;
-	vectorPointLightPos[2][3] = 1.0f;
+	// create geometry and VAO of the car
+	setMaterials(car->ambient, car->diffuse, car->specular,
+				car->emissive, car->shininess, car->texcount);
+	createCube();
+	carMeshID = objId;
+	objId++;
 
-	vectorPointLightPos[3][0] = 1.0f;
-	vectorPointLightPos[3][1] = 2.0f;
-	vectorPointLightPos[3][2] = 0.0f;
-	vectorPointLightPos[3][3] = 1.0f;
 
-	vectorPointLightPos[4][0] = -15.0f;
-	vectorPointLightPos[4][1] = 2.0f;
-	vectorPointLightPos[4][2] = -15.0f;
-	vectorPointLightPos[4][3] = 1.0f;
+	for (int i = 0; i != 4; i++) {
 
-	vectorPointLightPos[5][0] = -1.0f;
-	vectorPointLightPos[5][1] = 2.0f;
-	vectorPointLightPos[5][2] = 0.0f;
-	vectorPointLightPos[5][3] = 1.0f;
+		// create wheels
+		setMaterials(car->getWheel(i)->ambient, car->getWheel(i)->diffuse, car->getWheel(i)->specular,
+					car->getWheel(i)->emissive, car->getWheel(i)->shininess, car->getWheel(i)->texcount);
+		createTorus(0.2f, 0.7f, 14, 14);
+		
+	}
+	wheelMeshID = objId;
+	objId++;
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i != 2; i++) {
+
+		// create headlights
+		setMaterials(car->getHeadlight(i)->ambient, car->getHeadlight(i)->diffuse, car->getHeadlight(i)->specular,
+					car->getHeadlight(i)->emissive, car->getHeadlight(i)->shininess, car->getHeadlight(i)->texcount);
+		createCube();
+		
+	}
+	headlightMeshID = objId;
+	objId++;
+}
+
+void createButters(void) {
+		for (int i = 0; i != 5; i++) {
+
+		// create butters
+		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))f),
+									0.0f, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))))
+									{ 0.22f, 0.15f, 0.00f, 1.0f }, { 1.0f, 0.80f, 0.00f, 1.0f },
+									{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(butters[i]->ambient, butters[i]->diffuse, butters[i]->specular,
+					butters[i]->emissive, butters[i]->shininess, butters[i]->texcount);
+		createCube();
+		
+	}
+	butterMeshID = objId;
+	objId++;
+}
+
+void createCandles(void) {
+	int i = 0;
+	for (int x = -1; x < 2; x += 2)
 	{
-		printf("VECTOR: [%f, %f, %f, %f]\n", vectorPointLightPos[i][0], vectorPointLightPos[i][1], vectorPointLightPos[i][2], vectorPointLightPos[i][3]);
+		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
+			{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
+		setMaterials(candles[i]->ambient, candles[i]->diffuse, candles[i]->specular,
+					candles[i]->emissive, candles[i]->shininess, candles[i]->texcount);
+		createCylinder(2.5f, 0.25f, 20.0);
+		i++;
+		for (int z = -1; y < 2; z += 2)
+		{
+			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
+				{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
+			setMaterials(candles[i]->ambient, candles[i]->diffuse, candles[i]->specular,
+						candles[i]->emissive, candles[i]->shininess, candles[i]->texcount);
+			createCylinder(2.5f, 0.25f, 20.0);
+			i++;
+		}
+	}
+}
+
+void createOranges(void) {
+	for (int i = 0; i != 5; i++) {
+
+		// create oranges
+		oranges[i] = new Orange(objId,
+			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))), 2.5f,
+			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
+			{ 0.2f, 0.18f, 0.05f, 1.0f }, { 0.99f, 0.54f, 0.13f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
+			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0,
+			static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f))),
+			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))));
+		setMaterials(oranges[i]->ambient, oranges[i]->diffuse, oranges[i]->specular,
+					oranges[i]->emissive, oranges[i]->shininess, oranges[i]->texcount);
+		createSphere(2.5f, 20);
+
+	}
+	orangeMeshID = objId;
+	objId++;
+
+	for (int i = 0; i != 5; i++) {
+
+		setMaterials(oranges[i]->getStem()->ambient, oranges[i]->getStem()->diffuse,
+					oranges[i]->getStem()->specular, oranges[i]->getStem()->emissive,
+					oranges[i]->getStem()->shininess, oranges[i]->getStem()->texcount);
+		createCylinder(0.6f, 0.3f, 20);
+	}
+	stemMeshID = objId;
+	objId++;
+}
+
+void init()
+{
+	// set the camera position based on its spherical coordinates
+	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
+	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
+	camY = r * sin(beta * M_PI / 180.0f);
+
+	createLights();
+
+	numberLives = 0;
+	for (int i = 0;i < 3; i++) {
+		life[i] = true;
+		numberLives++;
 	}
 
 	char checker[] = "textures/checker.tga";
@@ -1084,244 +1210,20 @@ void init()
 	TGA_Texture(TextureArray, life, 2);
 
 	srand(time(NULL));
-	for (int i = 0; i < 10; i++)
-	{
-		butterPos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-		printf("Butter positions: %f\n", butterPos[i]);
-	}
 
-	for (int i = 0; i < 10; i++)
-	{
-		orangePos[i] = -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)));
-		printf("Orange positions: %f\n", orangePos[i]);
-	}
-
-	for (int i = 0; i < 10; i += 2)
-	{
-		orangeAngle[i] = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f)));
-		printf("Orange angles: %f", orangeAngle[i]);
-	}
-
-	for (int i = 0; i < 5; i++)
-	{
-		orangeVeloc[i] = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f)));
-	}
-
-	for (int i = 0; i != 20; i++) {
-		cheerioPos[(i * 2)] = static_cast <float>(cos(2 * M_PI * i / 20) * 6.5f);
-		cheerioPos[(i * 2) + 1] = static_cast <float>(sin(2 * M_PI * i / 20) * 6.5f);
-	}
-	for (int i = 20; i != 60; i++) {
-		cheerioPos[(i * 2)] = static_cast <float>(cos(2 * M_PI * i / 40) * 16.0f);
-		cheerioPos[(i * 2) + 1] = static_cast <float>(sin(2 * M_PI * i / 40) * 16.0f);
-	}
-
-	/* vars de mesh
-	int tableMeshID;
-	int cheerioMeshID;
-	int carMeshID;
-	int wheelMeshID;
-	int headlightMeshID;
-	int butterMeshID;
-	int candleMeshID;
-	int orangeMeshID;
-	int stemMeshID;
-	int hudMeshID;
-	*/
-
-	//float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
-	//float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
-	//float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	//float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	//float shininess = 70.0f;
-	//int texcount = 2;
-
-	// create table
 	objId = 0;
-
-	table = new Table(objId, -20.0f, -0.75f, -20.0f, { 0.2f, 0.15f, 0.1f, 1.0f },
-						{ 0.43f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-						{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 2);
-	setMaterials(amb, diff, spec, emissive, shininess, texcount);
-	createCube();
-	tableMeshID = objId;
-	objId++;
-
-	// cheerio materials
-	//float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
-	//float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
-	//float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	//float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	//shininess = 70.0f;
-	//texcount = 0;
-
-	//Table(int id, float x, float y, float z, float *ambient,
-//	float *diffuse, float *specular, float *emissive,
-//	float shininess, int texcount);
-
-	for (int i = 0; i != N_CHEERIOS_INNER; i++) {
-
-		// create cheerios
-		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f), 
-								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f)
-								{ 0.2f, 0.15f, 0.1f, 1.0f }, { 0.43f, 0.25f, 0.12f, 1.0f }, 
-								{ 0.05f, 0.05f, 0.05f, 1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
-		createTorus(0.5f, 1.0f, 14, 14);
-	}
-	for (int i = N_CHEERIOS_INNER; i != N_CHEERIOS_OUTER + N_CHEERIOS_INNER; i++) {
-
-		// create cheerios
-		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f),
-					0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f)
-					{0.2f, 0.15f, 0.1f, 1.0f}, { 0.43f, 0.25f, 0.12f, 1.0f },
-					{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(amb_c, diff_c, spec_c, emissive_c, shininess, texcount);
-		createTorus(0.5f, 1.0f, 14, 14);
-	}
-	cheerioMeshID = objId;
-	objId++;
-
-	//float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
-	//float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
-	//float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	//float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	//shininess = 70.0f;
-	//texcount = 0;
-	car = new Car(objId, 0.0f, 0.3f, 10.0f, { 0.2f, 0.02f, 0.0f, 1.0f },
-				{ 1.0f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f }, 
-				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
-
-	// create geometry and VAO of the car
-	setMaterials(amb_car, diff_car, spec_car, emissive_car, shininess, texcount);
-	createCube();
-	carMeshID = objId;
-	objId++;
-
-	// wheels materials
-	float amb_wheel[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-	float diff_wheel[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	float spec_wheel[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_wheel[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 4; i++) {
-
-		// create wheels
-		setMaterials(amb_wheel, diff_wheel, spec_wheel, emissive_wheel, shininess, texcount);
-		createTorus(0.2f, 0.7f, 14, 14);
-		
-	}
-	wheelMeshID = objId;
-	objId++;
-
-	// headlight materials
-	float amb_hl[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-	float diff_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float spec_hl[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-	float emissive_hl[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	shininess = 800.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 2; i++) {
-
-		// create headlights
-		setMaterials(amb_hl, diff_hl, spec_hl, emissive_hl, shininess, texcount);
-		createCube();
-		
-	}
-	headlightMeshID = objId;
-	objId++;
-
-	// butter materials
-	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
-	float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
-	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 5; i++) {
-
-		// create butters
-		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))f),
-									0.0f, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))))
-									{ 0.22f, 0.15f, 0.00f, 1.0f }, { 1.0f, 0.80f, 0.00f, 1.0f },
-									{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(amb_butt, diff_butt, spec_butt, emissive_butt, shininess, texcount);
-		createCube();
-		
-	}
-	butterMeshID = objId;
-	objId++;
-
-	// candles materials
-	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_candle[] = { 1.00f, 1.00f, 1.00f, 1.0f };
-	float spec_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	int i = 0;
-	for (int x = -1; x < 2; x += 2)
-	{
-		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
-			{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
-		setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
-		createCylinder(2.5f, 0.25f, 20.0);
-		i++;
-		for (int z = -1; y < 2; z += 2)
-		{
-			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
-				{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
-			setMaterials(amb_candle, diff_candle, spec_candle, emissive_candle, shininess, texcount);
-			createCylinder(2.5f, 0.25f, 20.0);
-			i++;
-		}
-	}
+	createTable();
+	createCheerios();
+	createCar();
+	createButters();
+	createCandles();
+	createOrange();
 
 	candleMeshID = objId;
 	objId++;
 
-	// orange materials
-	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_orange[] = { 0.99f, 0.54f, 0.13f, 1.0f };
-	float spec_orange[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_orange[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 5; i++) {
-
-		// create oranges
-		setMaterials(amb_orange, diff_orange, spec_orange, emissive_orange, shininess, texcount);
-		createSphere(2.5f, 20);
-		
-	}
-	orangeMeshID = objId;
-	objId++;
-
-	// stem materials
-	float amb_stem[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_stem[] = { 0.0f, 0.54f, 0.13f, 1.0f };
-	float spec_stem[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_stem[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 70.0f;
-	texcount = 0;
-
-	for (int i = 0; i != 5; i++) {
-
-		setMaterials(amb_stem, diff_stem, spec_stem, emissive_stem, shininess, texcount);
-		createCylinder(0.6f, 0.3f, 20);
-	}
-	stemMeshID = objId;
-	objId++;
-
 	// hud materials
+	// FIXME Refactor after you're done
 	float amb_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	float diff_hud[] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	float spec_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
