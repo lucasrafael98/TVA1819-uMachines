@@ -27,6 +27,7 @@ struct Materials {
 
 uniform sampler2D texmap;
 uniform sampler2D texmap1;
+uniform sampler2D texmap2;
 
 uniform int texMode;
 
@@ -96,6 +97,13 @@ void main() {
 		texel = texture(texmap, DataIn.tex_coord);  // texel from lighwood.tga
 		texel1 = texture(texmap1, DataIn.tex_coord);  // texel from checker.tga
 		FragColor = vec4(rgb, mat.diffuse.a)* texel * texel1;
+	}
+	else if(texMode == 2){
+		
+		texel = texture(texmap2, DataIn.tex_coord);
+
+		FragColor = vec4(texel.rgb, 1.0 - texel.g);
+
 	}
 	else{
 		FragColor = vec4(rgb,mat.diffuse.a);
