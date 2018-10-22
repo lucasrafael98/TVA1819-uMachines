@@ -90,7 +90,7 @@ float orangeVeloc[5];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[9];
+struct MyMesh mesh[10];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -102,6 +102,7 @@ int butterMeshID;
 int candleMeshID;
 int orangeMeshID;
 int stemMeshID;
+int hudMeshID;
 
 
 //External array storage defined in AVTmathLib.cpp
@@ -116,10 +117,10 @@ extern float mNormal3x3[9];
 GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
-GLint tex_loc, tex_loc1;
+GLint tex_loc, tex_loc1, tex_loc2;
 GLint texMode_uniformId;
 
-GLuint TextureArray[2];
+GLuint TextureArray[3];
 
 // Camera Position
 float camX, camY, camZ;
@@ -138,6 +139,8 @@ float amb_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
 float color_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
 float lightPos[4] = { 4.0f, 6.0f, 2.0f, 0.0f };
 float vectorPointLightPos[6][4];
+bool life[3];
+int numberLives;
 
 float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 {
@@ -544,7 +547,44 @@ void renderScene(void) {
 		popMatrix(MODEL);
 	}
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//hud
+
+	pushMatrix(PROJECTION);
+	loadIdentity(PROJECTION);
+	glOrtho(0, WinX, 0, WinY, -1, 1);
+
+	loadIdentity(VIEW);
+	loadIdentity(MODEL);
+
+	objId = hudMeshID;
+
+	for (int i = 0; i < 3; i++) {
+		if (!life[i]) continue;
+
+		getMaterials();
+		pushMatrix(MODEL);
+		translate(MODEL, -0.90 + i*(0.15), -0.90, 0.0);
+
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glUniform1i(texMode_uniformId, 2);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, TextureArray[2]);
+
+		glUniform1i(tex_loc2, 2);
+
+		drawMesh();
+
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+		popMatrix(MODEL);
+	}
+
+	popMatrix(PROJECTION);
+
 	glutSwapBuffers();
 }
 
@@ -612,12 +652,21 @@ void handleCollisions() {
 		butterCollision = false;
 	}
 	if (orangeCollision) { // If the car collides with an orange, its position is reset.
-		// FIXME Lose a life!
-		orangeCollision = false;
-		carPosX = 0;
-		carPosZ = 10;
-		carAngle = 0;
-		carVeloc = 0;
+		
+		if (numberLives == 1) {
+			/* RESET GAME SCREEN */
+			printf("DEAD DEAD DEAD");
+		}
+		else {
+			numberLives--;
+			life[numberLives] = false; // depois da subtração pq indices é de 0 a 2, enquanto numberLives é de 1 a 3
+
+			orangeCollision = false;
+			carPosX = 0;
+			carPosZ = 10;
+			carAngle = 0;
+			carVeloc = 0;
+		}
 	}
 }
 
@@ -905,6 +954,7 @@ GLuint setupShaders() {
 	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "NormalMatrix");
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
 	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
+	tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
 
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
 
@@ -931,6 +981,12 @@ void init()
 	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camY = r * sin(beta * M_PI / 180.0f);
+
+	numberLives = 0;
+	for (int i = 0;i < 3; i++) {
+		life[i] = true;
+		numberLives++;
+	}
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -974,9 +1030,11 @@ void init()
 
 	char checker[] = "textures/checker.tga";
 	char lightwood[] = "textures/lightwood.tga";
-	glGenTextures(2, TextureArray);
+	char life[] = "img/life.tga";
+	glGenTextures(3, TextureArray);
 	TGA_Texture(TextureArray, checker, 0);
 	TGA_Texture(TextureArray, lightwood, 1);
+	TGA_Texture(TextureArray, life, 2);
 
 	srand(time(NULL));
 	for (int i = 0; i < 10; i++)
@@ -1021,6 +1079,7 @@ void init()
 	int candleMeshID;
 	int orangeMeshID;
 	int stemMeshID;
+	int hudMeshID;
 	*/
 
 	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
@@ -1173,6 +1232,22 @@ void init()
 		createCylinder(0.6f, 0.3f, 20);
 	}
 	stemMeshID = objId;
+	objId++;
+
+	// hud materials
+	float amb_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float diff_hud[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	float spec_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float emissive_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	shininess = 0.0f;
+	texcount = 0;
+
+	for (int i = 0; i < 3; i++) {
+		setMaterials(amb_hud, diff_hud, spec_hud, emissive_hud, shininess, texcount);
+		createQuad(0.15, 0.15);
+	}
+
+	hudMeshID = objId;
 	objId++;
 
 	// some GL settings
