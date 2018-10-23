@@ -7,11 +7,11 @@ private:
 	bool isEnabled;
 	bool isLocal;
 	bool isSpot;
-	float* ambient;
-	float* color;
-	float* position;
-	float* halfVector;
-	float* coneDirection;
+	float ambient[4];
+	float color[4];
+	float position[4];
+	float halfVector[4];
+	float coneDirection[4];
 	float spotCosCutoff;
 	float spotExponent;
 	float constantAttenuation;
@@ -19,8 +19,8 @@ private:
 	float quadraticAttenuation;
 public:
 	Light(int id, bool isEnabled, bool isLocal, bool isSpot,
-		float* ambient, float* color, float* position,
-		float* halfVector, float* coneDirection, float spotCosCutoff,
+		float ambient[4], float color[4], float position[4],
+		float halfVector[4], float coneDirection[4], float spotCosCutoff,
 		float spotExponent, float constantAttenuation, 
 		float linearAttenuation, float quadraticAttenuation);
 	~Light();
@@ -42,23 +42,23 @@ public:
 
 	float* getAmbient() { return this->ambient; }
 
-	void setAmbient(float* ambient) { this->ambient = ambient; }
+	//void setAmbient(float ambient) { this->ambient = ambient; }
 
 	float* getColor() { return this->color; }
 
-	void setColor(float* color) { this->color = color; }
+	//void setColor(float color) { this->color = color; }
 
 	float* getPosition() { return this->position; }
 
-	void setPosition(float* position) { this->position = position; }
+	//void setPosition(float position) { this->position = position; }
 
 	float* getHalfvector() { return this->halfVector; }
 
-	void setHalfvector(float* halfVector) { this->halfVector = halfVector; }
+	//void setHalfvector(float halfVector) { this->halfVector = halfVector; }
 
 	float* getConedirection() { return this->coneDirection; }
 
-	void setConedirection(float* coneDirection) { this->coneDirection = coneDirection; }
+	//void setConedirection(float coneDirection) { this->coneDirection = coneDirection; }
 
 	float getSpotcoscutoff() { return this->spotCosCutoff; }
 

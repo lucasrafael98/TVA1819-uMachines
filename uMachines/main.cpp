@@ -373,7 +373,6 @@ void renderScene(void) {
 
 	//table
 	objId = table->getId();
-
 	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, -20.0f, -0.75f, -20.0f);
@@ -442,7 +441,6 @@ void renderScene(void) {
 	
 	// car cube
 	objId = car->getId();
-
 	getMaterials();
 	pushMatrix(MODEL);
 	translate(MODEL, car->getX(), 0.15f, car->getZ());
@@ -508,7 +506,6 @@ void renderScene(void) {
 
 	// candles
 	objId = candles[0]->getId();
-
 	for (int x = -1; x < 2; x+=2)
 	{
 		getMaterials();
@@ -548,7 +545,6 @@ void renderScene(void) {
 		popMatrix(MODEL);
 		popMatrix(MODEL);
 	}
-
 	//hud
 
 	pushMatrix(PROJECTION);
@@ -724,7 +720,7 @@ void updateOranges(int value) {
 
 		}
 
-		//glutTimerFunc(1000 / 60, updateOranges, 0);
+		glutTimerFunc(1000 / 60, updateOranges, 0);
 	}
 }
 
@@ -743,6 +739,7 @@ void processKeys(int value) {
 		}
 	}
 	if (!paused) {
+		if (hasToStop) car->setVelocity(0);
 		if (keystates['q'] && hasToStop && lastKeyPress == 1) {
 			car->setVelocity(0);
 		}
