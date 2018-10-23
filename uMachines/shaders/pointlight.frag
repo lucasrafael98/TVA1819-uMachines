@@ -102,7 +102,7 @@ void main() {
 		
 		texel = texture(texmap2, DataIn.tex_coord);
 
-		FragColor = vec4(texel.rgb, 1.0 - texel.g);
+		FragColor = texel;
 
 	}
 	else{

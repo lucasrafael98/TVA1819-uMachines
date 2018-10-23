@@ -57,8 +57,10 @@ int WinX = 640, WinY = 480;
 unsigned int FrameCount = 0;
 
 int cameraMode = 2;
+bool firstSpawnOranges = true;
 bool paused = false;
 bool shouldPause = false;
+bool gameOver = false;
 bool toggleDL = false;
 bool directionalLight = true;
 bool togglePL = false;
@@ -119,7 +121,7 @@ GLint tex_loc, tex_loc1, tex_loc2;
 GLint texMode_uniformId;
 GLint loc;
 
-GLuint TextureArray[3];
+GLuint TextureArray[6];
 
 // Camera Position
 float camX, camY, camZ;
@@ -138,7 +140,7 @@ float amb_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
 float color_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
 float lightPos[4] = { 4.0f, 6.0f, 2.0f, 0.0f };
 float vectorPointLightPos[6][4];
-bool life[3];
+bool life[N_LIVES];
 int numberLives = N_LIVES;
 
 float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
@@ -159,7 +161,7 @@ void timer(int value)
 
 void refresh(int value)
 {
-	if (!paused) {
+	if (!paused && !gameOver) {
 		glutPostRedisplay();
 		glutTimerFunc(1000 / 60, refresh, 0);
 	}
@@ -354,8 +356,75 @@ void renderLights() {
 	}
 }
 
+void renderBlackBox() {
+	//blackbox
+	getMaterials();
+	pushMatrix(MODEL);
+	scale(MODEL, WinX, WinY, 1.0f);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[5]);
+
+	glUniform1i(tex_loc2, 2);
+
+	drawMesh();
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	popMatrix(MODEL);
+}
+
+void renderPauseBox() {
+	renderBlackBox();
+	//pause
+	getMaterials();
+	pushMatrix(MODEL);
+	scale(MODEL, 0.8f, 0.8f, 1.0f);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[3]);
+
+	glUniform1i(tex_loc2, 2);
+
+	drawMesh();
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	popMatrix(MODEL);
+}
+
+void renderGameOverBox() {
+	renderBlackBox();
+
+	getMaterials();
+	pushMatrix(MODEL);
+	scale(MODEL, 0.8f, 0.8f, 1.0f);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[4]);
+
+	glUniform1i(tex_loc2, 2);
+
+	drawMesh();
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	popMatrix(MODEL);
+}
+
 void renderScene(void) {
-	std::cout << numberLives << std::endl;
+	//std::cout << numberLives << std::endl;
 
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -558,12 +627,13 @@ void renderScene(void) {
 
 	objId = hudMeshID;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < N_LIVES; i++) {
 		if (!life[i]) continue;
 
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, -0.90 + i*(0.15), -0.90, 0.0);
+		scale(MODEL, 0.15f, 0.15f, 1.0f);
 
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -582,6 +652,12 @@ void renderScene(void) {
 		glDepthMask(GL_TRUE);
 		popMatrix(MODEL);
 	}
+
+	if (shouldPause || paused)
+		renderPauseBox();
+
+	if (gameOver)
+		renderGameOverBox();
 
 	popMatrix(PROJECTION);
 
@@ -635,8 +711,11 @@ void calculateRespawnOrange(int index) {
 	oranges[index]->setZ(randomY);
 	oranges[index]->setAngleX(randomRotation);
 	oranges[index]->setAngleZ(0.0f);
-	// FIXME original orangeVeloc[index / 2] += 1.0f; why idx / 2?
-	oranges[index]->setVelocity(oranges[index]->getVelocity() + 1.0f);
+
+	if (!firstSpawnOranges) {
+		oranges[index]->setVelocity(oranges[index]->getVelocity() + 1.0f);
+	}
+		
 }
 
 float sphDistance(float x1, float x2, float y1, float y2, float z1, float z2) {
@@ -654,13 +733,12 @@ void handleCollisions() {
 	}
 	if (orangeCollision) { // If the car collides with an orange, its position is reset.
 		if (numberLives <= 1) {
-			/* RESET GAME SCREEN */
-			printf("DEAD DEAD DEAD");
+			gameOver = true;
+			orangeCollision = false;
+			renderScene();
 		}
 		else {
-			numberLives--;
-			life[numberLives] = false; // depois da subtração pq indices é de 0 a 2, enquanto numberLives é de 1 a 3
-
+			life[--numberLives] = false; // depois da subtração pq indices é de 0 a 2, enquanto numberLives é de 1 a 3
 			orangeCollision = false;
 			car->setX(0);
 			car->setZ(10);
@@ -671,7 +749,7 @@ void handleCollisions() {
 }
 
 void checkCollisions(int value) {
-	if (!paused) {
+	if (!paused && !gameOver) {
 		for (int i = 0; i != 60; i++) {
 			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car->getX(), 0.0f,
 													0.85f, cheerios[i]->getZ(), car->getZ())) {
@@ -704,7 +782,7 @@ void checkCollisions(int value) {
 }
 
 void updateOranges(int value) {
-	if (!paused) {
+	if (!paused && !gameOver) {
 		for (int i = 0; i != 5; i ++) {
 			if (oranges[i]->getX() > 20.0f + 2.5f || oranges[i]->getX() < -20.0f - 2.5f) { //2.5f radius from orange
 				calculateRespawnOrange(i);
@@ -725,9 +803,60 @@ void updateOranges(int value) {
 	}
 }
 
+void resetGame() {
+	//reset car
+	car->setX(0);
+	car->setZ(10);
+	car->setAngle(0);
+	car->setVelocity(0);
+
+	//resetOrange
+	for (int i = 0; i < N_ORANGES; i++) {
+		oranges[i]->setAngleZ(0.0f);
+		calculateRespawnOrange(i);
+		oranges[i]->setVelocity(1.0f+static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))));
+	}
+
+	numberLives = N_LIVES;
+	for (int i = 0; i < N_LIVES; i++) {
+		life[i] = true;
+	}
+
+	//resetButter
+	for (int i = 0; i < N_BUTTERS; i++) {
+		butters[i]->setX(-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))));
+		butters[i]->setY(0.0f);
+		butters[i]->setZ(-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))));
+	}
+
+	//resetCheerio
+
+	for (int i = 0; i != N_CHEERIOS_INNER; i++) {
+		cheerios[i]->setX(static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f));
+		cheerios[i]->setY(0.0f);
+		cheerios[i]->setZ(static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f));
+	}
+	for (int i = N_CHEERIOS_INNER; i != N_CHEERIOS_OUTER + N_CHEERIOS_INNER; i++) {
+		cheerios[i]->setX(static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f));
+		cheerios[i]->setY(0.0f);
+		cheerios[i]->setZ(static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f));
+	}
+
+	gameOver = false;
+	
+	glutTimerFunc(0, refresh, 0);
+	glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, checkCollisions, 0);
+
+	
+}
+
 void processKeys(int value) {
 	if (keystates['s']) {
 		shouldPause = true;
+	}
+	else if (keystates['r'] && gameOver) {
+		resetGame();
 	}
 	// FIXME Checks if S has been released. The problem here is that if you hold down S, it'll keep pausing and unpausing.
 	if (shouldPause && !keystates['s']) {
@@ -739,7 +868,7 @@ void processKeys(int value) {
 			glutTimerFunc(0, checkCollisions, 0);
 		}
 	}
-	if (!paused) {
+	if (!paused && !gameOver) {
 		if (hasToStop) car->setVelocity(0);
 		if (keystates['q'] && hasToStop && lastKeyPress == 1) {
 			car->setVelocity(0);
@@ -848,7 +977,7 @@ void processKeys(int value) {
 
 void processMouseButtons(int button, int state, int xx, int yy)
 {
-	if (cameraMode == 2) { // This is only supposed to work on camera 2.
+	if (cameraMode == 2 && !gameOver && !paused) { // This is only supposed to work on camera 2.
 		// start tracking the mouse
 		if (state == GLUT_DOWN) {
 			startX = xx;
@@ -880,7 +1009,7 @@ void processMouseButtons(int button, int state, int xx, int yy)
 void processMouseMotion(int xx, int yy)
 {
 
-	if (cameraMode == 2) {
+	if (cameraMode == 2 && !gameOver && !paused) {
 		int deltaX, deltaY;
 		float alphaAux, betaAux;
 		float rAux;
@@ -922,17 +1051,18 @@ void processMouseMotion(int xx, int yy)
 
 
 void mouseWheel(int wheel, int direction, int x, int y) {
+	if (cameraMode == 2 && !gameOver && !paused) {
+		r += direction * 0.3f;
+		if (r < 0.1f)
+			r = 0.1f;
 
-	r += direction * 0.3f;
-	if (r < 0.1f)
-		r = 0.1f;
+		camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
+		camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
+		camY = r * sin(beta * M_PI / 180.0f);
 
-	camX = r * sin(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
-	camY = r * sin(beta * M_PI / 180.0f);
-
-	//  uncomment this if not using an idle or refresh func
-	//	glutPostRedisplay();
+		//  uncomment this if not using an idle or refresh func
+		//	glutPostRedisplay();
+	}
 }
 
 // --------------------------------------------------------
@@ -1161,18 +1291,16 @@ void createOranges(void) {
 	for (int i = 0; i != 5; i++) {
 
 		// create oranges
-		oranges[i] = new Orange(objId,
-			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))), 2.5f,
-			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
-			amb_orange, diff_orange, spec_orange, emissive_orange, 70.0f, 0,
-			static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f))),
-			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))), 
-			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))));
+		oranges[i] = new Orange(objId,0.0f, 2.5f, 0.0f, amb_orange, diff_orange, spec_orange, emissive_orange, 70.0f, 0.0f,
+			0.0f ,0.0f, 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))));
+
+		calculateRespawnOrange(i);
 		setMaterials(oranges[i]->getAmbient(), oranges[i]->getDiffuse(), oranges[i]->getSpecular(),
 					oranges[i]->getEmissive(), oranges[i]->getShininess(), oranges[i]->getTexcount());
 		createSphere(2.5f, 20);
 
 	}
+	firstSpawnOranges = false;
 	orangeMeshID = objId;
 	objId++;
 
@@ -1201,10 +1329,16 @@ void init()
 	char checker[] = "textures/checker.tga";
 	char lightwood[] = "textures/lightwood.tga";
 	char life[] = "img/life.tga";
-	glGenTextures(3, TextureArray);
+	char pause[] = "img/paused.tga";
+	char gameover[] = "img/gameover.tga";
+	char blackbox[] = "img/blackbox.tga";
+	glGenTextures(6, TextureArray);
 	TGA_Texture(TextureArray, checker, 0);
 	TGA_Texture(TextureArray, lightwood, 1);
 	TGA_Texture(TextureArray, life, 2);
+	TGA_Texture(TextureArray, pause, 3);
+	TGA_Texture(TextureArray, gameover, 4);
+	TGA_Texture(TextureArray, blackbox, 5);
 
 	srand(time(NULL));
 
@@ -1217,9 +1351,6 @@ void init()
 	createCandles();
 	createOranges();
 
-	candleMeshID = objId;
-	objId++;
-
 	// hud materials
 	// FIXME Refactor after you're done
 	float amb_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -1229,9 +1360,9 @@ void init()
 	int shininess = 0.0f;
 	int texcount = 0;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 6; i++) { //3life + gameover + pause + blackbox
 		setMaterials(amb_hud, diff_hud, spec_hud, emissive_hud, shininess, texcount);
-		createQuad(0.15, 0.15);
+		createQuad(1.0, 1.0);
 	}
 
 	hudMeshID = objId;
