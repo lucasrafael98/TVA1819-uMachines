@@ -60,11 +60,11 @@ int cameraMode = 2;
 bool paused = false;
 bool shouldPause = false;
 bool toggleDL = false;
-bool directionalLight = false;
+bool directionalLight = true;
 bool togglePL = false;
-bool pointLight = false;
+bool pointLight = true;
 bool toggleSL = false;
-bool spotLight = false;
+bool spotLight = true;
 // Check key presses.
 bool keystates[256];
 
@@ -632,7 +632,7 @@ void calculateRespawnOrange(int index) {
 	}
 
 	oranges[index]->setX(randomX);
-	oranges[index]->setX(randomX);
+	oranges[index]->setZ(randomY);
 	oranges[index]->setAngleX(randomRotation);
 	oranges[index]->setAngleZ(0.0f);
 	// FIXME original orangeVeloc[index / 2] += 1.0f; why idx / 2?
@@ -663,7 +663,7 @@ void handleCollisions() {
 
 			orangeCollision = false;
 			car->setX(0);
-			car->setX(10);
+			car->setZ(10);
 			car->setAngle(0);
 			car->setVelocity(0);
 		}
@@ -1014,7 +1014,7 @@ void createLights(void) {
 		car->getZ() - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
 	float cone_sp[] = { car->getX() - 1.0f - cos(-car->getAngle()) * (-90),0.0f, car->getZ() + 1.0f - sin(-car->getAngle()) * (-90),0.0f };
 
-	lights[7] = new Light(7, false, true, true, amb_dir, col_dir, pos_sp, half_dir, cone_sp, 0.0f, 0.0f, 1.0f, 0.2f, 0.1f);
+	lights[7] = new Light(7, false, true, true, amb_dir, col_dir, pos_sp, half_dir, cone_sp, 0.8f, 0.3f, 1.0f, 0.2f, 0.1f);
 
 	float pos2_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()), 0.95f,
 		car->getZ() + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
@@ -1075,7 +1075,7 @@ void createCar(void){
 	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	car = new Car(objId, 0.0f, 0.3f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
+	car = new Car(objId, 0.0f, 0.0f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0f, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
 	// create geometry and VAO of the car
 	setMaterials(car->getAmbient(), car->getDiffuse(), car->getSpecular(),
 				car->getEmissive(), car->getShininess(), car->getTexcount());
