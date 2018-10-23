@@ -48,6 +48,7 @@
 #define N_CHEERIOS_OUTER 40
 #define N_ORANGES 5
 #define N_CANDLES 6
+#define N_LIVES 3
 
 #define CAPTION "AVT Per Fragment Phong Lightning Demo"
 int WindowHandle = 0;
@@ -138,7 +139,7 @@ float color_lightPos[4] = { 1.0f, 1.0f, 1.0f , 1.0f };
 float lightPos[4] = { 4.0f, 6.0f, 2.0f, 0.0f };
 float vectorPointLightPos[6][4];
 bool life[3];
-int numberLives;
+int numberLives = N_LIVES;
 
 float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 {
@@ -354,6 +355,7 @@ void renderLights() {
 }
 
 void renderScene(void) {
+	std::cout << numberLives << std::endl;
 
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -651,8 +653,7 @@ void handleCollisions() {
 		butterCollision = false;
 	}
 	if (orangeCollision) { // If the car collides with an orange, its position is reset.
-		
-		if (numberLives == 1) {
+		if (numberLives <= 1) {
 			/* RESET GAME SCREEN */
 			printf("DEAD DEAD DEAD");
 		}
@@ -693,7 +694,7 @@ void checkCollisions(int value) {
 		}
 		for (int i = 0; i != 5; i++) {
 			if (pow(2.5f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
-													0.85f, butters[i]->getZ(), car->getZ())) {
+													0.85f, oranges[i]->getZ(), car->getZ())) {
 				orangeCollision = true;
 			}
 		}
@@ -1193,10 +1194,8 @@ void init()
 	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camY = r * sin(beta * M_PI / 180.0f);
 
-	numberLives = 0;
-	for (int i = 0;i < 3; i++) {
+	for (int i = 0;i < N_LIVES; i++) {
 		life[i] = true;
-		numberLives++;
 	}
 
 	char checker[] = "textures/checker.tga";
