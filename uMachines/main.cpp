@@ -32,6 +32,7 @@
 // include gameElement classes
 #include "Car.h"
 #include "Candle.h"
+#include "Flame.h"
 #include "Cheerio.h"
 #include "Table.h"
 #include "Butter.h"
@@ -88,7 +89,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[10];
+struct MyMesh mesh[11];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -354,25 +355,7 @@ void renderLights() {
 	}
 }
 
-void renderScene(void) {
-	std::cout << numberLives << std::endl;
-
-	FrameCount++;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// load identity matrices
-	loadIdentity(VIEW);
-	loadIdentity(MODEL);
-	if (cameraMode == 3) {
-		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
-	}
-	else {
-		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
-	}
-	// use our shader
-	glUseProgram(shader.getProgramIndex());
-
-	renderLights();
-
+void renderTable(void) {
 	//table
 	objId = table->getId();
 	getMaterials();
@@ -394,12 +377,11 @@ void renderScene(void) {
 	drawMesh();
 	popMatrix(MODEL);
 
-
-
 	// unbind textures and stop applying anything to colorOut
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUniform1i(texMode_uniformId, 1);
-
+}
+void renderTrack(void) {
 	//cheerio
 	objId = cheerios[0]->getId();
 
@@ -439,8 +421,8 @@ void renderScene(void) {
 		drawMesh();
 		popMatrix(MODEL);
 	}
-
-	
+}
+void renderCar(void) {
 	// car cube
 	objId = car->getId();
 	getMaterials();
@@ -452,7 +434,7 @@ void renderScene(void) {
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
 	drawMesh();
 	popMatrix(MODEL);
-	
+
 	// car wheels
 	objId = car->getWheel(0)->getId();
 	for (int x = -1; x <= 1; x += 2) {
@@ -482,10 +464,11 @@ void renderScene(void) {
 	}
 
 	popMatrix(MODEL);
-
+}
+void renderButters(void) {
 	// butters
 	objId = butters[0]->getId();
-	for (int i = 0; i != 5; i ++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
+	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		if (butters[i]->getVelocity()) {
 			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
@@ -503,31 +486,31 @@ void renderScene(void) {
 		drawMesh();
 		popMatrix(MODEL);
 	}
-
-	
-
+}
+void renderCandles(void) {
 	// candles
-	objId = candles[0]->getId();
-	for (int x = -1; x < 2; x+=2)
+	for (int i = 0; i < 6; i++)
 	{
+		objId = candles[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, x, 2.0f, 0.0f);
+		translate(MODEL, candles[i]->getX(), candles[i]->getY(), candles[i]->getZ());
+		pushMatrix(MODEL);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
-		for (int y = -1; y < 2 ; y+=2)
-		{
-			getMaterials();
-			pushMatrix(MODEL);
-			translate(MODEL, x*15.0f, 2.0f, y*15.0f);
-			scale(MODEL, 2.5f, 1.0f, 2.5f);
-			drawMesh();
-			popMatrix(MODEL);
-		}
+
+		objId = candles[0]->getFlame()->getId();
+		getMaterials();
+		pushMatrix(MODEL);
+		translate(MODEL, candles[i]->getFlame()->getX(), candles[i]->getFlame()->getY(), 
+			candles[i]->getFlame()->getZ());
+		drawMesh();
+		popMatrix(MODEL);
+		popMatrix(MODEL);
 	}
-
-
+}
+void renderOranges(void) {
 	//oranges
 	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
@@ -547,6 +530,8 @@ void renderScene(void) {
 		popMatrix(MODEL);
 		popMatrix(MODEL);
 	}
+}
+void renderHUD(void) {
 	//hud
 
 	pushMatrix(PROJECTION);
@@ -563,7 +548,7 @@ void renderScene(void) {
 
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, -0.90 + i*(0.15), -0.90, 0.0);
+		translate(MODEL, -0.90 + i * (0.15), -0.90, 0.0);
 
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -582,8 +567,34 @@ void renderScene(void) {
 		glDepthMask(GL_TRUE);
 		popMatrix(MODEL);
 	}
-
 	popMatrix(PROJECTION);
+}
+
+void renderScene(void) {
+	std::cout << numberLives << std::endl;
+
+	FrameCount++;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// load identity matrices
+	loadIdentity(VIEW);
+	loadIdentity(MODEL);
+	if (cameraMode == 3) {
+		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
+	}
+	else {
+		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+	}
+	// use our shader
+	glUseProgram(shader.getProgramIndex());
+
+	renderLights();
+	renderTable();
+	renderTrack();
+	renderCar();
+	renderButters();
+	renderCandles();
+	renderOranges();
+	renderHUD();
 
 	glutSwapBuffers();
 }
@@ -992,22 +1003,14 @@ void createLights(void) {
 	float col_pl[] = { 1.0f, 1.0f, 1.0f , 1.0f };
 	float half_pl[] = { 0.0f, 0.0f, 0.0f , 0.0f };
 	float cone_pl[] = { 0.0f, 0.0f, 0.0f , 0.0f };
-	int i = 1;
-	for (int x = -1; x < 2; x += 2)
+	for (int i = 1; i < 7; i ++)
 	{
-		float pos_pl[] = { x*1.0f, 2.0f, 0.0f, 1.0f };
+		float pos_pl[4] = { candles[i-1]->getX() + candles[i-1]->getFlame()->getX(), 
+							candles[i-1]->getY() + candles[i-1]->getFlame()->getY() + 1.0f, 
+							candles[i-1]->getZ() + candles[i-1]->getFlame()->getZ(), 1.0f };
 		lights[i] = new Light(i, false, true, false, amb_pl, col_pl,
 			pos_pl, half_pl, cone_pl, 0.0f,
 			0.0f, 1.0f, 0.2f, 0.1f);
-		i++;
-		for (int z = -1; z < 2; z += 2)
-		{
-			float pos2_pl[] = { x*15.0f, 2.0f, z*15.0f, 1.0f };
-			lights[i] = new Light(i, false, true, false, amb_dir, col_dir,
-				pos2_pl, half_pl, cone_pl, 0.0f,
-				0.0f, 1.0f, 0.2f, 0.1f);
-			i++;
-		}
 	}
 
 	float pos_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()), 0.95f,
@@ -1135,14 +1138,14 @@ void createCandles(void) {
 	float emissive_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	for (int x = -1; x < 2; x += 2)
 	{
-		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
+		candles[i] = new Candle(objId, x*4.0f, 1.0f, 0.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
 		setMaterials(candles[i]->getAmbient(), candles[i]->getDiffuse(), candles[i]->getSpecular(),
 					candles[i]->getEmissive(), candles[i]->getShininess(), candles[i]->getTexcount());
 		createCylinder(2.5f, 0.25f, 20.0);
 		i++;
 		for (int z = -1; z < 2; z += 2)
 		{
-			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
+			candles[i] = new Candle(objId, x*15.0f, 1.0f, z*15.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
 			setMaterials(candles[i]->getAmbient(), candles[i]->getDiffuse(), candles[i]->getSpecular(),
 						candles[i]->getEmissive(), candles[i]->getShininess(), candles[i]->getTexcount());
 			createCylinder(2.5f, 0.25f, 20.0);
@@ -1150,6 +1153,16 @@ void createCandles(void) {
 		}
 	}
 	candleMeshID = objId;
+	objId++;
+
+	for (int i = 0; i < 6; i++)
+	{
+		setMaterials(candles[i]->getFlame()->getAmbient(), candles[i]->getFlame()->getDiffuse(),
+			candles[i]->getFlame()->getSpecular(), candles[i]->getFlame()->getEmissive(), 
+			candles[i]->getFlame()->getShininess(), candles[i]->getFlame()->getTexcount());
+		createCone(0.75f, 0.15f, 6.0);
+	}
+
 	objId++;
 }
 
@@ -1198,7 +1211,7 @@ void init()
 		life[i] = true;
 	}
 
-	char checker[] = "textures/checker.tga";
+	char checker[] = "textures/stone.tga";
 	char lightwood[] = "textures/lightwood.tga";
 	char life[] = "img/life.tga";
 	glGenTextures(3, TextureArray);
@@ -1212,10 +1225,10 @@ void init()
 	createTable();
 	createCheerios();
 	createCar();
-	createLights();
 	createButters();
 	createCandles();
 	createOranges();
+	createLights();
 
 	candleMeshID = objId;
 	objId++;
