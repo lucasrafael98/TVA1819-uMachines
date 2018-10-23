@@ -1,7 +1,5 @@
 #include "Cheerio.h"
 
-
-
 Cheerio::Cheerio(int id, float x, float y, float z, float *ambient, 
 				float *diffuse, float *specular, float *emissive, float shininess, 
 				int texcount, float angle, float velocity, float brakeAcceleration, int direction):

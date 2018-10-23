@@ -12,9 +12,9 @@ private:
 	float _velocity;
 	Stem* _stem;
 public:
-	Orange(int id, float x, float y, float z, float *ambient, 
-			float *diffuse, float *specular, float *emissive, float shininess, 
-			int texcount, float angle, float velocity);
+	Orange(int id, float x, float y, float z, float *ambient,
+		float *diffuse, float *specular, float *emissive, float shininess,
+		int texcount, float angleX, float angleZ, float velocity);
 	~Orange();
 
 	float getAngleX() const { return _angleX; }
@@ -22,8 +22,8 @@ public:
 	float getVelocity() const { return _velocity; }
 	Stem* getStem() const { return _stem; }
 
-	void setAngle(float angleX) { _angleX = angleX; }
-	void setAngle(float angleZ) { _angleZ = angleZ; }
+	void setAngleX(float angleX) { _angleX = angleX; }
+	void setAngleZ(float angleZ) { _angleZ = angleZ; }
 	void setVelocity(float velocity) { _velocity = velocity; }
 };
 #endif

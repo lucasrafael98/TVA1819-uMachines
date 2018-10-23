@@ -16,16 +16,6 @@
 
 #include <string>
 #include <ctime>
-
-// include gameElement classes
-#include "GameElement.h"
-#include "Car.h"
-#include "Cheerio.h"
-#include "Butter.h"
-#include "Orange.h"
-#include "Light.h"
-#include "Table.h"
-
 // include GLEW to access OpenGL 3.3 functions
 #include <GL/glew.h>
 
@@ -38,6 +28,16 @@
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
 #include "TGA.h"
+
+// include gameElement classes
+#include "Candle.h"
+#include "Car.h"
+#include "Cheerio.h"
+#include "Butter.h"
+#include "Orange.h"
+#include "Light.h"
+#include "Table.h"
+
 
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
@@ -77,16 +77,6 @@ int lastKeyPress = 0;
 // true if the car collided with a cheerio/butter.
 bool hasToStop = false;
 
-// Car attributes.
-float carPosX = 0.0f;
-float carPosZ = 10.0f;
-float carAngle = 0.0f;
-float carVeloc = 0.0f;
-// Static because they're constant.
-static float carAccel = 5.0f;
-static float carBrakeAccel = 20.0f;
-static float carMaxVeloc = 20.0f;
-
 Table* table;
 Car* car;
 Butter* butters[N_BUTTERS];
@@ -94,22 +84,6 @@ Orange* oranges[N_ORANGES];
 Cheerio* cheerios[N_CHEERIOS_INNER + N_CHEERIOS_OUTER];
 Light* lights[9];
 Candle* candles[N_CANDLES];
-
-float cheerioPos[120];
-float cheerioAccel[60];
-float cheerioDirection[60];
-float cheerioVeloc[60];
-float cheerioAngle[60];
-
-float butterPos[10];
-float butterAccel[60];
-float butterDirection[60];
-float butterVeloc[60];
-float butterAngle[60];
-
-float orangePos[10];
-float orangeAngle[10];
-float orangeVeloc[5];
 
 VSShaderLib shader;
 
@@ -250,7 +224,7 @@ void drawMesh() {
 // Render stufff
 //
 
-void renderLights(void) {
+void renderLights(GLint loc) {
 
 	for (int i = 0; i < 9; i++)
 	{
@@ -286,30 +260,30 @@ void renderLights(void) {
 			glUniform1i(loc, pointLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, true);
+			glUniform1i(loc, lights[i]->getIslocal());
 			target = "Lights[].isSpot";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, false);
+			glUniform1i(loc, lights[i]->getIsspot());
 			target = "Lights[].ambient";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, amb_lightPos);
+			glUniform4fv(loc, 1, lights[i]->getAmbient());
 			target = "Lights[].color";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, color_lightPos);
+			glUniform4fv(loc, 1, lights[i]->getColor());
 			target = "Lights[].position";
 			float res1[4];
-			multMatrixPoint(VIEW, vectorPointLightPos[i - 1], res1);
+			multMatrixPoint(VIEW, lights[i]->getPosition(), res1);
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform4fv(loc, 1, res1);
 			target = "Lights[].constantAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 1.0f);
+			glUniform1f(loc, lights[i]->getConstantattenuation());
 			target = "Lights[].linearAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.2f);
+			glUniform1f(loc, lights[i]->getLinearattenuation());
 			target = "Lights[].quadraticAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.1f);
+			glUniform1f(loc, lights[i]->getQuadraticattenuation());
 		}
 		else {
 			target = "Lights[].isEnabled";
@@ -317,61 +291,63 @@ void renderLights(void) {
 			glUniform1i(loc, spotLight);
 			target = "Lights[].isLocal";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, true);
+			glUniform1i(loc, lights[i]->getIslocal());
 			target = "Lights[].isSpot";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1i(loc, true);
+			glUniform1i(loc, lights[i]->getIsspot());
 			target = "Lights[].ambient";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, amb_lightPos);
+			glUniform4fv(loc, 1, lights[i]->getAmbient());
 			target = "Lights[].color";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, color_lightPos);
+			glUniform4fv(loc, 1, lights[i]->getColor());
 			target = "Lights[].position";
 			float res2[4];
 			if (i == 7) {
-				float spotPos[4] = { carPosX - 1.4f * sin(carAngle - M_PI / 2) - 0.55f * sin(carAngle), 0.95f, carPosZ - 0.62f * cos(carAngle) - 1.5f * cos(carAngle - M_PI / 2), 1.0f };
+				float spotPos[4] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()),
+									0.95f, car->getZ() - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			else {
-				float spotPos[4] = { carPosX - 1.4f * sin(carAngle - M_PI / 2) + 0.55f * sin(carAngle), 0.95f, carPosZ + 0.45f * cos(carAngle) - 1.5f * cos(carAngle - M_PI / 2), 1.0f };
+				float spotPos[4] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()),
+									0.95f, car->getZ() + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			glUniform4fv(loc, 1, res2);
 			target = "Lights[].constantAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 1.0f);
+			glUniform1f(loc, lights[i]->getConstantattenuation());
 			target = "Lights[].linearAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.2f);
+			glUniform1f(loc, lights[i]->getLinearattenuation());
 			target = "Lights[].quadraticAttenuation";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.1f);
+			glUniform1f(loc, lights[i]->getQuadraticattenuation());
 			target = "Lights[].coneDirection";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
 			float spotCPos[4];
 			float res3[4];
 			if (i == 7) {
-				spotCPos[0] = carPosX - 1.0f - cos(-carAngle) * (-90);
+				spotCPos[0] = car->getX() - 1.0f - cos(-car->getAngle()) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * (-90);
+				spotCPos[2] = car->getZ() + 1.0f - sin(-car->getAngle()) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			else {
-				spotCPos[0] = carPosX - 1.0f - cos(-carAngle) * (-90);
+				spotCPos[0] = car->getX() - 1.0f - cos(-car->getAngle()) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = carPosZ + 1.0f - sin(-carAngle) * (-90);
+				spotCPos[2] = car->getZ() + 1.0f - sin(-car->getAngle()) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			multMatrixPoint(VIEW, spotCPos, res3);
 			glUniform4fv(loc, 1, res3);
 			target = "Lights[].spotCosCutoff";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.8f);
+			glUniform1f(loc, lights[i]->getSpotcoscutoff());
 			target = "Lights[].spotExponent";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform1f(loc, 0.3f);
+			glUniform1f(loc, lights[i]->getSpotexponent());
 		}
 	}
 }
@@ -386,7 +362,7 @@ void renderScene(void) {
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
 	if (cameraMode == 3) {
-		lookAt(carPosX - cos(-carAngle) * 10, 5, carPosZ - sin(-carAngle) * 10, carPosX, 0, carPosZ, 0, 1, 0);
+		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
 	}
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
@@ -394,7 +370,7 @@ void renderScene(void) {
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
 
-	renderLights();
+	renderLights(loc);
 
 	//table
 	objId = tableMeshID;
@@ -430,36 +406,36 @@ void renderScene(void) {
 	// inner cheerio ring
 	// FIXME We uh... probably shouldn't leave position changes in the render function.
 	for (int i = 0; i != 20; i++) {
-		if (cheerioVeloc[i]) {
-			if (cheerioVeloc[i] * cheerioDirection[i] < 0)
-				cheerioVeloc[i] = 0;
+		if (cheerios[i]->getVelocity()) {
+			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
+				cheerios[i]->setVelocity(0);
 			else {
-				cheerioVeloc[i] += cheerioAccel[i] / 60;
-				cheerioPos[(i * 2)] += cos(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
-				cheerioPos[(i * 2)+1] -= sin(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
+				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
+				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
+				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
 			}
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerioPos[(i * 2)], 0.0f, cheerioPos[(i * 2)+1]);
+		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
 
 	// outer cheerio ring
 	for (int i = 20; i != 60; i++) {
-		if (cheerioVeloc[i]) {
-			if (cheerioVeloc[i] * cheerioDirection[i] < 0)
-				cheerioVeloc[i] = 0;
+		if (cheerios[i]->getVelocity()) {
+			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
+				cheerios[i]->setVelocity(0);
 			else {
-				cheerioVeloc[i] += cheerioAccel[i] / 60;
-				cheerioPos[(i * 2)] += cos(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
-				cheerioPos[(i * 2)+1] -= sin(cheerioAngle[i]) * (cheerioVeloc[i] * 1 / 60 + 0.5) * cheerioDirection[i];
+				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
+				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
+				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
 			}
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerioPos[(i * 2)], 0.0f, cheerioPos[(i * 2)+1]);
+		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -470,8 +446,8 @@ void renderScene(void) {
 
 	getMaterials();
 	pushMatrix(MODEL);
-	translate(MODEL, carPosX, 0.15f, carPosZ);
-	rotate(MODEL, carAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+	translate(MODEL, car->getX(), 0.15f, car->getZ());
+	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
 	translate(MODEL, -1.5f, 0.15f, -1.0f);
 	pushMatrix(MODEL);
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
@@ -510,20 +486,20 @@ void renderScene(void) {
 
 	// butters
 	objId = butterMeshID;
-	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
+	for (int i = 0; i != 5; i ++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
-		if (butterVeloc[i / 2]) {
-			if (butterVeloc[i / 2] * butterDirection[i / 2] < 0)
-				butterVeloc[i / 2] = 0;
+		if (butters[i]->getVelocity()) {
+			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
+				butters[i]->setVelocity(0);
 			else {
-				butterVeloc[i / 2] += butterAccel[i / 2] / 60;
-				butterPos[i] += cos(butterAngle[i / 2]) * (butterVeloc[i / 2] * 1 / 60 + 0.5) * butterDirection[i / 2];
-				butterPos[i + 1] -= sin(butterAngle[i / 2]) * (butterVeloc[i / 2] * 1 / 60 + 0.5) * butterDirection[i / 2];
+				butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
+				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
+				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
 			}
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butterPos[i], -0.25f, butterPos[i + 1]);
+		translate(MODEL, butters[i]->getX(), -0.25f, butters[i]->getZ());
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -561,9 +537,9 @@ void renderScene(void) {
 		objId = orangeMeshID;
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, orangePos[i], 2.5f, orangePos[i + 1]);
-		rotate(MODEL, orangeAngle[i] * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
-		rotate(MODEL, orangeAngle[i + 1], 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
+		translate(MODEL, oranges[i]->getX(), 2.5f, oranges[i]->getZ());
+		rotate(MODEL, oranges[i]->getAngleX() * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
+		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 
 		objId = stemMeshID;
@@ -703,12 +679,12 @@ void checkCollisions(int value) {
 	if (!paused) {
 		for (int i = 0; i != 60; i++) {
 			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car->getX(), 0.0f,
-													0.85f, cheerios[i]->getZ(), car->getZ()) {
+													0.85f, cheerios[i]->getZ(), car->getZ())) {
 				cheerioCollision = true;
 				cheerios[i]->setDirection(lastKeyPress);
 				cheerios[i]->setVelocity(lastKeyPress * 0.00001f);
 				cheerios[i]->setAcceleration(lastKeyPress * -0.00075f);
-				cheerios[i]->setAngle(carAngle);
+				cheerios[i]->setAngle(car->getAngle());
 			}
 		}
 		for (int i = 0; i != 5; i++) {
@@ -718,12 +694,12 @@ void checkCollisions(int value) {
 				butters[i]->setDirection(lastKeyPress);
 				butters[i]->setVelocity(lastKeyPress * 0.00001f);
 				butters[i]->setAcceleration(lastKeyPress * -0.0075f);
-				butters[i]->setAngle(carAngle);
+				butters[i]->setAngle(car->getAngle());
 			}
 		}
 		for (int i = 0; i != 5; i++) {
 			if (pow(2.5f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
-													0.85f, butter[i]->getZ(), car->getZ())) {
+													0.85f, butters[i]->getZ(), car->getZ())) {
 				orangeCollision = true;
 			}
 		}
@@ -742,8 +718,9 @@ void updateOranges(int value) {
 				calculateRespawnOrange(i);
 			}
 			else {
-				oranges[i]->setX(oranges[i]->getX() + cos(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60));
-				oranges[i]->setZ(oranges[i]->getZ() - sin(orangeAngle[i]) * (orangeVeloc[i / 2] * 1 / 60));
+				//FIXME is it supposed to be X in both?
+				oranges[i]->setX(oranges[i]->getX() + cos(oranges[i]->getAngleX()) * (oranges[i]->getVelocity() * 1 / 60));
+				oranges[i]->setZ(oranges[i]->getZ() - sin(oranges[i]->getAngleX()) * (oranges[i]->getVelocity() * 1 / 60));
 				oranges[i]->setAngleZ(oranges[i]->getAngleZ() + oranges[i]->getVelocity() / 2);
 			}
 
@@ -779,8 +756,8 @@ void processKeys(int value) {
 			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
 			if (car->getVelocity() > car->getMaxVelocity())
 				car->setVelocity(car->getMaxVelocity());
-			carPosX += cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
-			carPosZ -= sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60);
+			car->setX(car->getX() + cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car->setZ(car->getZ() - sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = 1;
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
@@ -794,7 +771,7 @@ void processKeys(int value) {
 			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
 			if (car->getVelocity() > car->getMaxVelocity())
 				car->setVelocity(car->getMaxVelocity());
-			car->setX(car->getX - cos(car->getAngle()) 
+			car->setX(car->getX() - cos(car->getAngle()) 
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			car->setZ( car->getZ() + sin(car->getAngle()) 
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
@@ -1006,40 +983,48 @@ void setMaterials(float* amb, float* diff, float* spec, float* emissive, float s
 }
 
 void createLights(void) {
-	lights[0] = new Light(0, false, false, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-		{ 4.0f, 6.0f, 2.0f, 0.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+	float amb_dir[] = { 1.0f, 1.0f, 1.0f , 1.0f };
+	float col_dir[] = { 1.0f, 1.0f, 1.0f , 1.0f };
+	float pos_dir[] = { 4.0f, 6.0f, 2.0f , 0.0f };
+	float half_dir[] = { 0.0f, 0.0f, 0.0f , 0.0f };
+	float cone_dir[] = { 0.0f, 0.0f, 0.0f , 0.0f };
+	lights[0] = new Light(0, false, false, false, amb_dir, col_dir,
+		pos_dir, half_dir, cone_dir, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f);
+
+	float amb_pl[] = { 1.0f, 1.0f, 1.0f , 1.0f };
+	float col_pl[] = { 1.0f, 1.0f, 1.0f , 1.0f };
+	float half_pl[] = { 0.0f, 0.0f, 0.0f , 0.0f };
+	float cone_pl[] = { 0.0f, 0.0f, 0.0f , 0.0f };
 	int i = 1;
 	for (int x = -1; x < 2; x += 2)
 	{
-		lights[i] = new Light(i, false, true, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-			{ x*1.0f, 2.0f, 0.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+		float pos_pl[] = { x*1.0f, 2.0f, 0.0f, 1.0f };
+		lights[i] = new Light(i, false, true, false, amb_pl, col_pl,
+			pos_pl, half_pl, cone_pl, 0.0f,
 			0.0f, 1.0f, 0.2f, 0.1f);
 		i++;
-		for (int z = -1; y < 2; z += 2)
+		for (int z = -1; z < 2; z += 2)
 		{
-			lights[i] = new Light(i, false, true, false, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-				{ x*15.0f, 2.0f, z*15.0f, 1.0f }, { 0.0f,0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f,0.0f }, 0.0f,
+			float pos2_pl[] = { x*15.0f, 2.0f, z*15.0f, 1.0f };
+			lights[i] = new Light(i, false, true, false, amb_dir, col_dir,
+				pos2_pl, half_pl, cone_pl, 0.0f,
 				0.0f, 1.0f, 0.2f, 0.1f);
 			i++;
 		}
 	}
 
-	lights[7] = new Light(7, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-		{ carPosX - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()), 0.95f,
-		carPosZ - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f },
-		{ 0.0f,0.0f,0.0f,0.0f },
-		{ carPosX - 1.0f - cos(-car->getAngle()) * (-90),0.0f, carPosZ + 1.0f - sin(-car->getAngle()) * (-90),0.0f },
-		0.0f,
-		0.0f, 1.0f, 0.2f, 0.1f);
+	float pos_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()), 0.95f,
+		car->getZ() - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
+	float cone_sp[] = { car->getX() - 1.0f - cos(-car->getAngle()) * (-90),0.0f, car->getZ() + 1.0f - sin(-car->getAngle()) * (-90),0.0f };
 
-	lights[8] = new Light(8, false, true, true, { 1.0f, 1.0f, 1.0f , 1.0f }, { 1.0f, 1.0f, 1.0f , 1.0f },
-		{ carPosX - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()), 0.95f,
-		carPosZ + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f },
-		{ 0.0f,0.0f,0.0f,0.0f },
-		{ carPosX - 1.0f - cos(-car->getAngle()) * (-90),0.0f, carPosZ + 1.0f - sin(-car->getAngle()) * (-90),0.0f },
-		0.8f,
-		0.3f, 1.0f, 0.2f, 0.1f);
+	lights[7] = new Light(7, false, true, true, amb_dir, col_dir, pos_sp, half_dir, cone_sp, 0.0f, 0.0f, 1.0f, 0.2f, 0.1f);
+
+	float pos2_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()), 0.95f,
+		car->getZ() + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
+	float cone2_sp[] = { car->getX() - 1.0f - cos(-car->getAngle()) * (-90),0.0f, car->getZ() + 1.0f - sin(-car->getAngle()) * (-90),0.0f };
+
+	lights[8] = new Light(8, false, true, true, amb_dir, col_dir, pos2_sp, half_dir, cone2_sp, 0.8f, 0.3f, 1.0f, 0.2f, 0.1f);
 }
 
 // ------------------------------------------------------------
@@ -1048,37 +1033,41 @@ void createLights(void) {
 //
 
 void createTable(void) {
-	table = new Table(objId, -20.0f, -0.75f, -20.0f, { 0.2f, 0.15f, 0.1f, 1.0f },
-					{ 0.43f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-					{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 2);
-	setMaterials(table->ambient, table->diffuse, table->specular, 
-				table->emissive, table->shininess, table->texcount);
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	table = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 2);
+	setMaterials(table->getAmbient(), table->getDiffuse(), table->getSpecular(), 
+				table->getEmissive(), table->getShininess(), table->getTexcount());
 	createCube();
 	tableMeshID = objId;
 	objId++;
 }
 
 void createCheerios(void) {
-		for (int i = 0; i != N_CHEERIOS_INNER; i++) {
+	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
+	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
+	float spec_c[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_c[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	for (int i = 0; i != N_CHEERIOS_INNER; i++) {
 
 		// create cheerios
 		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f), 
-								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f)
-								{ 0.2f, 0.15f, 0.1f, 1.0f }, { 0.43f, 0.25f, 0.12f, 1.0f }, 
-								{ 0.05f, 0.05f, 0.05f, 1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(cheerios[i]->ambient, cheerios[i]->diffuse, cheerios[i]->specular,
-					cheerios[i]->emissive, cheerios[i]->shininess, cheerios[i]->texcount);
+								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_INNER) * 6.5f),
+								amb_c, diff_c, spec_c, emissive_c, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(cheerios[i]->getAmbient(), cheerios[i]->getDiffuse(), cheerios[i]->getSpecular(),
+					cheerios[i]->getEmissive(), cheerios[i]->getShininess(), cheerios[i]->getTexcount());
 		createTorus(0.5f, 1.0f, 14, 14);
 	}
 	for (int i = N_CHEERIOS_INNER; i != N_CHEERIOS_OUTER + N_CHEERIOS_INNER; i++) {
 
 		// create cheerios
 		cheerios[i] = new Cheerio(objId, static_cast <float>(cos(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f),
-					0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f)
-					{0.2f, 0.15f, 0.1f, 1.0f}, { 0.43f, 0.25f, 0.12f, 1.0f },
-					{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(cheerios[i]->ambient, cheerios[i]->diffuse, cheerios[i]->specular,
-					cheerios[i]->emissive, cheerios[i]->shininess, cheerios[i]->texcount);
+								0.0f, static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f),
+								amb_c, diff_c, spec_c, emissive_c, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(cheerios[i]->getAmbient(), cheerios[i]->getDiffuse(), cheerios[i]->getSpecular(),
+					cheerios[i]->getEmissive(), cheerios[i]->getShininess(), cheerios[i]->getTexcount());
 		createTorus(0.5f, 1.0f, 14, 14);
 	}
 	cheerioMeshID = objId;
@@ -1086,13 +1075,15 @@ void createCheerios(void) {
 }
 
 void createCar(void){
-	car = new Car(objId, 0.0f, 0.3f, 10.0f, { 0.2f, 0.02f, 0.0f, 1.0f },
-				{ 1.0f, 0.25f, 0.12f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f }, 
-				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
+	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
+	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
+	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	car = new Car(objId, 0.0f, 0.3f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
 
 	// create geometry and VAO of the car
-	setMaterials(car->ambient, car->diffuse, car->specular,
-				car->emissive, car->shininess, car->texcount);
+	setMaterials(car->getAmbient(), car->getDiffuse(), car->getSpecular(),
+				car->getEmissive(), car->getShininess(), car->getTexcount());
 	createCube();
 	carMeshID = objId;
 	objId++;
@@ -1101,8 +1092,8 @@ void createCar(void){
 	for (int i = 0; i != 4; i++) {
 
 		// create wheels
-		setMaterials(car->getWheel(i)->ambient, car->getWheel(i)->diffuse, car->getWheel(i)->specular,
-					car->getWheel(i)->emissive, car->getWheel(i)->shininess, car->getWheel(i)->texcount);
+		setMaterials(car->getWheel(i)->getAmbient(), car->getWheel(i)->getDiffuse(), car->getWheel(i)->getSpecular(),
+					car->getWheel(i)->getEmissive(), car->getWheel(i)->getShininess(), car->getWheel(i)->getTexcount());
 		createTorus(0.2f, 0.7f, 14, 14);
 		
 	}
@@ -1112,8 +1103,8 @@ void createCar(void){
 	for (int i = 0; i != 2; i++) {
 
 		// create headlights
-		setMaterials(car->getHeadlight(i)->ambient, car->getHeadlight(i)->diffuse, car->getHeadlight(i)->specular,
-					car->getHeadlight(i)->emissive, car->getHeadlight(i)->shininess, car->getHeadlight(i)->texcount);
+		setMaterials(car->getHeadlight(i)->getAmbient(), car->getHeadlight(i)->getDiffuse(), car->getHeadlight(i)->getSpecular(),
+					car->getHeadlight(i)->getEmissive(), car->getHeadlight(i)->getShininess(), car->getHeadlight(i)->getTexcount());
 		createCube();
 		
 	}
@@ -1122,15 +1113,18 @@ void createCar(void){
 }
 
 void createButters(void) {
+		float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
+		float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
+		float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+		float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		for (int i = 0; i != 5; i++) {
 
 		// create butters
-		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f)))f),
-									0.0f, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))))
-									{ 0.22f, 0.15f, 0.00f, 1.0f }, { 1.0f, 0.80f, 0.00f, 1.0f },
-									{ 0.05f, 0.05f, 0.05f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0, 0, 0, 0, 0);
-		setMaterials(butters[i]->ambient, butters[i]->diffuse, butters[i]->specular,
-					butters[i]->emissive, butters[i]->shininess, butters[i]->texcount);
+		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
+								0.0f, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
+									amb_butt, diff_butt, spec_butt, emissive_butt, 70.0f, 0, 0, 0, 0, 0);
+		setMaterials(butters[i]->getAmbient(), butters[i]->getDiffuse(), butters[i]->getSpecular(),
+					butters[i]->getEmissive(), butters[i]->getShininess(), butters[i]->getTexcount());
 		createCube();
 		
 	}
@@ -1140,22 +1134,22 @@ void createButters(void) {
 
 void createCandles(void) {
 	int i = 0;
+	float amb_candle[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_candle[] = { 1.00f, 1.00f, 1.00f, 1.0f };
+	float spec_candle[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_candle[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	for (int x = -1; x < 2; x += 2)
 	{
-		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
-			{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
-		setMaterials(candles[i]->ambient, candles[i]->diffuse, candles[i]->specular,
-					candles[i]->emissive, candles[i]->shininess, candles[i]->texcount);
+		candles[i] = new Candle(objId, x*1.0f, 2.0f, 0.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
+		setMaterials(candles[i]->getAmbient(), candles[i]->getDiffuse(), candles[i]->getSpecular(),
+					candles[i]->getEmissive(), candles[i]->getShininess(), candles[i]->getTexcount());
 		createCylinder(2.5f, 0.25f, 20.0);
 		i++;
-		for (int z = -1; y < 2; z += 2)
+		for (int z = -1; z < 2; z += 2)
 		{
-			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, { 0.2f, 0.18f, 0.05f, 1.0f },
-				{ 1.00f, 1.00f, 1.00f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-				{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0);
-			setMaterials(candles[i]->ambient, candles[i]->diffuse, candles[i]->specular,
-						candles[i]->emissive, candles[i]->shininess, candles[i]->texcount);
+			candles[i] = new Candle(objId, x*15.0f, 2.0f, z*15.0f, amb_candle, diff_candle, spec_candle, emissive_candle, 70.0f, 0);
+			setMaterials(candles[i]->getAmbient(), candles[i]->getDiffuse(), candles[i]->getSpecular(),
+						candles[i]->getEmissive(), candles[i]->getShininess(), candles[i]->getTexcount());
 			createCylinder(2.5f, 0.25f, 20.0);
 			i++;
 		}
@@ -1163,18 +1157,22 @@ void createCandles(void) {
 }
 
 void createOranges(void) {
+	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
+	float diff_orange[] = { 0.99f, 0.54f, 0.13f, 1.0f };
+	float spec_orange[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_orange[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	for (int i = 0; i != 5; i++) {
 
 		// create oranges
 		oranges[i] = new Orange(objId,
 			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))), 2.5f,
 			-20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
-			{ 0.2f, 0.18f, 0.05f, 1.0f }, { 0.99f, 0.54f, 0.13f, 1.0f }, { 0.05f, 0.05f, 0.05f, 1.0f },
-			{ 0.0f, 0.0f, 0.0f, 1.0f }, 70.0f, 0,
+			amb_orange, diff_orange, spec_orange, emissive_orange, 70.0f, 0,
 			static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (360.0f))),
+			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))), 
 			1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f))));
-		setMaterials(oranges[i]->ambient, oranges[i]->diffuse, oranges[i]->specular,
-					oranges[i]->emissive, oranges[i]->shininess, oranges[i]->texcount);
+		setMaterials(oranges[i]->getAmbient(), oranges[i]->getDiffuse(), oranges[i]->getSpecular(),
+					oranges[i]->getEmissive(), oranges[i]->getShininess(), oranges[i]->getTexcount());
 		createSphere(2.5f, 20);
 
 	}
@@ -1183,9 +1181,9 @@ void createOranges(void) {
 
 	for (int i = 0; i != 5; i++) {
 
-		setMaterials(oranges[i]->getStem()->ambient, oranges[i]->getStem()->diffuse,
-					oranges[i]->getStem()->specular, oranges[i]->getStem()->emissive,
-					oranges[i]->getStem()->shininess, oranges[i]->getStem()->texcount);
+		setMaterials(oranges[i]->getStem()->getAmbient(), oranges[i]->getStem()->getDiffuse(),
+					oranges[i]->getStem()->getSpecular(), oranges[i]->getStem()->getEmissive(),
+					oranges[i]->getStem()->getShininess(), oranges[i]->getStem()->getTexcount());
 		createCylinder(0.6f, 0.3f, 20);
 	}
 	stemMeshID = objId;
@@ -1223,7 +1221,7 @@ void init()
 	createCar();
 	createButters();
 	createCandles();
-	createOrange();
+	createOranges();
 
 	candleMeshID = objId;
 	objId++;
@@ -1234,8 +1232,8 @@ void init()
 	float diff_hud[] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	float spec_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	float emissive_hud[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	shininess = 0.0f;
-	texcount = 0;
+	int shininess = 0.0f;
+	int texcount = 0;
 
 	for (int i = 0; i < 3; i++) {
 		setMaterials(amb_hud, diff_hud, spec_hud, emissive_hud, shininess, texcount);
