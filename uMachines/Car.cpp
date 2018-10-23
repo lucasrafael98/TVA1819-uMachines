@@ -26,8 +26,9 @@ Car::Car(int id, float x, float y, float z, float *ambient,
 	float dif_head[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float spec_head[] = { 0.7f, 0.7f, 0.7f, 1.0f };
 	float emi_head[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	int j = 0;
 	for (int i = -1; i <= 1; i += 2) {
-		_headlights[i] = new Headlight(id + 2, 3.0f, 0.5f, i*0.5f + 0.8, amb_head, dif_head, spec_head, emi_head, 800.0f, 0);
-		i++;
+		_headlights[j] = new Headlight(id + 2, 3.0f, 0.5f, i*0.5f + 0.8, amb_head, dif_head, spec_head, emi_head, 800.0f, 0);
+		j++;
 	}
 }

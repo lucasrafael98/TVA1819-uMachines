@@ -1,5 +1,5 @@
-#ifndef CANDLE_H
-#define CANDLE_H
+#ifndef TABLE_H
+#define TABLE_H
 #include "GameElement.h"
 class Table :
 	public GameElement

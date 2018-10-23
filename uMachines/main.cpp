@@ -30,13 +30,13 @@
 #include "TGA.h"
 
 // include gameElement classes
-#include "Candle.h"
 #include "Car.h"
+#include "Candle.h"
 #include "Cheerio.h"
+#include "Table.h"
 #include "Butter.h"
 #include "Orange.h"
 #include "Light.h"
-#include "Table.h"
 
 
 #ifdef _WIN32
@@ -116,6 +116,7 @@ GLint vm_uniformId;
 GLint normal_uniformId;
 GLint tex_loc, tex_loc1, tex_loc2;
 GLint texMode_uniformId;
+GLint loc;
 
 GLuint TextureArray[3];
 
@@ -224,7 +225,7 @@ void drawMesh() {
 // Render stufff
 //
 
-void renderLights(GLint loc) {
+void renderLights() {
 
 	for (int i = 0; i < 9; i++)
 	{
@@ -252,7 +253,7 @@ void renderLights(GLint loc) {
 			glUniform4fv(loc, 1, res);
 			target = "Lights[].halfVector";
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
-			glUniform4fv(loc, 1, lights[0]->getPosition());
+			glUniform4fv(loc, 1, lights[0]->getHalfvector());
 		}
 		else if (i > 0 && i < 7) {
 			target = "Lights[].isEnabled";
@@ -354,8 +355,6 @@ void renderLights(GLint loc) {
 
 void renderScene(void) {
 
-	GLint loc;
-
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// load identity matrices
@@ -370,10 +369,10 @@ void renderScene(void) {
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
 
-	renderLights(loc);
+	renderLights();
 
 	//table
-	objId = tableMeshID;
+	objId = table->getId();
 
 	getMaterials();
 	pushMatrix(MODEL);
@@ -401,7 +400,7 @@ void renderScene(void) {
 	glUniform1i(texMode_uniformId, 1);
 
 	//cheerio
-	objId = cheerioMeshID;
+	objId = cheerios[0]->getId();
 
 	// inner cheerio ring
 	// FIXME We uh... probably shouldn't leave position changes in the render function.
@@ -442,7 +441,7 @@ void renderScene(void) {
 
 	
 	// car cube
-	objId = carMeshID;
+	objId = car->getId();
 
 	getMaterials();
 	pushMatrix(MODEL);
@@ -455,7 +454,7 @@ void renderScene(void) {
 	popMatrix(MODEL);
 	
 	// car wheels
-	objId = wheelMeshID;
+	objId = car->getWheel(0)->getId();
 	for (int x = -1; x <= 1; x += 2) {
 
 		for (int y = -1; y <= 1; y += 2) {
@@ -471,7 +470,7 @@ void renderScene(void) {
 	}
 
 	// car headlights
-	objId = headlightMeshID;
+	objId = car->getHeadlight(0)->getId();
 	for (int i = -1; i <= 1; i += 2) {
 
 		getMaterials();
@@ -485,7 +484,7 @@ void renderScene(void) {
 	popMatrix(MODEL);
 
 	// butters
-	objId = butterMeshID;
+	objId = butters[0]->getId();
 	for (int i = 0; i != 5; i ++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		if (butters[i]->getVelocity()) {
@@ -508,7 +507,7 @@ void renderScene(void) {
 	
 
 	// candles
-	objId = candleMeshID;
+	objId = candles[0]->getId();
 
 	for (int x = -1; x < 2; x+=2)
 	{
@@ -531,10 +530,9 @@ void renderScene(void) {
 
 
 	//oranges
-
-	for (int i = 0; i / 2 != 5; i += 2) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
+	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Orange, sem isso o Y de um era o X do proximo
 	{
-		objId = orangeMeshID;
+		objId = oranges[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, oranges[i]->getX(), 2.5f, oranges[i]->getZ());
@@ -542,7 +540,7 @@ void renderScene(void) {
 		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 
-		objId = stemMeshID;
+		objId = oranges[0]->getStem()->getId();
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, 0.0f, 2.5f, 0.0f);
@@ -726,7 +724,7 @@ void updateOranges(int value) {
 
 		}
 
-		glutTimerFunc(1000 / 60, updateOranges, 0);
+		//glutTimerFunc(1000 / 60, updateOranges, 0);
 	}
 }
 
@@ -1080,7 +1078,6 @@ void createCar(void){
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	car = new Car(objId, 0.0f, 0.3f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
-
 	// create geometry and VAO of the car
 	setMaterials(car->getAmbient(), car->getDiffuse(), car->getSpecular(),
 				car->getEmissive(), car->getShininess(), car->getTexcount());
@@ -1154,6 +1151,8 @@ void createCandles(void) {
 			i++;
 		}
 	}
+	candleMeshID = objId;
+	objId++;
 }
 
 void createOranges(void) {
@@ -1197,8 +1196,6 @@ void init()
 	camZ = r * cos(alpha * M_PI / 180.0f) * cos(beta * M_PI / 180.0f);
 	camY = r * sin(beta * M_PI / 180.0f);
 
-	createLights();
-
 	numberLives = 0;
 	for (int i = 0;i < 3; i++) {
 		life[i] = true;
@@ -1219,6 +1216,7 @@ void init()
 	createTable();
 	createCheerios();
 	createCar();
+	createLights();
 	createButters();
 	createCandles();
 	createOranges();
