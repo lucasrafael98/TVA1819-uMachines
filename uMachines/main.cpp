@@ -90,7 +90,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[10];
+struct MyMesh mesh[11];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -1443,7 +1443,7 @@ void init()
 		life[i] = true;
 	}
 
-	char checker[] = "textures/checker.tga";
+	char checker[] = "textures/stone.tga";
 	char lightwood[] = "textures/lightwood.tga";
 	char life[] = "img/life.tga";
 	char pause[] = "img/paused.tga";
@@ -1477,9 +1477,9 @@ void init()
 	createTable();
 	createCheerios();
 	createCar();
-	createLights();
 	createButters();
 	createCandles();
+	createLights();
 	createOranges();
 
 	// hud materials
