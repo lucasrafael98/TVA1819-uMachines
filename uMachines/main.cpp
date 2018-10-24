@@ -38,7 +38,6 @@
 #include "Orange.h"
 #include "Light.h"
 
-
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 #endif
@@ -104,6 +103,8 @@ int orangeMeshID;
 int stemMeshID;
 int hudMeshID;
 
+int gamePoints = 0;
+
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -122,6 +123,7 @@ GLint texMode_uniformId;
 GLint loc;
 
 GLuint TextureArray[6];
+GLuint FontArray[11]; //10 numbers [0-9] + pointsText
 
 // Camera Position
 float camX, camY, camZ;
@@ -147,6 +149,11 @@ float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 {
 	return (float)(degrees * (M_PI / 180.0f));
 };
+
+int fast_atoi(char str)
+{
+	return str - '0';
+}
 
 void timer(int value)
 {
@@ -423,6 +430,59 @@ void renderGameOverBox() {
 	popMatrix(MODEL);
 }
 
+void renderPoints() {
+	//points text
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, -0.75, 0.85, 0.0);
+	scale(MODEL, 0.4f, 0.2f, 1.0f);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUniform1i(texMode_uniformId, 2);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, FontArray[10]);
+
+	glUniform1i(tex_loc2, 2);
+
+	drawMesh();
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	popMatrix(MODEL);
+
+	string pointstr = std::to_string(gamePoints);
+	int count = 0;
+	for (char i : pointstr) {
+
+		getMaterials();
+		pushMatrix(MODEL);
+		translate(MODEL, -0.45 + count * (0.1), 0.85, 0.0);
+		scale(MODEL, 0.15f, 0.2f, 1.0f);
+
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glUniform1i(texMode_uniformId, 2);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, FontArray[fast_atoi(i)]);
+
+		glUniform1i(tex_loc2, 2);
+
+		drawMesh();
+
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+		popMatrix(MODEL);
+		count++;
+	}
+}
+
 void renderScene(void) {
 	//std::cout << numberLives << std::endl;
 
@@ -509,7 +569,7 @@ void renderScene(void) {
 		popMatrix(MODEL);
 	}
 
-	
+
 	// car cube
 	objId = car->getId();
 	getMaterials();
@@ -521,7 +581,7 @@ void renderScene(void) {
 	scale(MODEL, 3.0f, 1.2f, 2.0f);
 	drawMesh();
 	popMatrix(MODEL);
-	
+
 	// car wheels
 	objId = car->getWheel(0)->getId();
 	for (int x = -1; x <= 1; x += 2) {
@@ -554,7 +614,7 @@ void renderScene(void) {
 
 	// butters
 	objId = butters[0]->getId();
-	for (int i = 0; i != 5; i ++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
+	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
 		if (butters[i]->getVelocity()) {
 			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
@@ -573,11 +633,11 @@ void renderScene(void) {
 		popMatrix(MODEL);
 	}
 
-	
+
 
 	// candles
 	objId = candles[0]->getId();
-	for (int x = -1; x < 2; x+=2)
+	for (int x = -1; x < 2; x += 2)
 	{
 		getMaterials();
 		pushMatrix(MODEL);
@@ -585,7 +645,7 @@ void renderScene(void) {
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
-		for (int y = -1; y < 2 ; y+=2)
+		for (int y = -1; y < 2; y += 2)
 		{
 			getMaterials();
 			pushMatrix(MODEL);
@@ -632,7 +692,7 @@ void renderScene(void) {
 
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, -0.90 + i*(0.15), -0.90, 0.0);
+		translate(MODEL, -0.90 + i * (0.15), -0.90, 0.0);
 		scale(MODEL, 0.15f, 0.15f, 1.0f);
 
 		glDepthMask(GL_FALSE);
@@ -652,6 +712,8 @@ void renderScene(void) {
 		glDepthMask(GL_TRUE);
 		popMatrix(MODEL);
 	}
+
+	renderPoints();
 
 	if (shouldPause || paused)
 		renderPauseBox();
@@ -786,9 +848,13 @@ void updateOranges(int value) {
 		for (int i = 0; i != 5; i ++) {
 			if (oranges[i]->getX() > 20.0f + 2.5f || oranges[i]->getX() < -20.0f - 2.5f) { //2.5f radius from orange
 				calculateRespawnOrange(i);
+				if(gamePoints < 9999)
+					gamePoints++;
 			}
 			else if (oranges[i]->getZ() > 20.0f + 2.5f || oranges[i]->getZ() < -20.0f - 2.5f) { //2.5f radius from orange
 				calculateRespawnOrange(i);
+				if (gamePoints < 9999)
+					gamePoints++;
 			}
 			else {
 				//FIXME is it supposed to be X in both?
@@ -843,12 +909,11 @@ void resetGame() {
 	}
 
 	gameOver = false;
+	gamePoints = 0;
 	
 	glutTimerFunc(0, refresh, 0);
 	glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, checkCollisions, 0);
-
-	
 }
 
 void processKeys(int value) {
@@ -1340,6 +1405,20 @@ void init()
 	TGA_Texture(TextureArray, gameover, 4);
 	TGA_Texture(TextureArray, blackbox, 5);
 
+	glGenTextures(11, FontArray);
+	for (int i = 0; i < 10; i++) {
+		string n = "font/" + std::to_string(i) +".tga";
+
+		char *cstr = new char[n.length() + 1];
+		strcpy_s(cstr, n.length() + 1, n.c_str());
+		TGA_Texture(FontArray, cstr, i);
+
+		delete[] cstr;
+	}
+	char points[] = "font/points.tga";
+	TGA_Texture(FontArray, points, 10);
+
+
 	srand(time(NULL));
 
 	objId = 0;
@@ -1360,13 +1439,15 @@ void init()
 	int shininess = 0.0f;
 	int texcount = 0;
 
-	for (int i = 0; i < 6; i++) { //3life + gameover + pause + blackbox
+	for (int i = 0; i < 7 + 11; i++) { // 7 = 3life + gameover + pause + blackbox, 11 = 10 numeros e 1 texto (points)
 		setMaterials(amb_hud, diff_hud, spec_hud, emissive_hud, shininess, texcount);
 		createQuad(1.0, 1.0);
 	}
 
 	hudMeshID = objId;
 	objId++;
+
+	gamePoints = 0;
 
 	// some GL settings
 	glEnable(GL_DEPTH_TEST);
@@ -1396,7 +1477,6 @@ int main(int argc, char **argv) {
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WinX, WinY);
 	WindowHandle = glutCreateWindow(CAPTION);
-
 
 	//  Callback Registration
 	glutDisplayFunc(renderScene);
