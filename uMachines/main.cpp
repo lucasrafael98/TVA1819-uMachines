@@ -532,43 +532,14 @@ void renderScene(void) {
 	//cheerio
 	objId = cheerios[0]->getId();
 
-	// inner cheerio ring
-	// FIXME We uh... probably shouldn't leave position changes in the render function.
-	for (int i = 0; i != 20; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
+	// cheerio ring
+	for (int i = 0; i != N_CHEERIOS_INNER + N_CHEERIOS_OUTER; i++) {
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
-
-	// outer cheerio ring
-	for (int i = 20; i != 60; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
-		getMaterials();
-		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
-		drawMesh();
-		popMatrix(MODEL);
-	}
-
 
 	// car cube
 	objId = car->getId();
@@ -616,15 +587,6 @@ void renderScene(void) {
 	objId = butters[0]->getId();
 	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
-		if (butters[i]->getVelocity()) {
-			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
-				butters[i]->setVelocity(0);
-			else {
-				butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
-				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
-				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, butters[i]->getX(), -0.25f, butters[i]->getZ());
@@ -632,8 +594,6 @@ void renderScene(void) {
 		drawMesh();
 		popMatrix(MODEL);
 	}
-
-
 
 	// candles
 	objId = candles[0]->getId();
@@ -857,7 +817,6 @@ void updateOranges(int value) {
 					gamePoints++;
 			}
 			else {
-				//FIXME is it supposed to be X in both?
 				oranges[i]->setX(oranges[i]->getX() + cos(oranges[i]->getAngleX()) * (oranges[i]->getVelocity() * 1 / 60));
 				oranges[i]->setZ(oranges[i]->getZ() - sin(oranges[i]->getAngleX()) * (oranges[i]->getVelocity() * 1 / 60));
 				oranges[i]->setAngleZ(oranges[i]->getAngleZ() + oranges[i]->getVelocity() / 2);
@@ -866,6 +825,42 @@ void updateOranges(int value) {
 		}
 
 		glutTimerFunc(1000 / 60, updateOranges, 0);
+	}
+}
+
+void updateCheerios(int value) {
+	if (!paused && !gameOver) {
+		for (int i = 0; i != N_CHEERIOS_INNER + N_CHEERIOS_OUTER; i++) {
+			if (cheerios[i]->getVelocity()) {
+				if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
+					cheerios[i]->setVelocity(0);
+				else {
+					cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
+					cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
+					cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
+				}
+			}
+		}
+		
+		glutTimerFunc(1000 / 60, updateCheerios, 0);
+	}
+}
+
+void updateButters(int value) {
+	if (!paused && !gameOver) {
+		for (int i = 0; i != 5; i++) {
+			if (butters[i]->getVelocity()) {
+				if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
+					butters[i]->setVelocity(0);
+				else {
+					butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
+					butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
+					butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
+				}
+			}
+		}
+
+		glutTimerFunc(1000 / 60, updateButters, 0);
 	}
 }
 
@@ -913,6 +908,8 @@ void resetGame() {
 	
 	glutTimerFunc(0, refresh, 0);
 	glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, updateButters, 0);
+	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
 }
 
@@ -930,6 +927,8 @@ void processKeys(int value) {
 		if (!paused) {
 			glutTimerFunc(0, refresh, 0);
 			glutTimerFunc(0, updateOranges, 0);
+			glutTimerFunc(0, updateButters, 0);
+			glutTimerFunc(0, updateCheerios, 0);
 			glutTimerFunc(0, checkCollisions, 0);
 		}
 	}
@@ -978,10 +977,10 @@ void processKeys(int value) {
 			car->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
 		}
 		if (keystates['o']) { // Left
-			car->setAngle(car->getAngle() + 2 * M_PI / 200);
+			car->setAngle(car->getAngle() + M_PI *(car->getVelocity() / 1000));
 		}
 		if (keystates['p']) { // Right
-			car->setAngle(car->getAngle() - 2 * M_PI / 200);
+			car->setAngle(car->getAngle() - M_PI * (car->getVelocity() / 1000));
 		}
 		if (keystates[27]) {
 			glutLeaveMainLoop();
@@ -1487,6 +1486,8 @@ int main(int argc, char **argv) {
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
 	glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, updateButters, 0);
+	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
 
 	//	Mouse and Keyboard Callbacks
