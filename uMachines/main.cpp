@@ -914,14 +914,14 @@ void resetGame() {
 }
 
 void processKeys(int value) {
-	if (keystates['s']) {
+	if (keystates['s'] && !gameOver) {
 		shouldPause = true;
 	}
 	else if (keystates['r'] && gameOver) {
 		resetGame();
 	}
 	// FIXME Checks if S has been released. The problem here is that if you hold down S, it'll keep pausing and unpausing.
-	if (shouldPause && !keystates['s']) {
+	if (shouldPause && !keystates['s'] && !gameOver) {
 		shouldPause = false;
 		paused = !paused;
 		if (!paused) {
