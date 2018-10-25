@@ -50,7 +50,7 @@
 #define N_CANDLES 6
 #define N_LIVES 3
 
-#define CAPTION "AVT Per Fragment Phong Lightning Demo"
+#define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
 int WinX = 640, WinY = 480;
 
