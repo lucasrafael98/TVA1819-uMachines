@@ -3,6 +3,7 @@
 #include "GameElement.h"
 #include "Wheel.h"
 #include "Headlight.h"
+#include "CarGlass.h"
 
 class Car: public GameElement {
     private:    
@@ -13,6 +14,7 @@ class Car: public GameElement {
         float _maxVelocity;
 		Wheel* _wheels[4];
 		Headlight* _headlights[2];
+		CarGlass* _glass;
     public:
         Car(int id,float x,float y,float z, float *ambient,
 			float *diffuse,float *specular,float *emissive, 
@@ -26,6 +28,7 @@ class Car: public GameElement {
         float getMaxVelocity() const {return _maxVelocity;}
 		Wheel* getWheel(int i) const { return _wheels[i]; }
 		Headlight* getHeadlight(int i) const { return _headlights[i]; }
+		CarGlass* getGlass() const { return _glass; }
 
         void setAngle (float angle) { _angle = angle;}
         void setVelocity (float velocity) { _velocity = velocity;}

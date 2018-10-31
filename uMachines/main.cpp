@@ -52,7 +52,7 @@
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
-int WinX = 640, WinY = 480;
+int WinX = 1280, WinY = 720;
 
 unsigned int FrameCount = 0;
 
@@ -90,7 +90,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[11];
+struct MyMesh mesh[12];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -103,6 +103,7 @@ int candleMeshID;
 int orangeMeshID;
 int stemMeshID;
 int hudMeshID;
+int domeMeshID;
 
 int gamePoints = 0;
 
@@ -472,7 +473,17 @@ void renderCar(void) {
 		popMatrix(MODEL);
 	}
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	objId = car->getGlass()->getId();
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, car->getGlass()->getX(), car->getGlass()->getY(), car->getGlass()->getZ());
+	drawMesh();
 	popMatrix(MODEL);
+
+	popMatrix(MODEL);
+	glDisable(GL_BLEND);
 }
 void renderButters(void) {
 	// butters
@@ -1341,6 +1352,12 @@ void createCar(void){
 		
 	}
 	headlightMeshID = objId;
+	objId++;
+
+	setMaterials(car->getGlass()->getAmbient(), car->getGlass()->getDiffuse(), car->getGlass()->getSpecular(),
+				car->getGlass()->getEmissive(), car->getGlass()->getShininess(), car->getGlass()->getTexcount());
+	createSphere(0.6, 20);
+	domeMeshID = objId;
 	objId++;
 }
 

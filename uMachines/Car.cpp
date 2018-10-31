@@ -31,4 +31,10 @@ Car::Car(int id, float x, float y, float z, float *ambient,
 		_headlights[j] = new Headlight(id + 2, 3.0f, 0.5f, i*0.5f + 0.8, amb_head, dif_head, spec_head, emi_head, 800.0f, 0);
 		j++;
 	}
+
+	float amb_dome[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float diff_dome[] = { 0.9f, 0.9f, 1.0f, 0.8f };
+	float spec_dome[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+	float emissive_dome[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	_glass = new CarGlass(id + 3, 1.5f, 1.2f, 1.0f, amb_dome, diff_dome, spec_dome, emissive_dome, 1000.0f, 0);
 }
