@@ -74,6 +74,9 @@ bool orangeCollision = false;
 bool butterCollision = false;
 bool cheerioCollision = false;
 
+bool shouldToggleFog = false;
+int enableFog = 1;
+
 // Multiplier that will only be 1 or -1 (depending on whether Q or A was the last key press).
 int lastKeyPress = 0;
 
@@ -122,6 +125,7 @@ GLint vm_uniformId;
 GLint normal_uniformId;
 GLint tex_loc, tex_loc1, tex_loc2;
 GLint texMode_uniformId;
+GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
 GLuint TextureArray[6];
@@ -726,6 +730,9 @@ void renderScene(void) {
 	}
 	// use our shader
 	glUseProgram(shader.getProgramIndex());
+	glUniform1i(fogSelector_uniformId, 1);
+	glUniform1i(drawFog, enableFog);
+	glUniform1i(fogDepth_uniformId, 1);
 
 	renderLights();
 	renderTable();
@@ -1091,6 +1098,13 @@ void processKeys(int value) {
 			spotLight = !spotLight;
 			toggleSL = false;
 		}
+		if (keystates['f']) {
+			shouldToggleFog = true;
+		}
+		if (!keystates['f'] && shouldToggleFog) {
+			shouldToggleFog = false;
+			enableFog = (enableFog == 0) ? 1 : 0;
+		}
 	}
 	glutTimerFunc(1000 / 60, processKeys, 0);
 }
@@ -1212,6 +1226,9 @@ GLuint setupShaders() {
 
 	glLinkProgram(shader.getProgramIndex());
 
+	drawFog = glGetUniformLocation(shader.getProgramIndex(), "drawFog");
+	fogSelector_uniformId = glGetUniformLocation(shader.getProgramIndex(), "fogSelector");
+	fogDepth_uniformId = glGetUniformLocation(shader.getProgramIndex(), "depthFog");
 	texMode_uniformId = glGetUniformLocation(shader.getProgramIndex(), "texMode");
 	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVPMatrix");
 	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVMatrix");
@@ -1523,7 +1540,6 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
 }
 
 

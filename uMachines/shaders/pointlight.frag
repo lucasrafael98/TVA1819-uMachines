@@ -1,4 +1,4 @@
-#version 330
+﻿#version 330
 
 struct LightProperties {
 	bool isEnabled;
@@ -46,12 +46,33 @@ in Data {
 
 out vec4 FragColor;
 
+//0 linear; 1 exponential; 2 exponential square
+uniform int fogSelector;
+//0 plane based; 1 range based
+uniform int depthFog;
+uniform int drawFog;
+const vec3 fogColor = vec3(0.5, 0.5, 0.5);
+const float FogDensity = 0.05;
+
 void main() {
 	vec3 scatteredLight = vec3(0.0); // or, to a global ambient light
 	vec3 reflectedLight = vec3(0.0);
 	vec4 texel, texel1;
 	// loop over all the lights
 	float spotCos;
+	float fogFactor = 0;
+	float dist = 0;
+	if(depthFog == 0)//select plane based vs range based
+	{
+		//plane based
+		dist = abs(DataIn.Position.z);
+		//dist = (gl_FragCoord.z / gl_FragCoord.w);
+	}
+	else
+	{
+		//range based
+		dist = length(DataIn.Position);
+	}
 	for (int light = 0; light < MaxLights; ++light) {
 		if (! Lights[light].isEnabled)
 			continue;
@@ -109,4 +130,33 @@ void main() {
 		FragColor = vec4(rgb,mat.diffuse.a);
 	}
 
+	if(texMode != 2 && drawFog == 1){ // fog
+		rgb = vec3(FragColor);
+		if(fogSelector == 0)//linear fog
+		{
+			// 20 - fog starts; 80 - fog ends
+			fogFactor = (80 - dist)/(80 - 20);
+			fogFactor = clamp( fogFactor, 0.0, 1.0 );
+ 
+			//if you inverse color in glsl mix function you have to
+			//put 1.0 - fogFactor
+			rgb = mix(fogColor, rgb, fogFactor);
+		}
+		else if( fogSelector == 1)// exponential fog
+		{
+			fogFactor = 1.0 /exp(dist * FogDensity);
+			fogFactor = clamp( fogFactor, 0.0, 1.0 );
+ 
+			// mix function fogColor⋅(1−fogFactor) + rgb⋅fogFactor
+			rgb = mix(fogColor, rgb, fogFactor);
+		}
+		else if( fogSelector == 2)
+		{
+			fogFactor = 1.0 /exp( (dist * FogDensity)* (dist * FogDensity));
+			fogFactor = clamp( fogFactor, 0.0, 1.0 );
+ 
+			rgb = mix(fogColor, rgb, fogFactor);
+		}
+		FragColor = vec4(rgb,mat.diffuse.a);
+	}
 }
