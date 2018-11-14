@@ -152,11 +152,11 @@ void main() {
 		}
 		else if( fogSelector == 2)
 		{
-			fogFactor = 1.0 /exp( (dist * FogDensity)* (dist * FogDensity));
+			fogFactor = 3.0 /exp( (dist * FogDensity)* (dist * FogDensity));
 			fogFactor = clamp( fogFactor, 0.0, 1.0 );
  
 			rgb = mix(fogColor, rgb, fogFactor);
 		}
-		FragColor = vec4(rgb,mat.diffuse.a);
+		FragColor = vec4(rgb,FragColor.a);
 	}
 }

@@ -13,7 +13,7 @@
 #include <math.h>
 #include <iostream>
 #include <sstream>
-
+#include <algorithm>
 #include <string>
 #include <ctime>
 // include GLEW to access OpenGL 3.3 functions
@@ -28,6 +28,9 @@
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
 #include "TGA.h"
+
+#include "maths.h"
+#include "l3DBillboard.h"
 
 // include gameElement classes
 #include "Car.h"
@@ -93,7 +96,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[12];
+struct MyMesh mesh[13];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -107,6 +110,7 @@ int orangeMeshID;
 int stemMeshID;
 int hudMeshID;
 int domeMeshID;
+int treeMeshID;
 
 int gamePoints = 0;
 
@@ -128,7 +132,7 @@ GLint texMode_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
-GLuint TextureArray[6];
+GLuint TextureArray[8];
 GLuint FontArray[11]; //10 numbers [0-9] + pointsText
 
 // Camera Position
@@ -400,7 +404,6 @@ void renderTrack(void) {
 	objId = cheerios[0]->getId();
 
 	// inner cheerio ring
-	// FIXME We uh... probably shouldn't leave position changes in the render function.
 	for (int i = 0; i != 20; i++) {
 		if (cheerios[i]->getVelocity()) {
 			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
@@ -714,9 +717,68 @@ void renderPoints() {
 	}
 }
 
-void renderScene(void) {
-	std::cout << numberLives << std::endl;
+bool distance(std::vector<float> x, std::vector<float> y) {
+	float cam[] = { camX, camY, camZ };
+	float distX = (pow(x[0] - cam[0], 2) + pow(x[1] - cam[1], 2) + pow(x[2] - cam[2], 2));
+	float distY = (pow(y[0] - cam[0], 2) + pow(y[1] - cam[1], 2) + pow(y[2] - cam[2], 2));
+	return (distX > distY);
+}
 
+void renderTree(void) {
+	
+	objId = treeMeshID;
+	float cam[] = { camX, camY, camZ };
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUniform1i(texMode_uniformId, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, TextureArray[6]);
+	glUniform1i(tex_loc1, 1);
+
+	std::vector<std::vector<float>> billboards(0);
+
+	for (int i = -1; i <= 1; i+=2) {
+		for (int j = -1; j <= 1; j+=2) {
+			std::vector<float> pos = { 4.0f * i, 4.0f, 4.0f * j };
+			billboards.push_back(pos);
+		}
+	}
+
+	std::sort(billboards.begin(), billboards.end(), distance);
+
+	for (int i = 0; i != 4; i++) {
+		std::vector<float> bb = billboards.at(i);
+		pushMatrix(MODEL);
+		translate(MODEL, bb[0], 0, bb[2]);
+		float pos[] = { bb[0], 0.0f, bb[2] };
+
+		l3dBillboardCylindricalBegin(cam, pos);
+
+		//diffuse and ambient color are not used in the tree quads
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, mesh[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, mesh[objId].mat.shininess);
+
+		pushMatrix(MODEL);
+		translate(MODEL, 0.0f, bb[1], 0.0f);
+
+		drawMesh();
+		popMatrix(MODEL);
+		popMatrix(MODEL);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+}
+
+void renderScene(void) {
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// load identity matrices
@@ -741,6 +803,7 @@ void renderScene(void) {
 	renderButters();
 	renderCandles();
 	renderOranges();
+	renderTree();
 	renderHUD();
 	renderPoints();
 
@@ -1379,11 +1442,11 @@ void createCar(void){
 }
 
 void createButters(void) {
-		float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
-		float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
-		float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-		float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		for (int i = 0; i != 5; i++) {
+	float amb_butt[] = { 0.22f, 0.15f, 0.00f, 1.0f };
+	float diff_butt[] = { 1.0f, 0.80f, 0.00f, 1.0f };
+	float spec_butt[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_butt[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	for (int i = 0; i != 5; i++) {
 
 		// create butters
 		butters[i] = new Butter(objId, -20.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (40.0f))),
@@ -1483,13 +1546,17 @@ void init()
 	char pause[] = "img/paused.tga";
 	char gameover[] = "img/gameover.tga";
 	char blackbox[] = "img/blackbox.tga";
-	glGenTextures(6, TextureArray);
+	char tree[] = "textures/tree.tga";
+	char particle[] = "textures/particle.tga";
+	glGenTextures(8, TextureArray);
 	TGA_Texture(TextureArray, checker, 0);
 	TGA_Texture(TextureArray, lightwood, 1);
 	TGA_Texture(TextureArray, life, 2);
 	TGA_Texture(TextureArray, pause, 3);
 	TGA_Texture(TextureArray, gameover, 4);
 	TGA_Texture(TextureArray, blackbox, 5);
+	TGA_Texture(TextureArray, tree, 6);
+	TGA_Texture(TextureArray, particle, 7);
 
 	glGenTextures(11, FontArray);
 	for (int i = 0; i < 10; i++) {
@@ -1533,6 +1600,16 @@ void init()
 	hudMeshID = objId;
 	objId++;
 
+	//tree billboard
+	float amb_tree[] = { 0.2f, 0.1f, 0.1f, 1.0f };
+	float diff_tree[] = { 1.0f, 0.5f, 0.5f, 1.0f };
+	float spec_tree[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+	float emissive_tree[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	setMaterials(amb_tree, diff_tree, spec_tree, emissive_tree, 1000.0f, 0);
+	createQuad(8, 8);
+
+	treeMeshID = objId;
+
 	gamePoints = 0;
 
 	// some GL settings
@@ -1568,7 +1645,7 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(changeSize);
 
 	glutTimerFunc(0, timer, 0);
-	//glutIdleFunc(renderScene);			// Use for maximum performance.
+	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
 	glutTimerFunc(0, updateOranges, 0);
