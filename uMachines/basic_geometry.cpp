@@ -10,11 +10,16 @@ Basic Revolution Geometry
 
  João Madeiras Pereira
 ----------------------------------------------------*/
+#define _CRT_SECURE_NO_DEPRECATE
 #include <string>
 #include <assert.h>
 #include <stdlib.h>
 #include <vector>
-
+#include <iostream>
+#include <fstream>
+#include <iterator>
+#include <cstdio>
+#include <ctime>
 // include GLEW to access OpenGL 3.3 functions
 #include <GL/glew.h>
 
@@ -24,10 +29,13 @@ Basic Revolution Geometry
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
 #include "cube.h"
+#include "OBJ_Loader.h"
+#include "Skybox.h"
+#include "Lambo.h"
 
 extern struct MyMesh mesh[];
 extern int objId;
-
+objl::Loader loader;
 GLuint VboId[2];
 
 void createQuad(float size_x, float size_y) {
@@ -69,6 +77,208 @@ void createQuad(float size_x, float size_y) {
     // unbind the VAO
     glBindVertexArray(0);
   
+
+	mesh[objId].type = GL_TRIANGLES;
+}
+
+void writeLoaderToAFile() {
+	std::ofstream output_file("./teste.h");
+	output_file << "float custom_vertices[] = {";
+	for (int i = 0; i < loader.LoadedVertices.size(); i++)
+	{
+		if (i % 100 == 0) {
+			output_file << std::endl;
+		}
+		if (i == loader.LoadedVertices.size() - 1) {
+			output_file << loader.LoadedVertices[i].Position.X << ","
+				<< loader.LoadedVertices[i].Position.Y << ","
+				<< loader.LoadedVertices[i].Position.Z << ","
+				<< 1.0f;
+		}
+		else {
+			output_file << loader.LoadedVertices[i].Position.X << ","
+				<< loader.LoadedVertices[i].Position.Y << ","
+				<< loader.LoadedVertices[i].Position.Z << ","
+				<< 1.0f << ",";
+		}
+	}
+	output_file << "};" << std::endl << std::endl;
+	output_file << "float custom_normals[] = {";
+	for (int i = 0; i < loader.LoadedVertices.size(); i++)
+	{
+		if (i % 100 == 0) {
+			output_file << std::endl;
+		}
+		if (i == loader.LoadedVertices.size() - 1) {
+			output_file << loader.LoadedVertices[i].Normal.X << ","
+				<< loader.LoadedVertices[i].Normal.Y << ","
+				<< loader.LoadedVertices[i].Normal.Z << ","
+				<< 0.0f;
+		}
+		else {
+			output_file << loader.LoadedVertices[i].Normal.X << ","
+				<< loader.LoadedVertices[i].Normal.Y << ","
+				<< loader.LoadedVertices[i].Normal.Z << ","
+				<< 0.0f << ",";
+		}
+	}
+	output_file << "};" << std::endl << std::endl;
+	output_file << "float custom_uvs[] = {";
+	for (int i = 0; i < loader.LoadedVertices.size(); i++)
+	{
+		if (i % 100 == 0) {
+			output_file << std::endl;
+		}
+		if (i == loader.LoadedVertices.size() - 1) {
+			output_file << loader.LoadedVertices[i].TextureCoordinate.X << ","
+				<< loader.LoadedVertices[i].TextureCoordinate.Y << ","
+				<< 0.0f << ","
+				<< 1.0f;
+		}
+		else {
+			output_file << loader.LoadedVertices[i].TextureCoordinate.X << ","
+				<< loader.LoadedVertices[i].TextureCoordinate.Y << ","
+				<< 0.0f << ","
+				<< 1.0f << ",";
+		}
+	}
+	output_file << "};" << std::endl << std::endl;
+	output_file << "int custom_indices[] = {";
+	for (int i = 0; i < loader.LoadedIndices.size(); i++)
+	{
+		if (i % 100 == 0) {
+			output_file << std::endl;
+		}
+		if (i == loader.LoadedIndices.size() - 1) {
+			output_file << loader.LoadedIndices[i];
+		}
+		else {
+			output_file << loader.LoadedIndices[i] << ",";
+		}
+	}
+	output_file << "};";
+	output_file.close();
+}
+
+void createTeaPot() {
+
+	std::vector<float> tp_vertices;
+	std::vector<float> tp_normals;
+	std::vector<float> tp_uvs;
+	//std::vector<int> tp_indices;
+
+	//std::ifstream input_file("example1.txt");
+
+	//std::clock_t start;
+	//double duration;
+
+	//start = std::clock();
+
+	//if (input_file.fail()) {
+	//	std::cout << "Error opening the file!" << std::endl;
+	//}
+	//std::string item;
+	//int type = 0;
+	//while (!input_file.eof()) {
+	//	input_file >> item;
+	//	if (item == "V") {
+	//		type = 0;
+	//	}
+	//	else if (item == "N") {
+	//		type = 1;
+	//	}
+	//	else if (item == "T") {
+	//		type = 2;
+	//	}
+	//	else if (item == "I") {
+	//		type = 3;
+	//	}
+	//	else {
+	//		if (type == 0) {
+	//			tp_vertices.push_back(stof(item));
+	//		}else if (type == 1) {
+	//			tp_normals.push_back(stof(item));
+	//		}
+	//		else if (type == 2) {
+	//			tp_uvs.push_back(stof(item));
+	//		}
+	//		else if (type == 3) {
+	//			tp_indices.push_back(stoi(item));
+	//		}
+	//	}
+	//}
+	//bool res = loader.LoadFile("Car/Avent.obj");
+
+	//writeLoaderToAFile();
+
+	mesh[objId].numIndexes = sizeof(custom_indices)/4;
+
+	//for (int i = 0; i < loader.LoadedVertices.size(); i++)
+	//{
+	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.X);
+	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.Y);
+	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.Z);
+	//	tp_vertices.push_back(1.0f);
+
+	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.X);
+	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.Y);
+	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.Z);
+	//	tp_normals.push_back(0.0f);
+
+	//	tp_uvs.push_back(loader.LoadedVertices[i].TextureCoordinate.X);
+	//	tp_uvs.push_back(loader.LoadedVertices[i].TextureCoordinate.Y);
+	//	tp_uvs.push_back(0.0f);
+	//	tp_uvs.push_back(1.0f);
+	//}
+
+	glGenVertexArrays(1, &(mesh[objId].vao));
+	glBindVertexArray(mesh[objId].vao);
+
+	glGenBuffers(2, VboId);
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(custom_vertices) + sizeof(custom_normals) + sizeof(custom_uvs), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(custom_vertices), custom_vertices);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(custom_vertices), sizeof(custom_normals), custom_normals);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(custom_vertices) + sizeof(custom_normals), sizeof(custom_uvs), custom_uvs);
+
+	glEnableVertexAttribArray(VERTEX_COORD_ATTRIB);
+	glVertexAttribPointer(VERTEX_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, 0);
+	glEnableVertexAttribArray(NORMAL_ATTRIB);
+	glVertexAttribPointer(NORMAL_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(sizeof(custom_vertices)));
+	glEnableVertexAttribArray(TEXTURE_COORD_ATTRIB);
+	glVertexAttribPointer(TEXTURE_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(sizeof(custom_vertices) + sizeof(custom_normals)));
+
+
+	//index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboId[1]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh[objId].numIndexes, custom_indices, GL_STATIC_DRAW);
+
+	// unbind the VAO
+	glBindVertexArray(0);
+
+	mesh[objId].type = GL_TRIANGLES;
+
+	//duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
+	//std::cout << "TAKES THIS LONG TO LOAD: " << duration << '\n';
+}
+
+void createSkyBox() {
+	mesh[objId].numIndexes = faceCount * 3;
+
+	glGenVertexArrays(1, &(mesh[objId].vao));
+	glBindVertexArray(mesh[objId].vao);
+
+	glGenBuffers(2, VboId);
+	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(VERTEX_COORD_ATTRIB);
+	glVertexAttribPointer(VERTEX_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboId[1]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh[objId].numIndexes, faceIndex, GL_STATIC_DRAW);
+	glBindVertexArray(0);
 
 	mesh[objId].type = GL_TRIANGLES;
 }

@@ -23,6 +23,8 @@
 #include <GL/freeglut.h>
 
 // Use Very Simple Libs
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "VSShaderlib.h"
 #include "AVTmathLib.h"
 #include "VertexAttrDef.h"
@@ -81,6 +83,8 @@ int lastKeyPress = 0;
 bool hasToStop = false;
 
 Table* table;
+Table* skybox;
+Table* teapot;
 Car* car;
 Butter* butters[N_BUTTERS];
 Orange* oranges[N_ORANGES];
@@ -90,7 +94,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[12];
+struct MyMesh mesh[14];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -105,6 +109,7 @@ int stemMeshID;
 int hudMeshID;
 int domeMeshID;
 
+unsigned int cubemapTexture;
 int gamePoints = 0;
 
 
@@ -120,7 +125,7 @@ extern float mNormal3x3[9];
 GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
-GLint tex_loc, tex_loc1, tex_loc2;
+GLint tex_loc, tex_loc1, tex_loc2, skybox_loc;
 GLint texMode_uniformId;
 GLint loc;
 
@@ -232,6 +237,36 @@ void drawMesh() {
 	glBindVertexArray(0);
 }
 
+unsigned int loadCubemap(vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrComponents;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
 // ------------------------------------------------------------
 //
 // Render stufff
@@ -363,6 +398,25 @@ void renderLights() {
 			glUniform1f(loc, lights[i]->getSpotexponent());
 		}
 	}
+}
+
+void renderSkybox() {
+
+	objId = 0;
+	getMaterials();
+
+	glUniform1i(texMode_uniformId, 3);
+
+	glDepthFunc(GL_FALSE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	glUniform1i(skybox_loc, 0);
+
+	drawMesh();
+
+	glUniform1i(texMode_uniformId, 1);
+
+	glDepthFunc(GL_TRUE);
 }
 
 void renderTable(void) {
@@ -710,8 +764,17 @@ void renderPoints() {
 	}
 }
 
+void renderTeapot() {
+	objId = teapot->getId();
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, teapot->getX(), teapot->getY(), teapot->getZ());
+
+	drawMesh();
+	popMatrix(MODEL);
+}
+
 void renderScene(void) {
-	std::cout << numberLives << std::endl;
 
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -734,6 +797,7 @@ void renderScene(void) {
 	renderButters();
 	renderCandles();
 	renderOranges();
+	renderTeapot();
 	renderHUD();
 	renderPoints();
 
@@ -743,6 +807,7 @@ void renderScene(void) {
 	if (gameOver)
 		renderGameOverBox();
 
+	//renderSkybox();
 	popMatrix(PROJECTION);
 
 	glutSwapBuffers();
@@ -1219,6 +1284,7 @@ GLuint setupShaders() {
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
 	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
 	tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
+	skybox_loc = glGetUniformLocation(shader.getProgramIndex(), "skybox");
 
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
 
@@ -1275,6 +1341,17 @@ void createLights(void) {
 //
 // Model loading and OpenGL setup
 //
+void createSkybox(void) {
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	skybox = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 2);
+	setMaterials(skybox->getAmbient(), skybox->getDiffuse(), skybox->getSpecular(),
+		skybox->getEmissive(), skybox->getShininess(), skybox->getTexcount());
+	createCube();
+	objId++;
+}
 
 void createTable(void) {
 	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
@@ -1449,6 +1526,18 @@ void createOranges(void) {
 	objId++;
 }
 
+void createTeapot() {
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	teapot = new Table(objId, 0.0f, 6.0f, 0.0f, amb, diff, spec, emissive, 70.0f, 2);
+	setMaterials(teapot->getAmbient(), teapot->getDiffuse(), teapot->getSpecular(),
+		teapot->getEmissive(), teapot->getShininess(), teapot->getTexcount());
+	createTeaPot();
+	objId++;
+}
+
 void init()
 {
 	// set the camera position based on its spherical coordinates
@@ -1459,6 +1548,16 @@ void init()
 	for (int i = 0;i < N_LIVES; i++) {
 		life[i] = true;
 	}
+	
+	vector<std::string> faces
+	{
+		"textures/sgod_rt.tga",
+		"textures/sgod_lf.tga",
+		"textures/sgod_up.tga",
+		"textures/sgod_dn.tga",
+		"textures/sgod_ft.tga",
+		"textures/sgod_bk.tga"
+	};
 
 	char checker[] = "textures/stone.tga";
 	char lightwood[] = "textures/lightwood.tga";
@@ -1487,10 +1586,10 @@ void init()
 	char points[] = "font/points.tga";
 	TGA_Texture(FontArray, points, 10);
 
-
 	srand(time(NULL));
 
 	objId = 0;
+	//createSkybox();
 	createTable();
 	createCheerios();
 	createCar();
@@ -1498,6 +1597,7 @@ void init()
 	createCandles();
 	createLights();
 	createOranges();
+	createTeapot();
 
 	// hud materials
 	// FIXME Refactor after you're done
@@ -1523,7 +1623,7 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
+	//cubemapTexture = loadCubemap(faces);
 }
 
 

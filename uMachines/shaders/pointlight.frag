@@ -28,6 +28,8 @@ struct Materials {
 uniform sampler2D texmap;
 uniform sampler2D texmap1;
 uniform sampler2D texmap2;
+uniform samplerCube skybox;
+in vec3 TexCoords;
 
 uniform int texMode;
 
@@ -104,6 +106,9 @@ void main() {
 
 		FragColor = texel;
 
+	}
+	else if(texMode == 3){
+		FragColor = texture(skybox, TexCoords);
 	}
 	else{
 		FragColor = vec4(rgb,mat.diffuse.a);
