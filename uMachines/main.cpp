@@ -100,7 +100,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[15];
+struct MyMesh mesh[16];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -612,6 +612,17 @@ void renderOranges(void) {
 		popMatrix(MODEL);
 	}
 }
+
+void renderTeapot() {
+	objId = teapot->getId();
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, teapot->getX(), teapot->getY(), teapot->getZ());
+
+	drawMesh();
+	popMatrix(MODEL);
+}
+
 void renderHUD(void) {
 	//hud
 
@@ -812,11 +823,7 @@ void renderTree(void) {
 
 		l3dBillboardCylindricalBegin(cam, pos);
 
-		//diffuse and ambient color are not used in the tree quads
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, mesh[objId].mat.specular);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, mesh[objId].mat.shininess);
+		getMaterials();
 
 		pushMatrix(MODEL);
 		translate(MODEL, 0.0f, bb[1], 0.0f);
@@ -830,16 +837,6 @@ void renderTree(void) {
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	glEnable(GL_CULL_FACE);
-}
-
-void renderTeapot() {
-	objId = teapot->getId();
-	getMaterials();
-	pushMatrix(MODEL);
-	translate(MODEL, teapot->getX(), teapot->getY(), teapot->getZ());
-
-	drawMesh();
-	popMatrix(MODEL);
 }
 
 void renderScene(void) {
@@ -867,8 +864,8 @@ void renderScene(void) {
 	renderButters();
 	renderCandles();
 	renderOranges();
-	renderTree();
 	renderTeapot();
+	renderTree();
 	renderHUD();
 	renderPoints();
 
@@ -1608,11 +1605,11 @@ void createOranges(void) {
 }
 
 void createTeapot() {
-	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
-	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
-	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	teapot = new Table(objId, 0.0f, 6.0f, 0.0f, amb, diff, spec, emissive, 70.0f, 2);
+	float amb_car1[] = { 0.2f, 0.02f, 0.0f, 1.0f };
+	float diff_car1[] = { 1.0f, 0.25f, 0.12f, 1.0f };
+	float spec_car1[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_car1[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	teapot = new Table(objId, 0.0f, 6.0f, 0.0f, amb_car1, diff_car1, spec_car1, emissive_car1, 70.0f, 2);
 	setMaterials(teapot->getAmbient(), teapot->getDiffuse(), teapot->getSpecular(),
 		teapot->getEmissive(), teapot->getShininess(), teapot->getTexcount());
 	createTeaPot();
@@ -1710,6 +1707,7 @@ void init()
 	createQuad(8, 8);
 
 	treeMeshID = objId;
+	objId++;
 
 	gamePoints = 0;
 
