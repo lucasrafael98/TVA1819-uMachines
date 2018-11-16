@@ -116,22 +116,26 @@ void main() {
 	}
 
 	vec3 rgb = min(mat.emissive.rgb + scatteredLight + reflectedLight, vec3(1.0));
-	if(texMode == 0){ // Use textures for colorOut.
-		texel = texture(texmap, DataIn.tex_coord);  // texel from lighwood.tga
-		texel1 = texture(texmap1, DataIn.tex_coord);  // texel from checker.tga
+	if(texMode == 0){ // multi texture
+		texel = texture(texmap, DataIn.tex_coord);
+		texel1 = texture(texmap1, DataIn.tex_coord);
 		FragColor = vec4(rgb, mat.diffuse.a)* texel * texel1;
 	}
-	else if(texMode == 2){
+	else if(texMode == 2){ // HUD
 		
 		texel = texture(texmap2, DataIn.tex_coord);
 
 		FragColor = texel;
 
 	}
-	else if(texMode == 3){
+	else if(texMode == 3){ // skybox
 		FragColor = texture(skybox, TexCoords);
 	}
-	else{
+	else if(texMode == 4){ // single texture
+		texel = texture(texmap, DataIn.tex_coord);
+		FragColor = vec4(rgb, mat.diffuse.a) * texel;
+	}
+	else{ // default
 		FragColor = vec4(rgb,mat.diffuse.a);
 	}
 

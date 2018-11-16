@@ -56,7 +56,7 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
-#define MAX_PARTICLES  1500
+#define MAX_PARTICLES 100
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -106,7 +106,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[16];
+struct MyMesh mesh[17];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -736,8 +736,57 @@ void renderGameOverBox() {
 	popMatrix(MODEL);
 }
 
-void renderParticles() {
+void renderParticles(void) {
+	objId = partMeshID;
+	float particle_color[4];
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+
+	for (int i = 0; i < MAX_PARTICLES; i++)
+	{
+		if (particles[i]->getLife() > 0.0f)
+		{
+			//getMaterials();
+
+			particle_color[0] = particles[i]->getR();
+			particle_color[1] = particles[i]->getG();
+			particle_color[2] = particles[i]->getB();
+			particle_color[3] = particles[i]->getLife();
+
+			// send the material - diffuse color modulated with texture
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+			glUniform4fv(loc, 1, particle_color);
+
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[7]);
+			glUniform1i(tex_loc, 0);
+
+			pushMatrix(MODEL);
+			translate(MODEL, particles[i]->getX(), particles[i]->getY(), particles[i]->getZ());
+
+			drawMesh();
+
+			popMatrix(MODEL);
+		}
+		else dead_num_particles++;
+	}
+
+	if (dead_num_particles == MAX_PARTICLES) {
+		fireworks = false;
+		dead_num_particles = 0;
+		printf("All particles dead\n");
+		for (int i = 0; i < MAX_PARTICLES; i++)
+			delete particles[i];
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
 }
 
 void renderPoints() {
@@ -810,10 +859,10 @@ void renderTree(void) {
 	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUniform1i(texMode_uniformId, 0);
-	glActiveTexture(GL_TEXTURE1);
+	glUniform1i(texMode_uniformId, 4);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TextureArray[6]);
-	glUniform1i(tex_loc1, 1);
+	glUniform1i(tex_loc, 0);
 
 	std::vector<std::vector<float>> billboards(0);
 
@@ -877,11 +926,11 @@ void renderScene(void) {
 	renderOranges();
 	renderTeapot();
 	renderTree();
-	renderHUD();
-	renderPoints();
 	if (fireworks) {
 		renderParticles();
 	}
+	renderHUD();
+	renderPoints();
 
 	if (shouldPause || paused)
 		renderPauseBox();
@@ -1112,6 +1161,7 @@ void resetGame() {
 		cheerios[i]->setZ(static_cast <float>(sin(2 * M_PI * i / N_CHEERIOS_OUTER) * 16.0f));
 	}
 
+	fireworks = false;
 	gameOver = false;
 	gamePoints = 0;
 	
@@ -1120,6 +1170,23 @@ void resetGame() {
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
+}
+
+void initParticles(void)
+{
+	GLfloat v, theta, phi;
+	int i;
+
+	for (i = 0; i < MAX_PARTICLES; i++)
+	{
+		v = 0.8*frand() + 0.2;
+		phi = frand()*M_PI;
+		theta = 2.0*frand()*M_PI;
+
+		particles[i] = new Particle(1.0f, 0.05f, 0.882f, 0.552f, 0.211f, 0.0f, 10.0f, 0.0f,
+									v * cos(theta) * sin(phi), v * cos(phi), v * sin(theta) * sin(phi),
+									0.1f, -0.15f, 0.0f);
+	}
 }
 
 void processKeys(int value) {
@@ -1245,7 +1312,7 @@ void processKeys(int value) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
 		}
-		if (false) {
+		if (gamePoints != 0 && (gamePoints % 5) == 0 && !fireworks) {
 			fireworks = true;
 			initParticles();
 		}
@@ -1253,13 +1320,13 @@ void processKeys(int value) {
 			for (int i = 0; i < MAX_PARTICLES; i++)
 			{
 				float h = 0.125f;
-				particles[i]->setX(h * particles[i]->getVelocX());
-				particles[i]->setY(h * particles[i]->getVelocY());
-				particles[i]->setZ(h * particles[i]->getVelocZ());
-				particles[i]->setVelocX(h * particles[i]->getAccelX());
-				particles[i]->setVelocY(h * particles[i]->getAccelY());
-				particles[i]->setVelocZ(h * particles[i]->getAccelZ());
-				particles[i]->setLife(h * particles[i]->getFade());
+				particles[i]->setX(particles[i]->getX() + h * particles[i]->getVelocX());
+				particles[i]->setY(particles[i]->getY() + h * particles[i]->getVelocY());
+				particles[i]->setZ(particles[i]->getZ() + h * particles[i]->getVelocZ());
+				particles[i]->setVelocX(particles[i]->getVelocX() + h * particles[i]->getAccelX());
+				particles[i]->setVelocY(particles[i]->getVelocY() + h * particles[i]->getAccelY());
+				particles[i]->setVelocZ(particles[i]->getVelocZ() + h * particles[i]->getAccelZ());
+				particles[i]->setLife(particles[i]->getLife() + h * particles[i]->getFade());
 			}
 		}
 	}
@@ -1649,23 +1716,12 @@ void createTeapot() {
 
 void createParticles(void) {
 	partMeshID = objId;
-}
-
-void initParticles(void)
-{
-	GLfloat v, theta, phi;
-	int i;
-
-	for (i = 0; i < MAX_PARTICLES; i++)
-	{
-		v = 0.8*frand() + 0.2;
-		phi = frand()*M_PI;
-		theta = 2.0*frand()*M_PI;
-
-		particles[i] = new Particle(1.0f, 0.005f, 0.882f, 0.552f, 0.211f, 0.0f, 10.0f, 0.0f,
-									v * cos(theta) * sin(phi), v * cos(phi), v * sin(theta) * sin(phi),
-									0.1f, -0.15f, 0.0f);
-	}
+	float amb_tree[] = { 0.2f, 0.1f, 0.1f, 1.0f };
+	float diff_tree[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	float spec_tree[] = { 0.09f, 0.09f, 0.09f, 1.0f };
+	float emissive_tree[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	setMaterials(amb_tree, diff_tree, spec_tree, emissive_tree, 20.0f, 0);
+	createQuad(2, 2);
 }
 
 void init()
@@ -1752,7 +1808,7 @@ void init()
 
 	//tree billboard
 	float amb_tree[] = { 0.2f, 0.1f, 0.1f, 1.0f };
-	float diff_tree[] = { 1.0f, 0.5f, 0.5f, 1.0f };
+	float diff_tree[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	float spec_tree[] = { 0.9f, 0.9f, 0.9f, 1.0f };
 	float emissive_tree[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	setMaterials(amb_tree, diff_tree, spec_tree, emissive_tree, 1000.0f, 0);
