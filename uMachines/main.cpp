@@ -41,7 +41,9 @@
 #include "Butter.h"
 #include "Orange.h"
 #include "Light.h"
+#include "Particle.h"
 
+#define frand()			((float)rand()/RAND_MAX)
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 #endif
@@ -52,6 +54,7 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
+#define MAX_PARTICLES  1500
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -70,6 +73,7 @@ bool togglePL = false;
 bool pointLight = true;
 bool toggleSL = false;
 bool spotLight = true;
+bool fireworks = false;
 // Check key presses.
 bool keystates[256];
 
@@ -93,6 +97,8 @@ Orange* oranges[N_ORANGES];
 Cheerio* cheerios[N_CHEERIOS_INNER + N_CHEERIOS_OUTER];
 Light* lights[9];
 Candle* candles[N_CANDLES];
+Particle* particles[MAX_PARTICLES];
+int dead_num_particles = 0;
 
 VSShaderLib shader;
 
@@ -111,6 +117,7 @@ int stemMeshID;
 int hudMeshID;
 int domeMeshID;
 int treeMeshID;
+int partMeshID;
 
 int gamePoints = 0;
 
@@ -664,6 +671,10 @@ void renderGameOverBox() {
 	popMatrix(MODEL);
 }
 
+void renderParticles() {
+
+}
+
 void renderPoints() {
 	//points text
 	getMaterials();
@@ -806,6 +817,9 @@ void renderScene(void) {
 	renderTree();
 	renderHUD();
 	renderPoints();
+	if (fireworks) {
+		renderParticles();
+	}
 
 	if (shouldPause || paused)
 		renderPauseBox();
@@ -1168,6 +1182,23 @@ void processKeys(int value) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
 		}
+		if (false) {
+			fireworks = true;
+			initParticles();
+		}
+		if (fireworks) {
+			for (int i = 0; i < MAX_PARTICLES; i++)
+			{
+				float h = 0.125f;
+				particles[i]->setX(h * particles[i]->getVelocX());
+				particles[i]->setY(h * particles[i]->getVelocY());
+				particles[i]->setZ(h * particles[i]->getVelocZ());
+				particles[i]->setVelocX(h * particles[i]->getAccelX());
+				particles[i]->setVelocY(h * particles[i]->getAccelY());
+				particles[i]->setVelocZ(h * particles[i]->getAccelZ());
+				particles[i]->setLife(h * particles[i]->getFade());
+			}
+		}
 	}
 	glutTimerFunc(1000 / 60, processKeys, 0);
 }
@@ -1529,6 +1560,27 @@ void createOranges(void) {
 	objId++;
 }
 
+void createParticles(void) {
+	partMeshID = objId;
+}
+
+void initParticles(void)
+{
+	GLfloat v, theta, phi;
+	int i;
+
+	for (i = 0; i < MAX_PARTICLES; i++)
+	{
+		v = 0.8*frand() + 0.2;
+		phi = frand()*M_PI;
+		theta = 2.0*frand()*M_PI;
+
+		particles[i] = new Particle(1.0f, 0.005f, 0.882f, 0.552f, 0.211f, 0.0f, 10.0f, 0.0f,
+									v * cos(theta) * sin(phi), v * cos(phi), v * sin(theta) * sin(phi),
+									0.1f, -0.15f, 0.0f);
+	}
+}
+
 void init()
 {
 	// set the camera position based on its spherical coordinates
@@ -1609,6 +1661,9 @@ void init()
 	createQuad(8, 8);
 
 	treeMeshID = objId;
+	objId++;
+
+	createParticles();
 
 	gamePoints = 0;
 
