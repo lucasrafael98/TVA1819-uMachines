@@ -23,6 +23,8 @@
 #include <GL/freeglut.h>
 
 // Use Very Simple Libs
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "VSShaderlib.h"
 #include "AVTmathLib.h"
 #include "VertexAttrDef.h"
@@ -91,6 +93,8 @@ int lastKeyPress = 0;
 bool hasToStop = false;
 
 Table* table;
+Table* skybox;
+Table* teapot;
 Car* car;
 Butter* butters[N_BUTTERS];
 Orange* oranges[N_ORANGES];
@@ -102,7 +106,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[13];
+struct MyMesh mesh[16];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -119,6 +123,7 @@ int domeMeshID;
 int treeMeshID;
 int partMeshID;
 
+unsigned int cubemapTexture;
 int gamePoints = 0;
 
 
@@ -134,7 +139,7 @@ extern float mNormal3x3[9];
 GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
-GLint tex_loc, tex_loc1, tex_loc2;
+GLint tex_loc, tex_loc1, tex_loc2, skybox_loc;
 GLint texMode_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
@@ -247,6 +252,36 @@ void drawMesh() {
 	glBindVertexArray(0);
 }
 
+unsigned int loadCubemap(vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrComponents;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
 // ------------------------------------------------------------
 //
 // Render stufff
@@ -378,6 +413,25 @@ void renderLights() {
 			glUniform1f(loc, lights[i]->getSpotexponent());
 		}
 	}
+}
+
+void renderSkybox() {
+
+	objId = 0;
+	getMaterials();
+
+	glUniform1i(texMode_uniformId, 3);
+
+	glDepthFunc(GL_FALSE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	glUniform1i(skybox_loc, 0);
+
+	drawMesh();
+
+	glUniform1i(texMode_uniformId, 1);
+
+	glDepthFunc(GL_TRUE);
 }
 
 void renderTable(void) {
@@ -565,6 +619,17 @@ void renderOranges(void) {
 		popMatrix(MODEL);
 	}
 }
+
+void renderTeapot() {
+	objId = teapot->getId();
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, teapot->getX(), teapot->getY(), teapot->getZ());
+
+	drawMesh();
+	popMatrix(MODEL);
+}
+
 void renderHUD(void) {
 	//hud
 
@@ -769,11 +834,7 @@ void renderTree(void) {
 
 		l3dBillboardCylindricalBegin(cam, pos);
 
-		//diffuse and ambient color are not used in the tree quads
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, mesh[objId].mat.specular);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, mesh[objId].mat.shininess);
+		getMaterials();
 
 		pushMatrix(MODEL);
 		translate(MODEL, 0.0f, bb[1], 0.0f);
@@ -814,6 +875,7 @@ void renderScene(void) {
 	renderButters();
 	renderCandles();
 	renderOranges();
+	renderTeapot();
 	renderTree();
 	renderHUD();
 	renderPoints();
@@ -827,6 +889,7 @@ void renderScene(void) {
 	if (gameOver)
 		renderGameOverBox();
 
+	//renderSkybox();
 	popMatrix(PROJECTION);
 
 	glutSwapBuffers();
@@ -1330,6 +1393,7 @@ GLuint setupShaders() {
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
 	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
 	tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
+	skybox_loc = glGetUniformLocation(shader.getProgramIndex(), "skybox");
 
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
 
@@ -1386,6 +1450,17 @@ void createLights(void) {
 //
 // Model loading and OpenGL setup
 //
+void createSkybox(void) {
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	skybox = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 2);
+	setMaterials(skybox->getAmbient(), skybox->getDiffuse(), skybox->getSpecular(),
+		skybox->getEmissive(), skybox->getShininess(), skybox->getTexcount());
+	createCube();
+	objId++;
+}
 
 void createTable(void) {
 	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
@@ -1560,6 +1635,18 @@ void createOranges(void) {
 	objId++;
 }
 
+void createTeapot() {
+	float amb_car1[] = { 0.2f, 0.02f, 0.0f, 1.0f };
+	float diff_car1[] = { 1.0f, 0.25f, 0.12f, 1.0f };
+	float spec_car1[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive_car1[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	teapot = new Table(objId, 0.0f, 6.0f, 0.0f, amb_car1, diff_car1, spec_car1, emissive_car1, 70.0f, 2);
+	setMaterials(teapot->getAmbient(), teapot->getDiffuse(), teapot->getSpecular(),
+		teapot->getEmissive(), teapot->getShininess(), teapot->getTexcount());
+	createTeaPot();
+	objId++;
+}
+
 void createParticles(void) {
 	partMeshID = objId;
 }
@@ -1591,6 +1678,16 @@ void init()
 	for (int i = 0;i < N_LIVES; i++) {
 		life[i] = true;
 	}
+	
+	vector<std::string> faces
+	{
+		"textures/sgod_rt.tga",
+		"textures/sgod_lf.tga",
+		"textures/sgod_up.tga",
+		"textures/sgod_dn.tga",
+		"textures/sgod_ft.tga",
+		"textures/sgod_bk.tga"
+	};
 
 	char checker[] = "textures/stone.tga";
 	char lightwood[] = "textures/lightwood.tga";
@@ -1623,10 +1720,10 @@ void init()
 	char points[] = "font/points.tga";
 	TGA_Texture(FontArray, points, 10);
 
-
 	srand(time(NULL));
 
 	objId = 0;
+	//createSkybox();
 	createTable();
 	createCheerios();
 	createCar();
@@ -1634,6 +1731,7 @@ void init()
 	createCandles();
 	createLights();
 	createOranges();
+	createTeapot();
 
 	// hud materials
 	// FIXME Refactor after you're done
@@ -1672,6 +1770,7 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	//cubemapTexture = loadCubemap(faces);
 }
 
 

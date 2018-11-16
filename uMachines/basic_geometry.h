@@ -1,4 +1,4 @@
-
+#include <vector>
 #define MAX_TEXTURES 4
 
 struct Material{
@@ -20,6 +20,8 @@ struct MyMesh {
 		struct Material mat;
 	};
 
+//bool loadObj(const char* filename, std::vector<float> &v, std::vector<float> &n, std::vector<float> &uvs, std::vector<int> &faces);
+void createSkyBox();
 void createCube();
 void createQuad(float size_x, float size_y);
 void createSphere(float radius, int divisions);
@@ -27,6 +29,7 @@ void createTorus(float innerRadius, float outerRadius, int rings, int sides);
 void createCylinder(float height, float radius, int sides);
 void createCone(float height, float baseRadius, int sides);
 void createPawn();
+void createTeaPot();
 void computeVAO(int numP, float *p, float *pfloatoints, int sides, float smoothCos);
 void create (float *p, int numP, int sides, int closed, float smoothCos);
 int revSmoothNormal2(float *p, float *nx, float *ny, float smoothCos, int beginEnd);

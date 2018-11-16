@@ -1,5 +1,4 @@
 #version 330
-
 uniform mat4 MVPMatrix;
 uniform mat4 MVMatrix;
 uniform mat3 NormalMatrix;
@@ -7,6 +6,7 @@ in vec4 VertexColor;
 in vec3 VertexNormal;
 in vec4 VertexPosition;
 in vec4 texCoord;
+out vec3 TexCoords;
 
 out Data {
 	vec3 Normal;
@@ -21,6 +21,7 @@ void main () {
 	DataOut.Position = MVMatrix * VertexPosition;
 	DataOut.Eye = vec3(-DataOut.Position);
 	DataOut.tex_coord = texCoord.st;
+	TexCoords = vec3(VertexPosition);
 	gl_Position = MVPMatrix * VertexPosition;
 	
 }
