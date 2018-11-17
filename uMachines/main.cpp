@@ -43,6 +43,7 @@
 #include "Butter.h"
 #include "Orange.h"
 #include "Light.h"
+#include "Cars/OptimizedHeaders/Lambo/LamboMeshes.h"
 
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
@@ -54,11 +55,11 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
+#define N_CAR_MESHES 452
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
 int WinX = 1280, WinY = 720;
-
 unsigned int FrameCount = 0;
 
 int cameraMode = 2;
@@ -100,7 +101,7 @@ Candle* candles[N_CANDLES];
 
 VSShaderLib shader;
 
-struct MyMesh mesh[16];
+struct MyMesh mesh[11 + LAMBO];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -115,6 +116,7 @@ int stemMeshID;
 int hudMeshID;
 int domeMeshID;
 int treeMeshID;
+int startTestID;
 
 unsigned int cubemapTexture;
 int gamePoints = 0;
@@ -146,6 +148,11 @@ float camX, camY, camZ;
 // Mouse Tracking Variables
 int startX, startY, tracking = 0;
 
+// Wheels
+
+int goingForward = 1;
+float wheelTurnAngle = 0;
+
 // Camera Spherical Coordinates
 float alpha = 39.0f, beta = 51.0f;
 float r = 10.0f;
@@ -160,7 +167,7 @@ float vectorPointLightPos[6][4];
 bool life[N_LIVES];
 int numberLives = N_LIVES;
 
-float DegToRad(float degrees) //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
+float DegToRad(float degrees) 
 {
 	return (float)(degrees * (M_PI / 180.0f));
 };
@@ -494,57 +501,89 @@ void renderTrack(void) {
 	}
 }
 void renderCar(void) {
-	// car cube
+
 	objId = car->getId();
-	getMaterials();
 	pushMatrix(MODEL);
-	translate(MODEL, car->getX(), 0.15f, car->getZ());
+	translate(MODEL, car->getX(), 0.10f, car->getZ());
 	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
-	translate(MODEL, -1.5f, 0.15f, -1.0f);
-	pushMatrix(MODEL);
-	scale(MODEL, 3.0f, 1.2f, 2.0f);
-	drawMesh();
-	popMatrix(MODEL);
-
-	// car wheels
-	objId = car->getWheel(0)->getId();
-	for (int x = -1; x <= 1; x += 2) {
-
-		for (int y = -1; y <= 1; y += 2) {
-			getMaterials();
+	int glass_indexes[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
+	int FLwheel_indexes[] = { 51,64,72,162,265,314 };
+	int FRwheel_indexes[] = { 35,50,203,267,284 };
+	int BLwheel_indexes[] = { 201,273};
+	int BRwheel_indexes[] = { 123,312 };
+	for (int i = 0; i < LAMBO; i++)
+	{
+		if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pushMatrix(MODEL);
-			translate(MODEL, x*1.0f + 1.5f, 0.10f, y*1.2f + 1.0f);
-			rotate(MODEL, 90.0f, 0.0f, 0.0f, 1.0f);
-			rotate(MODEL, 90.0f, 1.0f, 0.0f, 0.0f);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			getMaterials();
+			drawMesh();
+			popMatrix(MODEL);
+			glDisable(GL_BLEND);
+		} 
+		else if(std::find(std::begin(FLwheel_indexes), std::end(FLwheel_indexes), i) != std::end(FLwheel_indexes)) {
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			pushMatrix(MODEL);
+			translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
+			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
+			getMaterials();
+			drawMesh();
+			popMatrix(MODEL);
+			popMatrix(MODEL);
+		}
+		else if (std::find(std::begin(FRwheel_indexes), std::end(FRwheel_indexes), i) != std::end(FRwheel_indexes)) {
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			pushMatrix(MODEL);
+			translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
+			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
+			getMaterials();
+			drawMesh();
+			popMatrix(MODEL);
+			popMatrix(MODEL);
+		}
+		else if (std::find(std::begin(BLwheel_indexes), std::end(BLwheel_indexes), i) != std::end(BLwheel_indexes)) {
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			pushMatrix(MODEL);
+			translate(MODEL, 1.52979f, 0.43317f, 1.08958f);
+			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			translate(MODEL, -1.52979f, -0.43317f, -1.08958f);
+			getMaterials();
+			drawMesh();
+			popMatrix(MODEL);
+			popMatrix(MODEL);
+		}
+		else if (std::find(std::begin(BRwheel_indexes), std::end(BRwheel_indexes), i) != std::end(BRwheel_indexes)) {
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			pushMatrix(MODEL);
+			translate(MODEL, 1.52979f, 0.43317f, -1.04957f);
+			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			translate(MODEL, -1.52979f, -0.42877f, 1.04957f);
+			getMaterials();
+			drawMesh();
+			popMatrix(MODEL);
+			popMatrix(MODEL);
+		}
+		else {
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			getMaterials();
 			drawMesh();
 			popMatrix(MODEL);
 		}
-
+		objId++;
 	}
-
-	// car headlights
-	objId = car->getHeadlight(0)->getId();
-	for (int i = -1; i <= 1; i += 2) {
-
-		getMaterials();
-		pushMatrix(MODEL);
-		translate(MODEL, 3.0f, 0.5f, i*0.5f + 0.8);
-		scale(MODEL, 0.35f, 0.35f, 0.35f);
-		drawMesh();
-		popMatrix(MODEL);
-	}
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	objId = car->getGlass()->getId();
-	getMaterials();
-	pushMatrix(MODEL);
-	translate(MODEL, car->getGlass()->getX(), car->getGlass()->getY(), car->getGlass()->getZ());
-	drawMesh();
 	popMatrix(MODEL);
 
-	popMatrix(MODEL);
-	glDisable(GL_BLEND);
 }
 void renderButters(void) {
 	// butters
@@ -614,12 +653,24 @@ void renderOranges(void) {
 }
 
 void renderTeapot() {
-	objId = teapot->getId();
-	getMaterials();
+	objId = startTestID;
 	pushMatrix(MODEL);
-	translate(MODEL, teapot->getX(), teapot->getY(), teapot->getZ());
-
-	drawMesh();
+	translate(MODEL, 10.0f, 2.0f, 0.0f);
+	for (int i = 0; i < LAMBO; i++)
+	{
+		if (i > 167 && i < 180) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		pushMatrix(MODEL);
+		getMaterials();
+		drawMesh();
+		popMatrix(MODEL);
+		objId++;
+		if (i > 167 && i < 180) {
+			glDisable(GL_BLEND);
+		}
+	}
 	popMatrix(MODEL);
 }
 
@@ -864,7 +915,7 @@ void renderScene(void) {
 	renderButters();
 	renderCandles();
 	renderOranges();
-	renderTeapot();
+	//renderTeapot();
 	renderTree();
 	renderHUD();
 	renderPoints();
@@ -1133,6 +1184,7 @@ void processKeys(int value) {
 			car->setVelocity(0);
 		}
 		else if (keystates['q']) { // Forward
+			goingForward = -1;
 			if (hasToStop) {
 				hasToStop = false;
 				car->setVelocity(10);
@@ -1148,6 +1200,7 @@ void processKeys(int value) {
 			car->setVelocity(0);
 		}
 		else if (keystates['a']) { // Backward
+			goingForward = 1;
 			if (hasToStop) {
 				hasToStop = false;
 				car->setVelocity(1);
@@ -1173,9 +1226,27 @@ void processKeys(int value) {
 		}
 		if (keystates['o']) { // Left
 			car->setAngle(car->getAngle() + M_PI *(car->getVelocity() / 1000));
+			if (wheelTurnAngle * 180 / M_PI < 45)
+			{
+				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+			}
+		}
+		else {
+			if (wheelTurnAngle > 0) {
+				wheelTurnAngle -= M_PI * (car->getVelocity() / 1000);
+			}
 		}
 		if (keystates['p']) { // Right
 			car->setAngle(car->getAngle() - M_PI * (car->getVelocity() / 1000));
+			if (wheelTurnAngle * 180 / M_PI > -45)
+			{
+				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+			}
+		}
+		else{
+			if (wheelTurnAngle < 0) {
+				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+			}
 		}
 		if (keystates[27]) {
 			glutLeaveMainLoop();
@@ -1480,40 +1551,52 @@ void createCar(void){
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	car = new Car(objId, 0.0f, 0.0f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0f, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
 	// create geometry and VAO of the car
-	setMaterials(car->getAmbient(), car->getDiffuse(), car->getSpecular(),
-				car->getEmissive(), car->getShininess(), car->getTexcount());
-	createCube();
 	carMeshID = objId;
-	objId++;
+	float emissive[] = { 0.0f,0.0f, 0.0f, 1.0f };
+	int v_index = 0;
+	int i_index = 0;
 
-
-	for (int i = 0; i != 4; i++) {
-
-		// create wheels
-		setMaterials(car->getWheel(i)->getAmbient(), car->getWheel(i)->getDiffuse(), car->getWheel(i)->getSpecular(),
-					car->getWheel(i)->getEmissive(), car->getWheel(i)->getShininess(), car->getWheel(i)->getTexcount());
-		createTorus(0.2f, 0.7f, 14, 14);
-		
+	for (int i = 0; i < LAMBO; i++)
+	{
+		std::cout << i << "-->" << "[" << meshVector[i].kd[0] <<
+			"," << meshVector[i].kd[1] <<
+			"," << meshVector[i].kd[2] <<
+			"," << meshVector[i].kd[3] << "]" << std::endl;
+		setMaterials(meshVector[i].ka, meshVector[i].kd, meshVector[i].ks, emissive, meshVector[i].shin, 0);
+		createTeaPot(meshVector[i].n_vertices, v_index, i_index);
+		v_index += meshVector[i].n_vertices * 4;
+		i_index += meshVector[i].n_indices;
+		objId++;
 	}
-	wheelMeshID = objId;
-	objId++;
 
-	for (int i = 0; i != 2; i++) {
 
-		// create headlights
-		setMaterials(car->getHeadlight(i)->getAmbient(), car->getHeadlight(i)->getDiffuse(), car->getHeadlight(i)->getSpecular(),
-					car->getHeadlight(i)->getEmissive(), car->getHeadlight(i)->getShininess(), car->getHeadlight(i)->getTexcount());
-		createCube();
-		
-	}
-	headlightMeshID = objId;
-	objId++;
+	//for (int i = 0; i != 4; i++) {
 
-	setMaterials(car->getGlass()->getAmbient(), car->getGlass()->getDiffuse(), car->getGlass()->getSpecular(),
-				car->getGlass()->getEmissive(), car->getGlass()->getShininess(), car->getGlass()->getTexcount());
-	createSphere(0.6, 20);
-	domeMeshID = objId;
-	objId++;
+	//	// create wheels
+	//	setMaterials(car->getWheel(i)->getAmbient(), car->getWheel(i)->getDiffuse(), car->getWheel(i)->getSpecular(),
+	//				car->getWheel(i)->getEmissive(), car->getWheel(i)->getShininess(), car->getWheel(i)->getTexcount());
+	//	createTorus(0.2f, 0.7f, 14, 14);
+	//	
+	//}
+	//wheelMeshID = objId;
+	//objId++;
+
+	//for (int i = 0; i != 2; i++) {
+
+	//	// create headlights
+	//	setMaterials(car->getHeadlight(i)->getAmbient(), car->getHeadlight(i)->getDiffuse(), car->getHeadlight(i)->getSpecular(),
+	//				car->getHeadlight(i)->getEmissive(), car->getHeadlight(i)->getShininess(), car->getHeadlight(i)->getTexcount());
+	//	createCube();
+	//	
+	//}
+	//headlightMeshID = objId;
+	//objId++;
+
+	//setMaterials(car->getGlass()->getAmbient(), car->getGlass()->getDiffuse(), car->getGlass()->getSpecular(),
+	//			car->getGlass()->getEmissive(), car->getGlass()->getShininess(), car->getGlass()->getTexcount());
+	//createSphere(0.6, 20);
+	//domeMeshID = objId;
+	//objId++;
 }
 
 void createButters(void) {
@@ -1604,18 +1687,6 @@ void createOranges(void) {
 	objId++;
 }
 
-void createTeapot() {
-	float amb_car1[] = { 0.2f, 0.02f, 0.0f, 1.0f };
-	float diff_car1[] = { 1.0f, 0.25f, 0.12f, 1.0f };
-	float spec_car1[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_car1[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	teapot = new Table(objId, 0.0f, 6.0f, 0.0f, amb_car1, diff_car1, spec_car1, emissive_car1, 70.0f, 2);
-	setMaterials(teapot->getAmbient(), teapot->getDiffuse(), teapot->getSpecular(),
-		teapot->getEmissive(), teapot->getShininess(), teapot->getTexcount());
-	createTeaPot();
-	objId++;
-}
-
 void init()
 {
 	// set the camera position based on its spherical coordinates
@@ -1679,7 +1750,7 @@ void init()
 	createCandles();
 	createLights();
 	createOranges();
-	createTeapot();
+	//createTeapot();
 
 	// hud materials
 	// FIXME Refactor after you're done
@@ -1748,7 +1819,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
-	glutTimerFunc(0, updateOranges, 0);
+	//glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);

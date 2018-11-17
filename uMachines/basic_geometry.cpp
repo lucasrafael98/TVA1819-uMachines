@@ -20,6 +20,7 @@ Basic Revolution Geometry
 #include <iterator>
 #include <cstdio>
 #include <ctime>
+#include <algorithm>
 // include GLEW to access OpenGL 3.3 functions
 #include <GL/glew.h>
 
@@ -29,13 +30,13 @@ Basic Revolution Geometry
 #include "VertexAttrDef.h"
 #include "basic_geometry.h"
 #include "cube.h"
-#include "OBJ_Loader.h"
+//#include "OBJ_Loader.h"
 #include "Skybox.h"
-#include "Lambo.h"
+#include "Cars/OptimizedHeaders/Lambo/Lambo.h"
 
 extern struct MyMesh mesh[];
 extern int objId;
-objl::Loader loader;
+//objl::Loader loader;
 GLuint VboId[2];
 
 void createQuad(float size_x, float size_y) {
@@ -81,177 +82,195 @@ void createQuad(float size_x, float size_y) {
 	mesh[objId].type = GL_TRIANGLES;
 }
 
-void writeLoaderToAFile() {
-	std::ofstream output_file("./teste.h");
-	output_file << "float custom_vertices[] = {";
-	for (int i = 0; i < loader.LoadedVertices.size(); i++)
-	{
-		if (i % 100 == 0) {
-			output_file << std::endl;
-		}
-		if (i == loader.LoadedVertices.size() - 1) {
-			output_file << loader.LoadedVertices[i].Position.X << ","
-				<< loader.LoadedVertices[i].Position.Y << ","
-				<< loader.LoadedVertices[i].Position.Z << ","
-				<< 1.0f;
-		}
-		else {
-			output_file << loader.LoadedVertices[i].Position.X << ","
-				<< loader.LoadedVertices[i].Position.Y << ","
-				<< loader.LoadedVertices[i].Position.Z << ","
-				<< 1.0f << ",";
-		}
-	}
-	output_file << "};" << std::endl << std::endl;
-	output_file << "float custom_normals[] = {";
-	for (int i = 0; i < loader.LoadedVertices.size(); i++)
-	{
-		if (i % 100 == 0) {
-			output_file << std::endl;
-		}
-		if (i == loader.LoadedVertices.size() - 1) {
-			output_file << loader.LoadedVertices[i].Normal.X << ","
-				<< loader.LoadedVertices[i].Normal.Y << ","
-				<< loader.LoadedVertices[i].Normal.Z << ","
-				<< 0.0f;
-		}
-		else {
-			output_file << loader.LoadedVertices[i].Normal.X << ","
-				<< loader.LoadedVertices[i].Normal.Y << ","
-				<< loader.LoadedVertices[i].Normal.Z << ","
-				<< 0.0f << ",";
-		}
-	}
-	output_file << "};" << std::endl << std::endl;
-	output_file << "float custom_uvs[] = {";
-	for (int i = 0; i < loader.LoadedVertices.size(); i++)
-	{
-		if (i % 100 == 0) {
-			output_file << std::endl;
-		}
-		if (i == loader.LoadedVertices.size() - 1) {
-			output_file << loader.LoadedVertices[i].TextureCoordinate.X << ","
-				<< loader.LoadedVertices[i].TextureCoordinate.Y << ","
-				<< 0.0f << ","
-				<< 1.0f;
-		}
-		else {
-			output_file << loader.LoadedVertices[i].TextureCoordinate.X << ","
-				<< loader.LoadedVertices[i].TextureCoordinate.Y << ","
-				<< 0.0f << ","
-				<< 1.0f << ",";
-		}
-	}
-	output_file << "};" << std::endl << std::endl;
-	output_file << "int custom_indices[] = {";
-	for (int i = 0; i < loader.LoadedIndices.size(); i++)
-	{
-		if (i % 100 == 0) {
-			output_file << std::endl;
-		}
-		if (i == loader.LoadedIndices.size() - 1) {
-			output_file << loader.LoadedIndices[i];
-		}
-		else {
-			output_file << loader.LoadedIndices[i] << ",";
-		}
-	}
-	output_file << "};";
-	output_file.close();
-}
+//void writeVNTI(std::string file) {
+//	std::ofstream output_file(file);
+//	output_file << "float custom_vertices[] = {";
+//	for (int j = 0; j < loader.LoadedMeshes.size(); j++)
+//	{
+//		for (int i = 0; i < loader.LoadedMeshes[j].Vertices.size(); i++)
+//		{
+//			if (j == loader.LoadedMeshes.size()-1 && i == loader.LoadedMeshes[j].Vertices.size() - 1) {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].Position.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Position.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Position.Z << ","
+//					<< 1.0f;
+//			}
+//			else {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].Position.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Position.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Position.Z << ","
+//					<< 1.0f << ",";
+//			}
+//		}
+//		output_file << std::endl;
+//	}
+//	output_file << "};" << std::endl << std::endl;
+//	output_file << "float custom_normals[] = {";
+//	for (int j = 0; j < loader.LoadedMeshes.size(); j++)
+//	{
+//		for (int i = 0; i < loader.LoadedMeshes[j].Vertices.size(); i++)
+//		{
+//			if (j == loader.LoadedMeshes.size() - 1 && i == loader.LoadedMeshes[j].Vertices.size() - 1) {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].Normal.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Z << ","
+//					<< 1.0f;
+//			}
+//			else {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].Normal.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Z << ","
+//					<< 1.0f << ",";
+//			}
+//		}
+//		output_file << std::endl;
+//	}
+//	output_file << "};" << std::endl << std::endl;
+//	output_file << "float custom_uvs[] = {";
+//	for (int j = 0; j < loader.LoadedMeshes.size(); j++)
+//	{
+//		for (int i = 0; i < loader.LoadedMeshes[j].Vertices.size(); i++)
+//		{
+//			if (j == loader.LoadedMeshes.size() - 1 && i == loader.LoadedMeshes[j].Vertices.size() - 1) {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].TextureCoordinate.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].TextureCoordinate.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Z << ","
+//					<< 0.0f << ","
+//					<< 1.0f;
+//			}
+//			else {
+//				output_file << loader.LoadedMeshes[j].Vertices[i].TextureCoordinate.X << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].TextureCoordinate.Y << ","
+//					<< loader.LoadedMeshes[j].Vertices[i].Normal.Z << ","
+//					<< 0.0f << ","
+//					<< 1.0f << ",";
+//			}
+//		}
+//		output_file << std::endl;
+//	}
+//	output_file << "};" << std::endl << std::endl;
+//	output_file << "int custom_indices[] = {";
+//	for (int j = 0; j < loader.LoadedMeshes.size(); j++) 
+//	{
+//		for (int i = 0; i < loader.LoadedMeshes[j].Indices.size(); i++)
+//		{
+//			if (i % 100 == 0) {
+//				output_file << std::endl;
+//			}
+//			if (j == loader.LoadedMeshes.size() - 1 && i == loader.LoadedMeshes[j].Indices.size() - 1) {
+//				output_file << loader.LoadedMeshes[j].Indices[i];
+//			}
+//			else {
+//				output_file << loader.LoadedMeshes[j].Indices[i] << ",";
+//			}
+//		}
+//		output_file << std::endl;
+//	}
+//	output_file << "};";
+//	output_file.close();
+//}
+//
+//void writeMeshesIM(std::string file) 
+//{
+//	std::ofstream output_file(file);
+//	std::string target = file.substr(0, file.size() - 8);
+//	std::transform(target.begin(), target.end(), target.begin(), ::toupper);
+//	output_file << "#define " << target << " " << loader.LoadedMeshes.size() << std::endl;
+//	output_file << "struct customMesh { " << std::endl << "\t" << 
+//					"int n_vertices;" << std::endl << "\t" <<
+//					"int n_indices;" << std::endl << "\t" <<
+//					"float ka[4];" << std::endl << "\t" <<
+//					"float kd[4];" << std::endl << "\t" << "float ks[4]; " << std::endl << "\t" <<
+//					"float shin;" << std::endl << "};" << std::endl;
+//	output_file << "customMesh meshVector[" << target << "] = {" << std::endl;
+//	for (int i = 0; i < loader.LoadedMeshes.size(); i++)
+//	{
+//		output_file << "//" << "INDEX: " << i << " H LINE: " << 11 + i*6 << " NAME: " 
+//			<< loader.LoadedMeshes[i].MeshName << std::endl;
+//		output_file << "{";
+//		output_file << std::endl;
+//		output_file << loader.LoadedMeshes[i].Vertices.size();
+//		output_file << ",";
+//		output_file << loader.LoadedMeshes[i].Indices.size();
+//		output_file << ",";
+//		output_file << "{" << loader.LoadedMeshes[i].MeshMaterial.Ka.X
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Ka.Y
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Ka.Z
+//			<< "," << 1.0f;
+//		output_file << "}," << std::endl;
+//		output_file << "{" << loader.LoadedMeshes[i].MeshMaterial.Kd.X
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Kd.Y
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Kd.Z
+//			<< "," << 1.0f;
+//		output_file << "}," << std::endl;
+//		output_file << "{" << loader.LoadedMeshes[i].MeshMaterial.Ks.X
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Ks.Y
+//			<< "," << loader.LoadedMeshes[i].MeshMaterial.Ks.Z
+//			<< "," << 1.0f;
+//		output_file << "}," << std::endl;
+//		output_file << loader.LoadedMeshes[i].MeshMaterial.Ns;
+//		output_file << "}," << std::endl;
+//	}
+//	output_file << "};";
+//	output_file.close();
+//}
 
-void createTeaPot() {
+void createTeaPot(int num_v, int v_index, int i_index) {
 
 	std::vector<float> tp_vertices;
 	std::vector<float> tp_normals;
 	std::vector<float> tp_uvs;
-	//std::vector<int> tp_indices;
-
-	//std::ifstream input_file("example1.txt");
+	std::vector<int> tp_indices;
 
 	//std::clock_t start;
 	//double duration;
 
 	//start = std::clock();
 
-	//if (input_file.fail()) {
-	//	std::cout << "Error opening the file!" << std::endl;
-	//}
-	//std::string item;
-	//int type = 0;
-	//while (!input_file.eof()) {
-	//	input_file >> item;
-	//	if (item == "V") {
-	//		type = 0;
-	//	}
-	//	else if (item == "N") {
-	//		type = 1;
-	//	}
-	//	else if (item == "T") {
-	//		type = 2;
-	//	}
-	//	else if (item == "I") {
-	//		type = 3;
-	//	}
-	//	else {
-	//		if (type == 0) {
-	//			tp_vertices.push_back(stof(item));
-	//		}else if (type == 1) {
-	//			tp_normals.push_back(stof(item));
-	//		}
-	//		else if (type == 2) {
-	//			tp_uvs.push_back(stof(item));
-	//		}
-	//		else if (type == 3) {
-	//			tp_indices.push_back(stoi(item));
-	//		}
-	//	}
-	//}
-	//bool res = loader.LoadFile("Car/Avent.obj");
+	// REMOVE COMMENT IF YOU WANT TO LOAD AN OBJECT FILE; ALSO REMOVE COMMENT THE LOADER DEFINE
 
-	//writeLoaderToAFile();
+	//bool res = loader.LoadFile("Cars/ObjectFiles/Lambo/Lambo.obj");
+	//writeVNTI("Lambo.h");
+	//writeMeshesIM("LamboMeshes.h");
 
-	mesh[objId].numIndexes = sizeof(custom_indices)/4;
+	// REMOVE COMMENT IF YOU WANT TO LOAD AN OBJECT FILE; ALSO REMOVE COMMENT THE LOADER DEFINE
 
-	//for (int i = 0; i < loader.LoadedVertices.size(); i++)
-	//{
-	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.X);
-	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.Y);
-	//	tp_vertices.push_back(loader.LoadedVertices[i].Position.Z);
-	//	tp_vertices.push_back(1.0f);
 
-	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.X);
-	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.Y);
-	//	tp_normals.push_back(loader.LoadedVertices[i].Normal.Z);
-	//	tp_normals.push_back(0.0f);
+	for (int i = v_index; i < v_index + num_v *4 ; i++)
+	{
+		tp_vertices.push_back(custom_vertices[i]);
+		tp_normals.push_back(custom_normals[i]);
+		tp_uvs.push_back(custom_uvs[i]);
+	}
 
-	//	tp_uvs.push_back(loader.LoadedVertices[i].TextureCoordinate.X);
-	//	tp_uvs.push_back(loader.LoadedVertices[i].TextureCoordinate.Y);
-	//	tp_uvs.push_back(0.0f);
-	//	tp_uvs.push_back(1.0f);
-	//}
+	for (int i = i_index; i < i_index + num_v ; i++)
+	{
+		tp_indices.push_back(custom_indices[i]);
+	}
+
+	mesh[objId].numIndexes = tp_indices.size();
 
 	glGenVertexArrays(1, &(mesh[objId].vao));
 	glBindVertexArray(mesh[objId].vao);
 
 	glGenBuffers(2, VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(custom_vertices) + sizeof(custom_normals) + sizeof(custom_uvs), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(custom_vertices), custom_vertices);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(custom_vertices), sizeof(custom_normals), custom_normals);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(custom_vertices) + sizeof(custom_normals), sizeof(custom_uvs), custom_uvs);
+	glBufferData(GL_ARRAY_BUFFER, tp_vertices.size()*4 + tp_normals.size()*4 + tp_uvs.size() * 4, NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, tp_vertices.size() * 4, &tp_vertices[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, tp_vertices.size() * 4, tp_normals.size() * 4, &tp_normals[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, tp_vertices.size() * 4 + tp_normals.size() * 4, tp_uvs.size() * 4, &tp_uvs[0]);
 
 	glEnableVertexAttribArray(VERTEX_COORD_ATTRIB);
 	glVertexAttribPointer(VERTEX_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, 0);
 	glEnableVertexAttribArray(NORMAL_ATTRIB);
-	glVertexAttribPointer(NORMAL_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(sizeof(custom_vertices)));
+	glVertexAttribPointer(NORMAL_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(tp_vertices.size() * 4));
 	glEnableVertexAttribArray(TEXTURE_COORD_ATTRIB);
-	glVertexAttribPointer(TEXTURE_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(sizeof(custom_vertices) + sizeof(custom_normals)));
+	glVertexAttribPointer(TEXTURE_COORD_ATTRIB, 4, GL_FLOAT, 0, 0, (void *)(tp_vertices.size() * 4 + tp_normals.size() * 4));
 
 
 	//index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboId[1]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh[objId].numIndexes, custom_indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh[objId].numIndexes, &tp_indices[0], GL_STATIC_DRAW);
 
 	// unbind the VAO
 	glBindVertexArray(0);
