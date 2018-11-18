@@ -904,6 +904,11 @@ void renderPoints() {
 
 bool distance(std::vector<float> x, std::vector<float> y) {
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 	float distX = (pow(x[0] - cam[0], 2) + pow(x[1] - cam[1], 2) + pow(x[2] - cam[2], 2));
 	float distY = (pow(y[0] - cam[0], 2) + pow(y[1] - cam[1], 2) + pow(y[2] - cam[2], 2));
 	return (distX > distY);
@@ -913,7 +918,13 @@ void renderTree(void) {
 	
 	objId = treeMeshID;
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 
+	std::cout << cam[0] << std::endl;
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
@@ -977,8 +988,8 @@ void renderLensFlare(void) {
 	int maxflaredist = isqrt(cx*cx + cy * cy);
 	int flaredist = isqrt((xFlare - cx)*(xFlare - cx) + (yFlare - cy)*(yFlare - cy));
 	flaredist = (maxflaredist - flaredist);
-	int flaremaxsize = (int)(WinX * 0.1);
-	int flarescale = (int)(WinX * 0.1);
+	int flaremaxsize = (int)(WinX * 0.2);
+	int flarescale = (int)(WinX * 0.2);
 
 	int dx = cx + (cx - xFlare);
 	int dy = cy + (cy - yFlare);
@@ -1076,11 +1087,13 @@ void renderScene(void) {
 	renderCandles();
 	renderOranges();
 	//renderTeapot();
-	renderTree();
-	if (fireworks)
-		renderParticles();
-	if (lensFlare && !paused && !gameOver && directionalLight)
-		renderLensFlare();
+	if (cameraMode != 1) {
+		renderTree();
+		if (fireworks)
+			renderParticles();
+		if (lensFlare && !paused && !gameOver && directionalLight)
+			renderLensFlare();
+	}
 	renderHUD();
 	renderPoints();
 
