@@ -57,7 +57,7 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
-#define MAX_PARTICLES 100
+#define MAX_PARTICLES 1000
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -126,6 +126,7 @@ int startTestID;
 
 unsigned int cubemapTexture;
 int gamePoints = 0;
+int lastFireworks = 0;
 
 
 //External array storage defined in AVTmathLib.cpp
@@ -828,7 +829,6 @@ void renderParticles(void) {
 	if (dead_num_particles == MAX_PARTICLES) {
 		fireworks = false;
 		dead_num_particles = 0;
-		printf("All particles dead\n");
 		for (int i = 0; i < MAX_PARTICLES; i++)
 			delete particles[i];
 	}
@@ -1101,7 +1101,7 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
+			if (pow(2.4f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
 													0.85f, oranges[i]->getZ(), car->getZ())) {
 				orangeCollision = true;
 			}
@@ -1382,8 +1382,9 @@ void processKeys(int value) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
 		}
-		if (gamePoints != 0 && (gamePoints % 5) == 0 && !fireworks) {
+		if ( (gamePoints != 0) && (gamePoints % 5) == 0 && (lastFireworks != gamePoints) && !fireworks ) {
 			fireworks = true;
+			lastFireworks = gamePoints;
 			initParticles();
 		}
 		if (fireworks) {
@@ -1396,7 +1397,7 @@ void processKeys(int value) {
 				particles[i]->setVelocX(particles[i]->getVelocX() + h * particles[i]->getAccelX());
 				particles[i]->setVelocY(particles[i]->getVelocY() + h * particles[i]->getAccelY());
 				particles[i]->setVelocZ(particles[i]->getVelocZ() + h * particles[i]->getAccelZ());
-				particles[i]->setLife(particles[i]->getLife() + h * particles[i]->getFade());
+				particles[i]->setLife(particles[i]->getLife() - h * particles[i]->getFade());
 			}
 		}
 	}
@@ -1927,7 +1928,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
-	//glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
