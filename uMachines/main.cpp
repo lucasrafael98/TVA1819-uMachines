@@ -253,8 +253,6 @@ void getMaterials() {
 	glUniform4fv(loc, 1, mesh[objId].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
-	// draw where the stencil is not 1 
-	glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
 }
 
 void drawMesh() {
