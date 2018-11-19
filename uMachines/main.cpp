@@ -565,7 +565,7 @@ void renderCar(void) {
 
 			glClear(GL_STENCIL_BUFFER_BIT);
 
-			if (cameraMode == 4) {
+			if (cameraMode == 4 && !paused && !gameOver) {
 				glStencilFunc(GL_NEVER, 0x1, 0x1);
 				glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
 			}			
@@ -1156,7 +1156,7 @@ void renderScene(void) {
 
 	popMatrix(PROJECTION);
 
-	if (cameraMode == 4) {
+	if (cameraMode == 4 && !paused && !gameOver) {
 		lookAt(car->getX(), 1, car->getZ(), car->getX() - cos(-car->getAngle()) * 10, 0.3, car->getZ() - sin(-car->getAngle()) * 10, 0, 1, 0);
 
 		drawingStencil = true;
