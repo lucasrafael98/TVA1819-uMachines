@@ -1045,7 +1045,7 @@ void renderLensFlare(void) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
 			glUniform1i(tex_loc, 0);
-			float amb_lf1[] = { 1.0f, 0.5f, 1.0f, 1.0f };
+			float amb_lf1[] = { 1.0f, 0.5f, 0.5f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 			glUniform4fv(loc, 1, amb_lf1);
 		}
