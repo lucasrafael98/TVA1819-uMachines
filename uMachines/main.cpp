@@ -106,7 +106,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[13 + LAMBO];
+struct MyMesh mesh[13 + LAMBO]; //FIXME +1 sphere stencil test
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -128,6 +128,7 @@ unsigned int cubemapTexture;
 int gamePoints = 0;
 int lastFireworks = 0;
 
+bool drawingStencil = false;
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -242,6 +243,8 @@ void getMaterials() {
 	glUniform4fv(loc, 1, mesh[objId].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, mesh[objId].mat.shininess);
+	// draw where the stencil is not 1 
+	glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
 }
 
 void drawMesh() {
@@ -250,6 +253,15 @@ void drawMesh() {
 	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
 	computeNormalMatrix3x3();
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	if (drawingStencil) {
+		glStencilFunc(GL_EQUAL, 0x1, 0x1);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	}
+	else {
+		glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+	}
+
 	glBindVertexArray(mesh[objId].vao);
 	if (!shader.isProgramValid()) {
 		printf("Program Not Valid!\n");
@@ -520,7 +532,41 @@ void renderCar(void) {
 	int BRwheel_indexes[] = { 123,312 };
 	for (int i = 0; i < LAMBO; i++)
 	{
-		if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
+		if (i == 19) { //mirrorMidle
+			pushMatrix(MODEL);
+			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+			GLint loc;
+
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, mesh[objId].mat.ambient);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+			glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+			glUniform4fv(loc, 1, mesh[objId].mat.specular);
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+			glUniform1f(loc, mesh[objId].mat.shininess);
+
+
+			computeDerivedMatrix(PROJ_VIEW_MODEL);
+			glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+			glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+			computeNormalMatrix3x3();
+			glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+			glClear(GL_STENCIL_BUFFER_BIT);
+
+			if (cameraMode == 4) {
+				glStencilFunc(GL_NEVER, 0x1, 0x1);
+				glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+			}			
+
+			glBindVertexArray(mesh[objId].vao);
+			glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+
+			popMatrix(MODEL);
+		}
+		else if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pushMatrix(MODEL);
@@ -958,6 +1004,9 @@ void renderScene(void) {
 	if (cameraMode == 3) {
 		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
 	}
+	else if (cameraMode == 4) {
+		lookAt(car->getX(), 1.3, car->getZ(), car->getX() + cos(-car->getAngle()) * 10, 1.3, car->getZ() + sin(-car->getAngle()) * 10, 0, 1, 0);
+	}
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
 	}
@@ -975,6 +1024,7 @@ void renderScene(void) {
 	renderCandles();
 	renderOranges();
 	//renderTeapot();
+
 	renderTree();
 	if (fireworks) {
 		renderParticles();
@@ -989,7 +1039,28 @@ void renderScene(void) {
 		renderGameOverBox();
 
 	//renderSkybox();
+
 	popMatrix(PROJECTION);
+
+	if (cameraMode == 4) {
+		lookAt(car->getX(), 1, car->getZ(), car->getX() - cos(-car->getAngle()) * 10, 0.3, car->getZ() - sin(-car->getAngle()) * 10, 0, 1, 0);
+
+		drawingStencil = true;
+		renderLights();
+		renderTable();
+		renderTrack();
+		renderButters();
+		renderCandles();
+		renderOranges();
+		//renderTeapot();
+
+		renderTree();
+		if (fireworks) {
+			renderParticles();
+		}
+		drawingStencil = false;
+	}
+	
 
 	glutSwapBuffers();
 }
@@ -1344,6 +1415,11 @@ void processKeys(int value) {
 		}
 		if (keystates['3']) {
 			cameraMode = 3;
+			loadIdentity(PROJECTION);
+			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+		}
+		if (keystates['4']) {
+			cameraMode = 4;
 			loadIdentity(PROJECTION);
 			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
 		}
@@ -1896,6 +1972,8 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearStencil(0x0);
+	glEnable(GL_STENCIL_TEST);
 	//cubemapTexture = loadCubemap(faces);
 }
 
@@ -1910,7 +1988,7 @@ int main(int argc, char **argv) {
 
 	//  GLUT initialization
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_STENCIL | GLUT_MULTISAMPLE);
 
 	glutInitContextVersion(4, 3);
 	glutInitContextProfile(GLUT_CORE_PROFILE);

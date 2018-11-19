@@ -124,7 +124,7 @@ customMesh meshVector[LAMBO] = {
 254.902},
 //INDEX: 19 H LINE: 125 NAME: mirrorMiddle_interior_mirrorMiddle_013.001_mirrorMiddle_interio_mirrorMiddle_interior_mirrorMiddle_013.001_mirrorMiddle_interio_Mirror.001
 {
-120,120,{0,0,0,1},
+120,120,{1,0,0,1},
 {0,0,0,1},
 {0.9,0.9,0.9,1},
 1000},
