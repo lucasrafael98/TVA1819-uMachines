@@ -96,6 +96,7 @@ int lastKeyPress = 0;
 bool hasToStop = false;
 
 Table* table;
+Table* tableMirror;
 Table* skybox;
 Table* teapot;
 Car* car;
@@ -109,7 +110,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[14 + LAMBO];
+struct MyMesh mesh[15 + LAMBO];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -127,6 +128,7 @@ int treeMeshID;
 int partMeshID;
 int startTestID;
 int lensFlareID;
+int tableMirrorMeshID;
 
 unsigned int cubemapTexture;
 int gamePoints = 0;
@@ -139,6 +141,8 @@ float xFlare = WinX / 2;
 float yFlare = WinY / 2;
 int     xMouse = 0, yMouse = 0;
 bool drawingStencil = false;
+bool drawingPlanarReflection = false;
+bool drawingMirror = false;
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -262,12 +266,18 @@ void drawMesh() {
 	computeNormalMatrix3x3();
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
-	if (drawingStencil) {
-		glStencilFunc(GL_EQUAL, 0x1, 0x1);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	if (cameraMode == 4) {
+		if (drawingMirror) {
+			glStencilFunc(GL_EQUAL, 2, 0xFF);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		}
+		else {
+			glStencilFunc(GL_NOTEQUAL, 2, 0xFF);
+		}
 	}
-	else {
-		glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+	else if (drawingPlanarReflection) {
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	}
 
 	glBindVertexArray(mesh[objId].vao);
@@ -461,6 +471,42 @@ void renderSkybox() {
 	glDepthFunc(GL_TRUE);
 }
 
+void renderTableMirror(void) {
+	//table
+	objId = tableMirror->getId();
+	getMaterials();
+
+	pushMatrix(MODEL);
+	translate(MODEL, -20.0f, -0.74f, -20.0f);
+	scale(MODEL, 40.0f, 0.5f, 40.0f);
+
+	if (drawingStencil) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	if (!drawingStencil) {
+		glStencilFunc(GL_NEVER, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+	}
+	
+	glBindVertexArray(mesh[objId].vao);
+	glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	if (drawingStencil) {
+		glDisable(GL_BLEND);
+	}
+
+	popMatrix(MODEL);
+}
+
 void renderTable(void) {
 	//table
 	objId = table->getId();
@@ -504,7 +550,7 @@ void renderTrack(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -522,7 +568,7 @@ void renderTrack(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -531,48 +577,45 @@ void renderCar(void) {
 
 	objId = car->getId();
 	pushMatrix(MODEL);
-	translate(MODEL, car->getX(), 0.10f, car->getZ());
+	translate(MODEL, car->getX(), !drawingPlanarReflection ? -0.30f : -0.20f, car->getZ());
 	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+	if(drawingPlanarReflection)
+		rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 	int glass_indexes[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
 	int FLwheel_indexes[] = { 51,64,72,162,265,314 };
 	int FRwheel_indexes[] = { 35,50,203,267,284 };
 	int BLwheel_indexes[] = { 201,273};
 	int BRwheel_indexes[] = { 123,312 };
+
+	objId = car->getId() + 19; //mirrorMidle
+	if (cameraMode == 4 && !paused && !gameOver && !drawingPlanarReflection) {
+		pushMatrix(MODEL);
+		rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+
+		getMaterials();
+
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		glStencilFunc(GL_NEVER, 2, 0xFF);
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+
+		glBindVertexArray(mesh[objId].vao);
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+	}
+
+	objId = car->getId();
 	for (int i = 0; i < LAMBO; i++)
 	{
 		if (i == 19) { //mirrorMidle
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			GLint loc;
-
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-			glUniform4fv(loc, 1, mesh[objId].mat.ambient);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-			glUniform4fv(loc, 1, mesh[objId].mat.diffuse);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-			glUniform4fv(loc, 1, mesh[objId].mat.specular);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-			glUniform1f(loc, mesh[objId].mat.shininess);
-
-
-			computeDerivedMatrix(PROJ_VIEW_MODEL);
-			glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-			glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-			computeNormalMatrix3x3();
-			glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
-
-			glClear(GL_STENCIL_BUFFER_BIT);
-
-			if (cameraMode == 4 && !paused && !gameOver) {
-				glStencilFunc(GL_NEVER, 0x1, 0x1);
-				glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
-			}			
-
-			glBindVertexArray(mesh[objId].vao);
-			glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-
-			popMatrix(MODEL);
+			objId++;
+			continue;
 		}
 		else if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
 			glEnable(GL_BLEND);
@@ -589,7 +632,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
-			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
 			getMaterials();
@@ -602,7 +645,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
-			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
 			getMaterials();
@@ -643,6 +686,7 @@ void renderCar(void) {
 		}
 		objId++;
 	}
+
 	popMatrix(MODEL);
 
 }
@@ -662,7 +706,7 @@ void renderButters(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butters[i]->getX(), -0.25f, butters[i]->getZ());
+		translate(MODEL, butters[i]->getX(), !drawingPlanarReflection ? -0.25f : -1.0f, butters[i]->getZ());
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -675,7 +719,9 @@ void renderCandles(void) {
 		objId = candles[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, candles[i]->getX(), candles[i]->getY(), candles[i]->getZ());
+		translate(MODEL, candles[i]->getX(), !drawingPlanarReflection ? candles[i]->getY() : -1.5f, candles[i]->getZ());
+		if (drawingPlanarReflection)
+			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		pushMatrix(MODEL);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
 		drawMesh();
@@ -698,15 +744,15 @@ void renderOranges(void) {
 		objId = oranges[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, oranges[i]->getX(), 2.5f, oranges[i]->getZ());
+		translate(MODEL, oranges[i]->getX(), !drawingPlanarReflection ? 2.5f : -2.8f, oranges[i]->getZ());
 		rotate(MODEL, oranges[i]->getAngleX() * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
-		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
+		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, !drawingPlanarReflection ? -1.0f : 1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 
 		objId = oranges[0]->getStem()->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, 0.0f, 2.5f, 0.0f);
+		translate(MODEL, 0.0f, !drawingPlanarReflection ? 2.5f : -2.8f, 0.0f);
 		drawMesh();
 		popMatrix(MODEL);
 		popMatrix(MODEL);
@@ -1000,6 +1046,8 @@ void renderTree(void) {
 		getMaterials();
 
 		pushMatrix(MODEL);
+		if (drawingPlanarReflection)
+			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		translate(MODEL, 0.0f, bb[1], 0.0f);
 
 		drawMesh();
@@ -1118,7 +1166,7 @@ void renderLensFlare(void) {
 
 void renderScene(void) {
 	FrameCount++; 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	// load identity matrices
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
@@ -1126,7 +1174,7 @@ void renderScene(void) {
 		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
 	}
 	else if (cameraMode == 4) {
-		lookAt(car->getX(), 1.3, car->getZ(), car->getX() + cos(-car->getAngle()) * 10, 1.3, car->getZ() + sin(-car->getAngle()) * 10, 0, 1, 0);
+		lookAt(car->getX(), 0.9, car->getZ(), car->getX() + cos(-car->getAngle()) * 10, 0.9, car->getZ() + sin(-car->getAngle()) * 10, 0, 1, 0);
 	}
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
@@ -1137,14 +1185,53 @@ void renderScene(void) {
 	glUniform1i(drawFog, enableFog);
 	glUniform1i(fogDepth_uniformId, 1);
 
+	// unbind textures and stop applying anything to colorOut
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
+
+	if (cameraMode != 4) {
+		glDisable(GL_STENCIL_TEST);
+	}
+	else {
+		glEnable(GL_STENCIL_TEST);
+	}
+
 	renderLights();
-	renderTable();
-	renderTrack();
 	renderCar();
+	glDepthMask(GL_FALSE);
+	renderTable();
+	glDepthMask(GL_TRUE);
+	renderTrack();
 	renderButters();
 	renderCandles();
 	renderOranges();
 	//renderTeapot();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
+	
+	glEnable(GL_STENCIL_TEST);
+
+	glPushMatrix();
+	renderTableMirror();
+	drawingStencil = true;
+	drawingPlanarReflection = true;
+	//renderLights();
+	renderCar();
+	renderTrack();
+	renderButters();
+	renderCandles();
+	renderOranges();
+	if (cameraMode != 1) {
+		renderTree();
+	}
+
+	renderTableMirror();
+	drawingPlanarReflection = false;
+	drawingStencil = false;
+	glPopMatrix();
+	glDisable(GL_STENCIL_TEST);
+
 	if (cameraMode != 1) {
 		renderTree();
 		if (fireworks)
@@ -1152,6 +1239,7 @@ void renderScene(void) {
 		if (lensFlare && !paused && !gameOver && directionalLight && !enableFog)
 			renderLensFlare();
 	}
+
 	renderHUD();
 	renderPoints();
 
@@ -1165,9 +1253,12 @@ void renderScene(void) {
 
 	popMatrix(PROJECTION);
 
+
 	if (cameraMode == 4 && !paused && !gameOver) {
+		glEnable(GL_STENCIL_TEST);
 		lookAt(car->getX(), 1, car->getZ(), car->getX() - cos(-car->getAngle()) * 10, 0.3, car->getZ() - sin(-car->getAngle()) * 10, 0, 1, 0);
 
+		drawingMirror = true;
 		drawingStencil = true;
 		renderLights();
 		renderTable();
@@ -1175,16 +1266,14 @@ void renderScene(void) {
 		renderButters();
 		renderCandles();
 		renderOranges();
-		//renderTeapot();
 
 		renderTree();
-		if (fireworks)
-			renderParticles();
-		if (lensFlare && !paused && !gameOver && directionalLight)
+		if (lensFlare && !paused && !gameOver && directionalLight && !enableFog)
 			renderLensFlare();
 		drawingStencil = false;
+		drawingMirror = false;
+		glDisable(GL_STENCIL_TEST);
 	}
-	
 
 	glutSwapBuffers();
 }
@@ -1861,6 +1950,19 @@ void createTable(void) {
 	objId++;
 }
 
+void createTableMirror(void) {
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.0f, 0.0f, 0.0f, 0.5f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	tableMirror = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 3);
+	setMaterials(tableMirror->getAmbient(), tableMirror->getDiffuse(), tableMirror->getSpecular(),
+		tableMirror->getEmissive(), tableMirror->getShininess(), tableMirror->getTexcount());
+	createCube();
+	tableMirrorMeshID = objId;
+	objId++;
+}
+
 void createCheerios(void) {
 	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
 	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
@@ -2117,6 +2219,7 @@ void init()
 	objId = 0;
 	//createSkybox();
 	createTable();
+	createTableMirror();
 	createCheerios();
 	createCar();
 	createButters();
@@ -2164,7 +2267,6 @@ void init()
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClearStencil(0x0);
-	glEnable(GL_STENCIL_TEST);
 	//cubemapTexture = loadCubemap(faces);
 }
 
