@@ -47,6 +47,7 @@
 #include "Cars/OptimizedHeaders/Lambo/LamboMeshes.h"
 
 #define frand()			((float)rand()/RAND_MAX)
+#define isqrt(x)        (int)((double)(x))
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 #endif
@@ -58,6 +59,7 @@
 #define N_CANDLES 6
 #define N_LIVES 3
 #define MAX_PARTICLES 1000
+#define N_FLARES 6
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -76,6 +78,7 @@ bool pointLight = true;
 bool toggleSL = false;
 bool spotLight = true;
 bool fireworks = false;
+bool lensFlare = TRUE;
 // Check key presses.
 bool keystates[256];
 
@@ -106,7 +109,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[13 + LAMBO]; //FIXME +1 sphere stencil test
+struct MyMesh mesh[14 + LAMBO];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -123,11 +126,18 @@ int domeMeshID;
 int treeMeshID;
 int partMeshID;
 int startTestID;
+int lensFlareID;
 
 unsigned int cubemapTexture;
 int gamePoints = 0;
 int lastFireworks = 0;
 
+float flaresColor[4] = { 1.0f, 1.0f, 1.0f, 0.5f };
+float flaresPos[N_FLARES] = { 0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f };
+float flaresScale[N_FLARES] = { 1.0f, 0.25f, 0.5f, 0.5f, 0.25f, 0.75f };
+int     xFlare = 10;
+int     yFlare = 10;
+int     xMouse = 0, yMouse = 0;
 bool drawingStencil = false;
 
 //External array storage defined in AVTmathLib.cpp
@@ -147,7 +157,7 @@ GLint texMode_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
-GLuint TextureArray[8];
+GLuint TextureArray[11];
 GLuint FontArray[11]; //10 numbers [0-9] + pointsText
 
 // Camera Position
@@ -940,6 +950,11 @@ void renderPoints() {
 
 bool distance(std::vector<float> x, std::vector<float> y) {
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 	float distX = (pow(x[0] - cam[0], 2) + pow(x[1] - cam[1], 2) + pow(x[2] - cam[2], 2));
 	float distY = (pow(y[0] - cam[0], 2) + pow(y[1] - cam[1], 2) + pow(y[2] - cam[2], 2));
 	return (distX > distY);
@@ -949,7 +964,13 @@ void renderTree(void) {
 	
 	objId = treeMeshID;
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 
+	std::cout << cam[0] << std::endl;
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
@@ -995,6 +1016,97 @@ void renderTree(void) {
 	glEnable(GL_CULL_FACE);
 }
 
+void renderLensFlare(void) {
+
+	GLint loc;
+	objId = lensFlareID;
+
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE); // FIXME Change the lens flare textures.
+
+	WinX = glutGet(GLUT_WINDOW_WIDTH);
+	WinY = glutGet(GLUT_WINDOW_HEIGHT);
+	int cx = WinX / 2;
+	int cy = WinY / 2;
+
+	int maxflaredist = isqrt(cx*cx + cy * cy);
+	int flaredist = isqrt((xFlare - cx)*(xFlare - cx) + (yFlare - cy)*(yFlare - cy));
+	flaredist = (maxflaredist - flaredist);
+	int flaremaxsize = (int)(WinX * 0.2);
+	int flarescale = (int)(WinX * 0.2);
+
+	int dx = cx + (cx - xFlare);
+	int dy = cy + (cy - yFlare);
+
+
+	for (int i = 0; i < N_FLARES; i++) {
+		if (i == 0 || i == N_FLARES - 1){
+			glUniform1i(texMode_uniformId, 2);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
+			glUniform1i(tex_loc2, 2);
+		}
+		else if (i == 1 || i == N_FLARES - 2) {
+			glUniform1i(texMode_uniformId, 2);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
+			glUniform1i(tex_loc2, 2);
+		}
+		else {
+			glUniform1i(texMode_uniformId, 2);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
+			glUniform1i(tex_loc2, 2);
+		}
+
+		// Position is interpolated along line between start and destination.
+		int px = flaresPos[i] * xFlare + (1.0f - flaresPos[i]) * dx;
+		int py = (1.0f - flaresPos[i])*yFlare + flaresPos[i] * dy;
+
+		// Piece size are 0 to 1; flare size is proportion of
+		// screen width; scale by flaredist/maxflaredist.
+		int width = (int)((flaredist*flarescale*flaresScale[i]) / maxflaredist);
+
+		// Width gets clamped, to allows the off-axis flares
+		// to keep a good size without letting the elements get
+		// too big when centered.
+		if (width > flaremaxsize)
+			width = flaremaxsize;
+
+		// Flare elements are square (round) so we'll use same value for width and height
+		int height = width;
+		int alpha = flaredist / maxflaredist;
+		if (width < 1) continue;
+
+		flaresColor[3] = alpha;
+
+		getMaterials();
+		pushMatrix(MODEL);
+		pushMatrix(PROJECTION);
+		pushMatrix(VIEW);
+
+		loadIdentity(VIEW);
+		loadIdentity(PROJECTION);
+		ortho(0, WinX, 0, WinY, 0, 1);
+		translate(MODEL, px - width / 2, py - height / 2, 0);
+		scale(MODEL, width, height, 0);
+
+		drawMesh();
+
+		popMatrix(MODEL);
+		popMatrix(VIEW);
+		popMatrix(PROJECTION);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+
+}
+
 void renderScene(void) {
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1024,10 +1136,12 @@ void renderScene(void) {
 	renderCandles();
 	renderOranges();
 	//renderTeapot();
-
-	renderTree();
-	if (fireworks) {
-		renderParticles();
+	if (cameraMode != 1) {
+		renderTree();
+		if (fireworks)
+			renderParticles();
+		if (lensFlare && !paused && !gameOver && directionalLight)
+			renderLensFlare();
 	}
 	renderHUD();
 	renderPoints();
@@ -1055,9 +1169,10 @@ void renderScene(void) {
 		//renderTeapot();
 
 		renderTree();
-		if (fireworks) {
+		if (fireworks)
 			renderParticles();
-		}
+		if (lensFlare && !paused && !gameOver && directionalLight)
+			renderLensFlare();
 		drawingStencil = false;
 	}
 	
@@ -1317,7 +1432,6 @@ void processKeys(int value) {
 	else if (keystates['r'] && gameOver) {
 		resetGame();
 	}
-	// FIXME Checks if S has been released. The problem here is that if you hold down S, it'll keep pausing and unpausing.
 	if (shouldPause && !keystates['s'] && !gameOver) {
 		shouldPause = false;
 		paused = !paused;
@@ -1407,6 +1521,7 @@ void processKeys(int value) {
 			loadIdentity(PROJECTION);
 			ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100, 100);
 			camX = 0.0f; camY = 10.0f; camZ = 0.001f; // FIXME Why can't z be 0?
+			lensFlare = false;
 		}
 		if (keystates['2']) {
 			cameraMode = 2;
@@ -1417,6 +1532,7 @@ void processKeys(int value) {
 			cameraMode = 3;
 			loadIdentity(PROJECTION);
 			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+			lensFlare = false;
 		}
 		if (keystates['4']) {
 			cameraMode = 4;
@@ -1493,10 +1609,27 @@ void processMouseButtons(int button, int state, int xx, int yy)
 		if (state == GLUT_DOWN) {
 			startX = xx;
 			startY = yy;
-			if (button == GLUT_LEFT_BUTTON)
+			if (button == GLUT_LEFT_BUTTON) {
 				tracking = 1;
-			else if (button == GLUT_RIGHT_BUTTON)
+				lensFlare = TRUE;
+				// Scale mouse coordinates to compensate for window size.
+				xFlare += (xx - xMouse)*WinX / glutGet(GLUT_WINDOW_WIDTH);
+				yFlare += (yy - yMouse)*WinY / glutGet(GLUT_WINDOW_HEIGHT);
+
+				// Clamping -- wouldn't be needed in fullscreen mode.
+				if (xFlare >= WinX)
+					xFlare = WinX - 1;
+				if (xFlare < 0)
+					xFlare = 0;
+				if (yFlare >= WinY)
+					yFlare = WinY - 1;
+				if (yFlare < 0)
+					yFlare = 0;
+			}
+			else if (button == GLUT_RIGHT_BUTTON) {
 				tracking = 2;
+				lensFlare = false;
+			}
 		}
 
 		//stop tracking the mouse
@@ -1519,6 +1652,17 @@ void processMouseButtons(int button, int state, int xx, int yy)
 
 void processMouseMotion(int xx, int yy)
 {
+
+	if (tracking == 1) {
+		/***********flares***************/
+		xMouse = xx;
+		yMouse = yy;
+
+		xFlare = xx * WinX / glutGet(GLUT_WINDOW_WIDTH);
+		yFlare = yy * WinY / glutGet(GLUT_WINDOW_HEIGHT);
+		/********************************/
+
+	}
 
 	if (cameraMode == 2 && !gameOver && !paused) {
 		int deltaX, deltaY;
@@ -1831,7 +1975,7 @@ void createCandles(void) {
 
 void createOranges(void) {
 	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_orange[] = { 0.99f, 0.54f, 0.13f, 1.0f };
+	float diff_orange[] = { 1.0f, 0.45f, 0.10f, 1.0f };
 	float spec_orange[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_orange[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	for (int i = 0; i != 5; i++) {
@@ -1868,6 +2012,18 @@ void createParticles(void) {
 	float emissive_tree[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	setMaterials(amb_tree, diff_tree, spec_tree, emissive_tree, 20.0f, 0);
 	createQuad(2, 2);
+	objId++;
+}
+
+void createLensFlare(void) {
+	float amb_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float diff_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float spec_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float emissive_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	lensFlareID = objId;
+
+	setMaterials(amb_lf, diff_lf, spec_lf, emissive_lf, 1000.0f, 0);
+	createCube();
 }
 
 void init()
@@ -1899,7 +2055,10 @@ void init()
 	char blackbox[] = "img/blackbox.tga";
 	char tree[] = "textures/tree.tga";
 	char particle[] = "textures/particle.tga";
-	glGenTextures(8, TextureArray);
+	char flare1[] = "textures/flare1.tga";
+	char flare2[] = "textures/flare2.tga";
+	char flare3[] = "textures/flare3.tga";
+	glGenTextures(11, TextureArray);
 	TGA_Texture(TextureArray, checker, 0);
 	TGA_Texture(TextureArray, lightwood, 1);
 	TGA_Texture(TextureArray, life, 2);
@@ -1908,6 +2067,9 @@ void init()
 	TGA_Texture(TextureArray, blackbox, 5);
 	TGA_Texture(TextureArray, tree, 6);
 	TGA_Texture(TextureArray, particle, 7);
+	TGA_Texture(TextureArray, flare1, 8);
+	TGA_Texture(TextureArray, flare2, 9);
+	TGA_Texture(TextureArray, flare3, 10);
 
 	glGenTextures(11, FontArray);
 	for (int i = 0; i < 10; i++) {
@@ -1964,6 +2126,7 @@ void init()
 	objId++;
 
 	createParticles();
+	createLensFlare();
 
 	gamePoints = 0;
 
