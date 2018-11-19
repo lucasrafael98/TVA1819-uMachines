@@ -135,8 +135,8 @@ int lastFireworks = 0;
 float flaresColor[4] = { 1.0f, 1.0f, 1.0f, 0.5f };
 float flaresPos[N_FLARES] = { 0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f };
 float flaresScale[N_FLARES] = { 1.0f, 0.25f, 0.5f, 0.5f, 0.25f, 0.75f };
-int     xFlare = 10;
-int     yFlare = 10;
+float xFlare = WinX / 2;
+float yFlare = WinY / 2;
 int     xMouse = 0, yMouse = 0;
 bool drawingStencil = false;
 
@@ -968,7 +968,6 @@ void renderTree(void) {
 		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
 	}
 
-	std::cout << cam[0] << std::endl;
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
@@ -1040,23 +1039,36 @@ void renderLensFlare(void) {
 
 
 	for (int i = 0; i < N_FLARES; i++) {
-		if (i == 0 || i == N_FLARES - 1){
-			glUniform1i(texMode_uniformId, 2);
-			glActiveTexture(GL_TEXTURE2);
+		getMaterials();
+		if (i == 0 || i == N_FLARES - 1){ // large halos
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
-			glUniform1i(tex_loc2, 2);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 1.0f, 0.5f, 1.0f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
 		}
-		else if (i == 1 || i == N_FLARES - 2) {
-			glUniform1i(texMode_uniformId, 2);
-			glActiveTexture(GL_TEXTURE2);
+		else if (i == 1 || i == N_FLARES - 2) { // small circles
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
-			glUniform1i(tex_loc2, 2);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 0.2f, 0.2f, 1.0f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
 		}
-		else {
-			glUniform1i(texMode_uniformId, 2);
-			glActiveTexture(GL_TEXTURE2);
+		else { // hexagons
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
-			glUniform1i(tex_loc2, 2);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 1.0f, 1.0f, 0.5f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
+			float diff_lf1[] = { 1.0f, 1.0f, 1.0f, 0.3f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+			glUniform4fv(loc, 1, diff_lf1);
 		}
 
 		// Position is interpolated along line between start and destination.
@@ -1080,7 +1092,6 @@ void renderLensFlare(void) {
 
 		flaresColor[3] = alpha;
 
-		getMaterials();
 		pushMatrix(MODEL);
 		pushMatrix(PROJECTION);
 		pushMatrix(VIEW);
@@ -1106,7 +1117,7 @@ void renderLensFlare(void) {
 }
 
 void renderScene(void) {
-	FrameCount++;
+	FrameCount++; 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// load identity matrices
 	loadIdentity(VIEW);
@@ -1138,7 +1149,7 @@ void renderScene(void) {
 		renderTree();
 		if (fireworks)
 			renderParticles();
-		if (lensFlare && !paused && !gameOver && directionalLight)
+		if (lensFlare && !paused && !gameOver && directionalLight && !enableFog)
 			renderLensFlare();
 	}
 	renderHUD();
@@ -1458,6 +1469,11 @@ void processKeys(int value) {
 			car->setX(car->getX() + cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			car->setZ(car->getZ() - sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = 1;
+			if (cameraMode == 3 || cameraMode == 4) {
+				yFlare += (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				if (yFlare > WinY)
+					yFlare = WinY - 1;
+			}
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
 			car->setVelocity(0);
@@ -1476,6 +1492,11 @@ void processKeys(int value) {
 			car->setZ( car->getZ() + sin(car->getAngle()) 
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = -1;
+			if (cameraMode == 3 || cameraMode == 4) {
+				yFlare -= (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				if (yFlare < 0)
+					yFlare = 0;
+			}
 		}
 		else if (car->getVelocity() > 0) { // Braking
 			car->setVelocity(car->getVelocity() - car->getBrakeAcceleration() * 1 / 60);
@@ -1493,6 +1514,11 @@ void processKeys(int value) {
 			{
 				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
 			}
+			if (cameraMode == 3 || cameraMode == 4) {
+				xFlare += M_PI * (car->getVelocity() / 100) * 10;
+				if (xFlare > WinX)
+					xFlare = WinX - 1;
+			}
 		}
 		else {
 			if (wheelTurnAngle > 0) {
@@ -1504,6 +1530,11 @@ void processKeys(int value) {
 			if (wheelTurnAngle * 180 / M_PI > -45)
 			{
 				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+			}
+			if (cameraMode == 3 || cameraMode == 4) {
+				xFlare -= M_PI * (car->getVelocity() / 100) * 10;
+				if (xFlare < 0)
+					xFlare = 0;
 			}
 		}
 		else{
@@ -1530,7 +1561,6 @@ void processKeys(int value) {
 			cameraMode = 3;
 			loadIdentity(PROJECTION);
 			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
-			lensFlare = false;
 		}
 		if (keystates['4']) {
 			cameraMode = 4;
@@ -2014,8 +2044,8 @@ void createParticles(void) {
 }
 
 void createLensFlare(void) {
-	float amb_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float diff_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float amb_lf[] = { 1.0f, 1.0f, 0.5f, 1.0f };
+	float diff_lf[] = { 1.0f, 1.0f, 1.0f, 0.6f };
 	float spec_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float emissive_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	lensFlareID = objId;
