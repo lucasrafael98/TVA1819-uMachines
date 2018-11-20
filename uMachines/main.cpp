@@ -81,6 +81,7 @@ bool toggleSL = false;
 bool spotLight = true;
 bool fireworks = false;
 bool lensFlare = TRUE;
+bool changeCar = false;
 // Check key presses.
 bool keystates[256];
 
@@ -1837,14 +1838,6 @@ void processKeys(int value) {
 		if (keystates['c']) {
 			togglePL = true;
 		}
-		if (keystates['k']) {
-			if (current_car == MAX_CARS - 1) {
-				current_car = 0;
-			}
-			else {
-				current_car++;
-			}
-		}
 		if (togglePL && !keystates['c']) {
 			pointLight = !pointLight;
 			togglePL = false;
@@ -1862,6 +1855,18 @@ void processKeys(int value) {
 		if (!keystates['f'] && shouldToggleFog) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
+		}
+		if (keystates['k']) {
+			changeCar = true;
+		}
+		if (!keystates['k'] && changeCar) {
+			if (current_car == MAX_CARS - 1) {
+				current_car = 0;
+			}
+			else {
+				current_car++;
+			}
+			changeCar = false;
 		}
 		if ( (gamePoints != 0) && (gamePoints % 5) == 0 && (lastFireworks != gamePoints) && !fireworks ) {
 			fireworks = true;
