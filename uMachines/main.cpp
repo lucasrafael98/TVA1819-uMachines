@@ -1529,13 +1529,14 @@ void handleCollisions() {
 
 void checkCollisions(int value) {
 	if (!paused && !gameOver) {
+		int exp = (car_array[current_car]->getVelocity() > 0 ? 1 : -1);
 		for (int i = 0; i != 60; i++) {
 			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car_array[current_car]->getX(), 0.0f,
 													0.85f, cheerios[i]->getZ(), car_array[current_car]->getZ())) {
 				cheerioCollision = true;
-				cheerios[i]->setDirection(lastKeyPress);
-				cheerios[i]->setVelocity(lastKeyPress * 0.00001f);
-				cheerios[i]->setAcceleration(lastKeyPress * -0.00075f);
+				cheerios[i]->setDirection(exp);
+				cheerios[i]->setVelocity(exp * 0.00001f);
+				cheerios[i]->setAcceleration(exp * -0.00075f);
 				cheerios[i]->setAngle(car_array[current_car]->getAngle());
 			}
 		}
@@ -1543,9 +1544,9 @@ void checkCollisions(int value) {
 			if (pow(2.0f + 2.1f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
 													0.85f, butters[i]->getZ() + 1.25f, car_array[current_car]->getZ())) {
 				butterCollision = true;
-				butters[i]->setDirection(lastKeyPress);
-				butters[i]->setVelocity(lastKeyPress * 0.00001f);
-				butters[i]->setAcceleration(lastKeyPress * -0.0075f);
+				butters[i]->setDirection(exp);
+				butters[i]->setVelocity(exp * 0.00001f);
+				butters[i]->setAcceleration(exp * -0.0075f);
 				butters[i]->setAngle(car_array[current_car]->getAngle());
 			}
 		}
@@ -1715,20 +1716,27 @@ void processKeys(int value) {
 		else if (keystates['q']) { // Forward
 			if (hasToStop) {
 				hasToStop = false;
-				car_array[current_car]->setVelocity(10);
+				car_array[current_car]->setVelocity(0);
 			}
-			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
-			if (car_array[current_car]->getVelocity() > car_array[current_car]->getMaxVelocity())
-				car_array[current_car]->setVelocity(car_array[current_car]->getMaxVelocity());
-			car_array[current_car]->setX(car_array[current_car]->getX() + cos(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
-			car_array[current_car]->setZ(car_array[current_car]->getZ() - sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
-			lastKeyPress = 1;
-			carBraking = 1;
-			if (cameraMode == 3 || cameraMode == 4) {
-				yFlare += (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
-				if (yFlare > WinY)
-					yFlare = WinY - 1;
+			else {
+				car_array[current_car]->setAcceleration(5.0f);
+
+				if (car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60 >= car_array[current_car]->getMaxVelocity())
+					car_array[current_car]->setVelocity(car_array[current_car]->getMaxVelocity());
+				else
+					car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
+
+				car_array[current_car]->setX(car_array[current_car]->getX() + cos(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+				car_array[current_car]->setZ(car_array[current_car]->getZ() - sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+				lastKeyPress = 1;
+				carBraking = 1;
+				if (cameraMode == 3 || cameraMode == 4) {
+					yFlare += (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
+					if (yFlare > WinY)
+						yFlare = WinY - 1;
+				}
 			}
+			
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
 			car_array[current_car]->setVelocity(0);
@@ -1736,66 +1744,75 @@ void processKeys(int value) {
 		else if (keystates['a']) { // Backward
 			if (hasToStop) {
 				hasToStop = false;
-				car_array[current_car]->setVelocity(1);
+				car_array[current_car]->setVelocity(0);
 			}
-			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
-			if (car_array[current_car]->getVelocity() > car_array[current_car]->getMaxVelocity())
-				car_array[current_car]->setVelocity(car_array[current_car]->getMaxVelocity());
-			car_array[current_car]->setX(car_array[current_car]->getX() - cos(car_array[current_car]->getAngle()) 
-					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
-			car_array[current_car]->setZ( car_array[current_car]->getZ() + sin(car_array[current_car]->getAngle()) 
-					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
-			lastKeyPress = -1;
-			carBraking = 1;
-			if (cameraMode == 3 || cameraMode == 4) {
-				yFlare -= (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
-				if (yFlare < 0)
-					yFlare = 0;
+			else {
+				car_array[current_car]->setAcceleration(-10.0f);
+				if (car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60 <= -car_array[current_car]->getMaxVelocity())
+					car_array[current_car]->setVelocity(-car_array[current_car]->getMaxVelocity());
+				else
+					car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
+				car_array[current_car]->setX(car_array[current_car]->getX() + cos(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+				car_array[current_car]->setZ(car_array[current_car]->getZ() - sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+				lastKeyPress = -1;
+				carBraking = 1;
+				if (cameraMode == 3 || cameraMode == 4) {
+					yFlare += (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
+					if (yFlare < 0)
+						yFlare = 0;
+				}
 			}
 		}
-		else if (car_array[current_car]->getVelocity() > 0) { // Braking
-			carBraking = -1;
-			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() - car_array[current_car]->getBrakeAcceleration() * 1 / 60);
-			car_array[current_car]->setX(car_array[current_car]->getX() + lastKeyPress * cos(car_array[current_car]->getAngle())
+		else if (abs(car_array[current_car]->getVelocity()) > 0) { // Braking
+			if ((car_array[current_car]->getVelocity() + (lastKeyPress == -1 ? 1 : -1)*car_array[current_car]->getBrakeAcceleration() * 1 / 60) * car_array[current_car]->getAcceleration() > 0) {
+				carBraking = -1;
+				car_array[current_car]->setAcceleration((lastKeyPress == -1 ? 1 : -1)*-2.5f);
+				car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + (lastKeyPress == -1 ? 1 : -1)*car_array[current_car]->getBrakeAcceleration() * 1 / 60);
+				car_array[current_car]->setX(car_array[current_car]->getX() + cos(car_array[current_car]->getAngle())
 					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
-			car_array[current_car]->setZ(car_array[current_car]->getZ() - lastKeyPress * sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity()
+				car_array[current_car]->setZ(car_array[current_car]->getZ() - sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity()
 					* 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+			}
+			else {
+				car_array[current_car]->setVelocity(0);
+			}
 		}
-		else if (car_array[current_car]->getVelocity() < 0) {
+		/*else if (car_array[current_car]->getVelocity() < 0) {
 			car_array[current_car]->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
-		}
+		}*/
 		if (keystates['o']) { // Left
-			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + (lastKeyPress == -1 ? -1 : 1) * M_PI *(car_array[current_car]->getVelocity() / 1000));
-			if (wheelTurnAngle * 180 / M_PI < 45)
-			{
-				wheelTurnAngle += M_PI * (car_array[current_car]->getVelocity() / 1000);
-			}
-			if (cameraMode == 3 || cameraMode == 4) {
-				xFlare += M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
-				if (xFlare > WinX)
-					xFlare = WinX - 1;
-			}
+				car_array[current_car]->setAngle(car_array[current_car]->getAngle() + (lastKeyPress == -1 ? -1 : 1)*M_PI*abs(car_array[current_car]->getVelocity()) / 1000);
+				if (wheelTurnAngle * 180 / M_PI < 45)
+				{
+					wheelTurnAngle += M_PI * (abs(car_array[current_car]->getVelocity()) / 500);
+				}
+				if (cameraMode == 3 || cameraMode == 4) {
+					xFlare += M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
+					if (xFlare > WinX)
+						xFlare = WinX - 1;
+				}
+				
 		}
 		else {
 			if (wheelTurnAngle > 0) {
-				wheelTurnAngle -= M_PI * (car_array[current_car]->getVelocity() / 1000);
+				wheelTurnAngle -= M_PI * (abs(car_array[current_car]->getVelocity()) / 1000);
 			}
 		}
 		if (keystates['p']) { // Right
-			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + (lastKeyPress == -1 ? 1 : -1) * M_PI * (car_array[current_car]->getVelocity() / 1000));
-			if (wheelTurnAngle * 180 / M_PI > -45)
-			{
-				wheelTurnAngle -= M_PI * (car_array[current_car]->getVelocity() / 1000);
-			}
-			if (cameraMode == 3 || cameraMode == 4) {
-				xFlare -= M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
-				if (xFlare < 0)
-					xFlare = 0;
-			}
+				car_array[current_car]->setAngle(car_array[current_car]->getAngle() - (lastKeyPress == -1 ? -1 : 1)* M_PI * abs(car_array[current_car]->getVelocity()) / 1000);
+				if (wheelTurnAngle * 180 / M_PI > -45)
+				{
+					wheelTurnAngle -= M_PI * (abs(car_array[current_car]->getVelocity()) / 500);
+				}
+				if (cameraMode == 3 || cameraMode == 4) {
+					xFlare += M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
+					if (xFlare < 0)
+						xFlare = 0;
+				}				
 		}
 		else{
 			if (wheelTurnAngle < 0) {
-				wheelTurnAngle += M_PI * (car_array[current_car]->getVelocity() / 1000);
+				wheelTurnAngle += M_PI * (abs(car_array[current_car]->getVelocity()) / 1000);
 			}
 		}
 		if (keystates[27]) {
