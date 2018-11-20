@@ -33,6 +33,7 @@ Basic Revolution Geometry
 //#include "OBJ_Loader.h"
 #include "Skybox.h"
 #include "Cars/OptimizedHeaders/Lambo/Lambo.h"
+#include "Cars/OptimizedHeaders/BMW/Bmw.h"
 
 extern struct MyMesh mesh[];
 extern int objId;
@@ -215,7 +216,7 @@ void createQuad(float size_x, float size_y) {
 //	output_file.close();
 //}
 
-void createTeaPot(int num_v, int v_index, int i_index) {
+void createTeaPot(int num_v, int v_index, int i_index, int type) {
 
 	std::vector<float> tp_vertices;
 	std::vector<float> tp_normals;
@@ -235,17 +236,31 @@ void createTeaPot(int num_v, int v_index, int i_index) {
 
 	// REMOVE COMMENT IF YOU WANT TO LOAD AN OBJECT FILE; ALSO REMOVE COMMENT THE LOADER DEFINE
 
+	if (type == 0) {
+		for (int i = v_index; i < v_index + num_v * 4; i++)
+		{
+			tp_vertices.push_back(custom_vertices_lambo[i]);
+			tp_normals.push_back(custom_normals_lambo[i]);
+			tp_uvs.push_back(custom_uvs_lambo[i]);
+		}
 
-	for (int i = v_index; i < v_index + num_v *4 ; i++)
-	{
-		tp_vertices.push_back(custom_vertices[i]);
-		tp_normals.push_back(custom_normals[i]);
-		tp_uvs.push_back(custom_uvs[i]);
+		for (int i = i_index; i < i_index + num_v; i++)
+		{
+			tp_indices.push_back(custom_indices_lambo[i]);
+		}
 	}
+	else if (type == 1) {
+		for (int i = v_index; i < v_index + num_v * 4; i++)
+		{
+			tp_vertices.push_back(custom_vertices_bmw[i]);
+			tp_normals.push_back(custom_normals_bmw[i]);
+			tp_uvs.push_back(custom_uvs_bmw[i]);
+		}
 
-	for (int i = i_index; i < i_index + num_v ; i++)
-	{
-		tp_indices.push_back(custom_indices[i]);
+		for (int i = i_index; i < i_index + num_v; i++)
+		{
+			tp_indices.push_back(custom_indices_bmw[i]);
+		}
 	}
 
 	mesh[objId].numIndexes = tp_indices.size();

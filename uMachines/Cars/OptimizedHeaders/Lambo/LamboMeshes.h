@@ -1,13 +1,12 @@
 #define LAMBO 343
-struct customMesh { 
-	int n_vertices;
-	int n_indices;
-	float ka[4];
-	float kd[4];
-	float ks[4]; 
-	float shin;
-};
-customMesh meshVector[LAMBO] = {
+#include "../../../CustomMesh.h"
+extern const int glass_indexes_lambo[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
+extern const int FLwheel_indexes_lambo[] = { 51,64,72,162,265,314 };
+extern const int FRwheel_indexes_lambo[] = { 35,50,203,267,284 };
+extern const int BLwheel_indexes_lambo[] = { 201,273 };
+extern const int BRwheel_indexes_lambo[] = { 123,312 };
+extern const int steering_wheel_indexes_lambo[] = { 15,110,209,213 };
+customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 0 H LINE: 11 NAME: misc_a_pillar_misc_013.001_misc_a_pillar_misc_013.001_interior._misc_a_pillar_misc_013.001_misc_a_pillar_misc_013.001_interior._interior.001
 {
 219,219,{0,0,0,1},

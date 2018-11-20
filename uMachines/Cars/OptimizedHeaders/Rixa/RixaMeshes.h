@@ -1,13 +1,11 @@
 #define RIXA 34
-struct customMesh { 
-	int n_vertices;
-	int n_indices;
-	float ka[4];
-	float kd[4];
-	float ks[4]; 
-	float shin;
-};
-customMesh meshVector[RIXA] = {
+#include "../../../CustomMesh.h"
+extern const int glass_indexes_rixa[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
+extern const int FLwheel_indexes_rixa[] = { 51,64,72,162,265,314 };
+extern const int FRwheel_indexes_rixa[] = { 35,50,203,267,284 };
+extern const int BLwheel_indexes_rixa[] = { 201,273 };
+extern const int BRwheel_indexes_rixa[] = { 123,312 };
+customMesh meshVector_rixa[RIXA] = {
 //INDEX: 10 NAME: _2
 {
 3105,3105,{0.275833,0.275833,0.275833,1},

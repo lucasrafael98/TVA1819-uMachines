@@ -45,6 +45,7 @@
 #include "Light.h"
 #include "Particle.h"
 #include "Cars/OptimizedHeaders/Lambo/LamboMeshes.h"
+#include "Cars/OptimizedHeaders/BMW/BmwMeshes.h"
 
 #define frand()			((float)rand()/RAND_MAX)
 #define isqrt(x)        (int)((double)(x))
@@ -60,6 +61,7 @@
 #define N_LIVES 3
 #define MAX_PARTICLES 1000
 #define N_FLARES 6
+#define MAX_CARS 2
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -112,7 +114,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[15 + LAMBO];
+struct MyMesh mesh[15 + LAMBO + BMW];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -172,8 +174,10 @@ float camX, camY, camZ;
 // Mouse Tracking Variables
 int startX, startY, tracking = 0;
 
-// Wheels
+// Car controllers
 
+std::vector<Car*> car_array;
+int current_car = 1;
 int goingForward = 1;
 float wheelTurnAngle = 0;
 
@@ -407,13 +411,13 @@ void renderLights() {
 			target = "Lights[].position";
 			float res2[4];
 			if (i == 7) {
-				float spotPos[4] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()),
-									0.95f, car->getZ() - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
+				float spotPos[4] = { car_array[current_car]->getX() - 1.4f * sin(car_array[current_car]->getAngle() - M_PI / 2) - 0.55f * sin(car_array[current_car]->getAngle()),
+									0.95f, car_array[current_car]->getZ() - 0.62f * cos(car_array[current_car]->getAngle()) - 1.5f * cos(car_array[current_car]->getAngle() - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			else {
-				float spotPos[4] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()),
-									0.95f, car->getZ() + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
+				float spotPos[4] = { car_array[current_car]->getX() - 1.4f * sin(car_array[current_car]->getAngle() - M_PI / 2) + 0.55f * sin(car_array[current_car]->getAngle()),
+									0.95f, car_array[current_car]->getZ() + 0.45f * cos(car_array[current_car]->getAngle()) - 1.5f * cos(car_array[current_car]->getAngle() - M_PI / 2), 1.0f };
 				multMatrixPoint(VIEW, spotPos, res2);
 			}
 			loc = glGetUniformLocation(shader.getProgramIndex(), target.insert(7, std::to_string(i)).c_str());
@@ -432,15 +436,15 @@ void renderLights() {
 			float spotCPos[4];
 			float res3[4];
 			if (i == 7) {
-				spotCPos[0] = car->getX() - 1.0f - cos(-car->getAngle()) * (-90);
+				spotCPos[0] = car_array[current_car]->getX() - 1.0f - cos(-car_array[current_car]->getAngle()) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = car->getZ() + 1.0f - sin(-car->getAngle()) * (-90);
+				spotCPos[2] = car_array[current_car]->getZ() + 1.0f - sin(-car_array[current_car]->getAngle()) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			else {
-				spotCPos[0] = car->getX() - 1.0f - cos(-car->getAngle()) * (-90);
+				spotCPos[0] = car_array[current_car]->getX() - 1.0f - cos(-car_array[current_car]->getAngle()) * (-90);
 				spotCPos[1] = 0.0f;
-				spotCPos[2] = car->getZ() + 1.0f - sin(-car->getAngle()) * (-90);
+				spotCPos[2] = car_array[current_car]->getZ() + 1.0f - sin(-car_array[current_car]->getAngle()) * (-90);
 				spotCPos[3] = 0.0f;
 			}
 			multMatrixPoint(VIEW, spotCPos, res3);
@@ -453,25 +457,6 @@ void renderLights() {
 			glUniform1f(loc, lights[i]->getSpotexponent());
 		}
 	}
-}
-
-void renderSkybox() {
-
-	objId = 0;
-	getMaterials();
-
-	glUniform1i(texMode_uniformId, 3);
-
-	glDepthFunc(GL_FALSE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-	glUniform1i(skybox_loc, 0);
-
-	drawMesh();
-
-	glUniform1i(texMode_uniformId, 1);
-
-	glDepthFunc(GL_TRUE);
 }
 
 void renderTableMirror(void) {
@@ -607,19 +592,19 @@ void renderTrack(void) {
 }
 void renderCar(void) {
 
-	objId = car->getId();
+	objId = car_array[current_car]->getId();
 	pushMatrix(MODEL);
-	translate(MODEL, car->getX(), !drawingPlanarReflection ? -0.30f : -0.20f, car->getZ());
-	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+	translate(MODEL, car_array[current_car]->getX(), !drawingPlanarReflection ? -0.30f : -0.20f, car_array[current_car]->getZ());
+	rotate(MODEL, car_array[current_car]->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
 	if(drawingPlanarReflection)
 		rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
-	int glass_indexes[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
-	int FLwheel_indexes[] = { 51,64,72,162,265,314 };
-	int FRwheel_indexes[] = { 35,50,203,267,284 };
-	int BLwheel_indexes[] = { 201,273};
-	int BRwheel_indexes[] = { 123,312 };
-
-	objId = car->getId() + 19; //mirrorMidle
+	if (current_car == 0) {
+		objId = car_array[current_car]->getId() + 19; //mirrorMidle
+	}
+	else if (current_car == 1) {
+		objId = car_array[current_car]->getId() + 20; //mirrorMidle
+	}
+	objId = car_array[current_car]->getId() + 19; //mirrorMidle
 	if (cameraMode == 4 && !paused && !gameOver && !drawingPlanarReflection) {
 		pushMatrix(MODEL);
 		rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
@@ -641,84 +626,187 @@ void renderCar(void) {
 
 		popMatrix(MODEL);
 	}
-
-	objId = car->getId();
-	for (int i = 0; i < LAMBO; i++)
-	{
-		if (i == 19) { //mirrorMidle
+	objId = car_array[current_car]->getId();
+	
+	if (current_car == 0) {
+		for (int i = 0; i < LAMBO; i++)
+		{
+			if (i == 19) { //mirrorMidle
+				objId++;
+				continue;
+			}
+			else if (std::find(std::begin(glass_indexes_lambo), std::end(glass_indexes_lambo), i) != std::end(glass_indexes_lambo)) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				glDisable(GL_BLEND);
+			}
+			else if (std::find(std::begin(FLwheel_indexes_lambo), std::end(FLwheel_indexes_lambo), i) != std::end(FLwheel_indexes_lambo)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(FRwheel_indexes_lambo), std::end(FRwheel_indexes_lambo), i) != std::end(FRwheel_indexes_lambo)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(BLwheel_indexes_lambo), std::end(BLwheel_indexes_lambo), i) != std::end(BLwheel_indexes_lambo)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, 1.52979f, 0.43317f, 1.08958f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, -1.52979f, -0.43317f, -1.08958f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(BRwheel_indexes_lambo), std::end(BRwheel_indexes_lambo), i) != std::end(BRwheel_indexes_lambo)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, 1.52979f, 0.43317f, -1.04957f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, -1.52979f, -0.42877f, 1.04957f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(steering_wheel_indexes_lambo), std::end(steering_wheel_indexes_lambo), i) != std::end(steering_wheel_indexes_lambo)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -0.575624f, 0.864878f, 0.409782f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
+				translate(MODEL, 0.575624f, -0.864878f, -0.409782f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+			}
 			objId++;
-			continue;
 		}
-		else if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-			glDisable(GL_BLEND);
-		} 
-		else if(std::find(std::begin(FLwheel_indexes), std::end(FLwheel_indexes), i) != std::end(FLwheel_indexes)) {
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			pushMatrix(MODEL);
-			translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
-			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
-			translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-			popMatrix(MODEL);
-		}
-		else if (std::find(std::begin(FRwheel_indexes), std::end(FRwheel_indexes), i) != std::end(FRwheel_indexes)) {
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			pushMatrix(MODEL);
-			translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
-			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
-			translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-			popMatrix(MODEL);
-		}
-		else if (std::find(std::begin(BLwheel_indexes), std::end(BLwheel_indexes), i) != std::end(BLwheel_indexes)) {
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			pushMatrix(MODEL);
-			translate(MODEL, 1.52979f, 0.43317f, 1.08958f);
-			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
-			translate(MODEL, -1.52979f, -0.43317f, -1.08958f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-			popMatrix(MODEL);
-		}
-		else if (std::find(std::begin(BRwheel_indexes), std::end(BRwheel_indexes), i) != std::end(BRwheel_indexes)) {
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			pushMatrix(MODEL);
-			translate(MODEL, 1.52979f, 0.43317f, -1.04957f);
-			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
-			translate(MODEL, -1.52979f, -0.42877f, 1.04957f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-			popMatrix(MODEL);
-		}
-		else {
-			pushMatrix(MODEL);
-			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
-			getMaterials();
-			drawMesh();
-			popMatrix(MODEL);
-		}
-		objId++;
 	}
-
+	else if (current_car == 1) 
+	{
+		for (int i = 0; i < BMW; i++)
+		{
+			if (i == 20) { //mirrorMidle
+				objId++;
+				continue;
+			}
+			else if (std::find(std::begin(glass_indexes_bmw), std::end(glass_indexes_bmw), i) != std::end(glass_indexes_bmw)) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				glDisable(GL_BLEND);
+			}
+			else if (std::find(std::begin(FLwheel_indexes_bmw), std::end(FLwheel_indexes_bmw), i) != std::end(FLwheel_indexes_bmw)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -1.46123f, 0.39022f, 0.86689f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, 1.46123f, -0.39022f, -0.86689f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(FRwheel_indexes_bmw), std::end(FRwheel_indexes_bmw), i) != std::end(FRwheel_indexes_bmw)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -1.46155f, 0.39022f, -0.86112f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, 1.46155f, -0.39022f, 0.86112f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(BLwheel_indexes_bmw), std::end(BLwheel_indexes_bmw), i) != std::end(BLwheel_indexes_bmw)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, 1.36323f, 0.39022f, 0.866338f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, -1.36323f, -0.39022f, -0.866338f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(BRwheel_indexes_bmw), std::end(BRwheel_indexes_bmw), i) != std::end(BRwheel_indexes_bmw)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, 1.36292f, 0.39022f, -0.861115f);
+				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				translate(MODEL, -1.36292f, -0.39022f, 0.861115f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else if (std::find(std::begin(steering_wheel_indexes_bmw), std::end(steering_wheel_indexes_bmw), i) != std::end(steering_wheel_indexes_bmw)) {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				pushMatrix(MODEL);
+				translate(MODEL, -0.46108f, 1.05983f,  0.39857f);
+				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
+				translate(MODEL, 0.46108f, -1.05983f, -0.39857f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+				popMatrix(MODEL);
+			}
+			else {
+				pushMatrix(MODEL);
+				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+				getMaterials();
+				drawMesh();
+				popMatrix(MODEL);
+			}
+			objId++;
+		}
+	}
 	popMatrix(MODEL);
 
 }
@@ -1005,9 +1093,9 @@ void renderPoints() {
 bool distance(std::vector<float> x, std::vector<float> y) {
 	float cam[] = { camX, camY, camZ };
 	if (cameraMode == 3) {
-		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[0] = car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10;
 		cam[1] = 5;
-		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+		cam[2] = car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10;
 	}
 	float distX = (pow(x[0] - cam[0], 2) + pow(x[1] - cam[1], 2) + pow(x[2] - cam[2], 2));
 	float distY = (pow(y[0] - cam[0], 2) + pow(y[1] - cam[1], 2) + pow(y[2] - cam[2], 2));
@@ -1019,9 +1107,9 @@ void renderTree(void) {
 	objId = treeMeshID;
 	float cam[] = { camX, camY, camZ };
 	if (cameraMode == 3) {
-		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[0] = car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10;
 		cam[1] = 5;
-		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+		cam[2] = car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10;
 	}
 
 	glDepthMask(GL_FALSE);
@@ -1181,10 +1269,15 @@ void renderScene(void) {
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
 	if (cameraMode == 3) {
-		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
+		lookAt(car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10, 5, car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10, car_array[current_car]->getX(), 0, car_array[current_car]->getZ(), 0, 1, 0);
 	}
 	else if (cameraMode == 4) {
-		lookAt(car->getX(), 0.9, car->getZ(), car->getX() + cos(-car->getAngle()) * 10, 0.9, car->getZ() + sin(-car->getAngle()) * 10, 0, 1, 0);
+		if (current_car == 0) {
+			lookAt(car_array[current_car]->getX(), 0.9, car_array[current_car]->getZ(), car_array[current_car]->getX() + cos(-car_array[current_car]->getAngle()) * 10, 0.9, car_array[current_car]->getZ() + sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+		}
+		else if (current_car == 1) {
+			lookAt(car_array[current_car]->getX() - 0.2f, 1.1, car_array[current_car]->getZ(), car_array[current_car]->getX() + cos(-car_array[current_car]->getAngle()) * 10, 0.9, car_array[current_car]->getZ() + sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+		}
 	}
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
@@ -1264,7 +1357,7 @@ void renderScene(void) {
 
 	if (cameraMode == 4 && !paused && !gameOver) {
 		glEnable(GL_STENCIL_TEST);
-		lookAt(car->getX(), 1, car->getZ(), car->getX() - cos(-car->getAngle()) * 10, 0.3, car->getZ() - sin(-car->getAngle()) * 10, 0, 1, 0);
+		lookAt(car_array[current_car]->getX(), 1, car_array[current_car]->getZ(), car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10, 0.3, car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
 
 		drawingMirror = true;
 		drawingStencil = true;
@@ -1362,10 +1455,10 @@ void handleCollisions() {
 		else {
 			life[--numberLives] = false; // depois da subtração pq indices é de 0 a 2, enquanto numberLives é de 1 a 3
 			orangeCollision = false;
-			car->setX(0);
-			car->setZ(10);
-			car->setAngle(0);
-			car->setVelocity(0);
+			car_array[current_car]->setX(0);
+			car_array[current_car]->setZ(10);
+			car_array[current_car]->setAngle(0);
+			car_array[current_car]->setVelocity(0);
 		}
 	}
 }
@@ -1373,28 +1466,28 @@ void handleCollisions() {
 void checkCollisions(int value) {
 	if (!paused && !gameOver) {
 		for (int i = 0; i != 60; i++) {
-			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car->getX(), 0.0f,
-													0.85f, cheerios[i]->getZ(), car->getZ())) {
+			if (pow(0.9f + 2.4f, 2) > sphDistance(cheerios[i]->getX(), car_array[current_car]->getX(), 0.0f,
+													0.85f, cheerios[i]->getZ(), car_array[current_car]->getZ())) {
 				cheerioCollision = true;
 				cheerios[i]->setDirection(lastKeyPress);
 				cheerios[i]->setVelocity(lastKeyPress * 0.00001f);
 				cheerios[i]->setAcceleration(lastKeyPress * -0.00075f);
-				cheerios[i]->setAngle(car->getAngle());
+				cheerios[i]->setAngle(car_array[current_car]->getAngle());
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
-													0.85f, butters[i]->getZ() + 1.25f, car->getZ())) {
+			if (pow(2.5f + 2.4f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
+													0.85f, butters[i]->getZ() + 1.25f, car_array[current_car]->getZ())) {
 				butterCollision = true;
 				butters[i]->setDirection(lastKeyPress);
 				butters[i]->setVelocity(lastKeyPress * 0.00001f);
 				butters[i]->setAcceleration(lastKeyPress * -0.0075f);
-				butters[i]->setAngle(car->getAngle());
+				butters[i]->setAngle(car_array[current_car]->getAngle());
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.4f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
-													0.85f, oranges[i]->getZ(), car->getZ())) {
+			if (pow(2.4f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car_array[current_car]->getX(), 0.0f,
+													0.85f, oranges[i]->getZ(), car_array[current_car]->getZ())) {
 				orangeCollision = true;
 			}
 		}
@@ -1466,10 +1559,10 @@ void updateButters(int value) {
 
 void resetGame() {
 	//reset car
-	car->setX(0);
-	car->setZ(10);
-	car->setAngle(0);
-	car->setVelocity(0);
+	car_array[current_car]->setX(0);
+	car_array[current_car]->setZ(10);
+	car_array[current_car]->setAngle(0);
+	car_array[current_car]->setVelocity(0);
 
 	//resetOrange
 	for (int i = 0; i < N_ORANGES; i++) {
@@ -1550,94 +1643,94 @@ void processKeys(int value) {
 		}
 	}
 	if (!paused && !gameOver) {
-		if (hasToStop) car->setVelocity(0);
+		if (hasToStop) car_array[current_car]->setVelocity(0);
 		if (keystates['q'] && hasToStop && lastKeyPress == 1) {
-			car->setVelocity(0);
+			car_array[current_car]->setVelocity(0);
 		}
 		else if (keystates['q']) { // Forward
 			if (hasToStop) {
 				hasToStop = false;
-				car->setVelocity(10);
+				car_array[current_car]->setVelocity(10);
 			}
-			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
-			if (car->getVelocity() > car->getMaxVelocity())
-				car->setVelocity(car->getMaxVelocity());
-			car->setX(car->getX() + cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
-			car->setZ(car->getZ() - sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
+			if (car_array[current_car]->getVelocity() > car_array[current_car]->getMaxVelocity())
+				car_array[current_car]->setVelocity(car_array[current_car]->getMaxVelocity());
+			car_array[current_car]->setX(car_array[current_car]->getX() + cos(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+			car_array[current_car]->setZ(car_array[current_car]->getZ() - sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
 			lastKeyPress = 1;
 			carBraking = 1;
 			if (cameraMode == 3 || cameraMode == 4) {
-				yFlare += (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				yFlare += (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
 				if (yFlare > WinY)
 					yFlare = WinY - 1;
 			}
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
-			car->setVelocity(0);
+			car_array[current_car]->setVelocity(0);
 		}
 		else if (keystates['a']) { // Backward
 			if (hasToStop) {
 				hasToStop = false;
-				car->setVelocity(1);
+				car_array[current_car]->setVelocity(1);
 			}
-			car->setVelocity(car->getVelocity() + car->getAcceleration() * 1 / 60);
-			if (car->getVelocity() > car->getMaxVelocity())
-				car->setVelocity(car->getMaxVelocity());
-			car->setX(car->getX() - cos(car->getAngle()) 
-					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
-			car->setZ( car->getZ() + sin(car->getAngle()) 
-					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() + car_array[current_car]->getAcceleration() * 1 / 60);
+			if (car_array[current_car]->getVelocity() > car_array[current_car]->getMaxVelocity())
+				car_array[current_car]->setVelocity(car_array[current_car]->getMaxVelocity());
+			car_array[current_car]->setX(car_array[current_car]->getX() - cos(car_array[current_car]->getAngle()) 
+					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+			car_array[current_car]->setZ( car_array[current_car]->getZ() + sin(car_array[current_car]->getAngle()) 
+					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
 			lastKeyPress = -1;
 			carBraking = 1;
 			if (cameraMode == 3 || cameraMode == 4) {
-				yFlare -= (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				yFlare -= (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60) * 10;
 				if (yFlare < 0)
 					yFlare = 0;
 			}
 		}
-		else if (car->getVelocity() > 0) { // Braking
+		else if (car_array[current_car]->getVelocity() > 0) { // Braking
 			carBraking = -1;
-			car->setVelocity(car->getVelocity() - car->getBrakeAcceleration() * 1 / 60);
-			car->setX(car->getX() + lastKeyPress * cos(car->getAngle())
-					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
-			car->setZ(car->getZ() - lastKeyPress * sin(car->getAngle()) * (car->getVelocity()
-					* 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
+			car_array[current_car]->setVelocity(car_array[current_car]->getVelocity() - car_array[current_car]->getBrakeAcceleration() * 1 / 60);
+			car_array[current_car]->setX(car_array[current_car]->getX() + lastKeyPress * cos(car_array[current_car]->getAngle())
+					* (car_array[current_car]->getVelocity() * 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
+			car_array[current_car]->setZ(car_array[current_car]->getZ() - lastKeyPress * sin(car_array[current_car]->getAngle()) * (car_array[current_car]->getVelocity()
+					* 1 / 60 + 0.5 * car_array[current_car]->getAcceleration() * 1 / 60));
 		}
-		else if (car->getVelocity() < 0) {
-			car->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
+		else if (car_array[current_car]->getVelocity() < 0) {
+			car_array[current_car]->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
 		}
 		if (keystates['o']) { // Left
-			car->setAngle(car->getAngle() + M_PI *(car->getVelocity() / 1000));
+			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + M_PI *(car_array[current_car]->getVelocity() / 1000));
 			if (wheelTurnAngle * 180 / M_PI < 45)
 			{
-				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+				wheelTurnAngle += M_PI * (car_array[current_car]->getVelocity() / 1000);
 			}
 			if (cameraMode == 3 || cameraMode == 4) {
-				xFlare += M_PI * (car->getVelocity() / 100) * 10;
+				xFlare += M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
 				if (xFlare > WinX)
 					xFlare = WinX - 1;
 			}
 		}
 		else {
 			if (wheelTurnAngle > 0) {
-				wheelTurnAngle -= M_PI * (car->getVelocity() / 1000);
+				wheelTurnAngle -= M_PI * (car_array[current_car]->getVelocity() / 1000);
 			}
 		}
 		if (keystates['p']) { // Right
-			car->setAngle(car->getAngle() - M_PI * (car->getVelocity() / 1000));
+			car_array[current_car]->setAngle(car_array[current_car]->getAngle() - M_PI * (car_array[current_car]->getVelocity() / 1000));
 			if (wheelTurnAngle * 180 / M_PI > -45)
 			{
-				wheelTurnAngle -= M_PI * (car->getVelocity() / 1000);
+				wheelTurnAngle -= M_PI * (car_array[current_car]->getVelocity() / 1000);
 			}
 			if (cameraMode == 3 || cameraMode == 4) {
-				xFlare -= M_PI * (car->getVelocity() / 100) * 10;
+				xFlare -= M_PI * (car_array[current_car]->getVelocity() / 100) * 10;
 				if (xFlare < 0)
 					xFlare = 0;
 			}
 		}
 		else{
 			if (wheelTurnAngle < 0) {
-				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+				wheelTurnAngle += M_PI * (car_array[current_car]->getVelocity() / 1000);
 			}
 		}
 		if (keystates[27]) {
@@ -1681,6 +1774,14 @@ void processKeys(int value) {
 		}
 		if (keystates['c']) {
 			togglePL = true;
+		}
+		if (keystates['k']) {
+			if (current_car == MAX_CARS - 1) {
+				current_car = 0;
+			}
+			else {
+				current_car++;
+			}
 		}
 		if (togglePL && !keystates['c']) {
 			pointLight = !pointLight;
@@ -1917,15 +2018,15 @@ void createLights(void) {
 			0.0f, 1.0f, 0.2f, 0.1f);
 	}
 
-	float pos_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) - 0.55f * sin(car->getAngle()), 0.95f,
-		car->getZ() - 0.62f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
-	float cone_sp[] = { car->getX() - 1.0f - cos(-car->getAngle()) * (-90),0.0f, car->getZ() + 1.0f - sin(-car->getAngle()) * (-90),0.0f };
+	float pos_sp[] = { car_array[current_car]->getX() - 1.4f * sin(car_array[current_car]->getAngle() - M_PI / 2) - 0.55f * sin(car_array[current_car]->getAngle()), 0.95f,
+		car_array[current_car]->getZ() - 0.62f * cos(car_array[current_car]->getAngle()) - 1.5f * cos(car_array[current_car]->getAngle() - M_PI / 2), 1.0f };
+	float cone_sp[] = { car_array[current_car]->getX() - 1.0f - cos(-car_array[current_car]->getAngle()) * (-90),0.0f, car_array[current_car]->getZ() + 1.0f - sin(-car_array[current_car]->getAngle()) * (-90),0.0f };
 
 	lights[7] = new Light(7, false, true, true, amb_dir, col_dir, pos_sp, half_dir, cone_sp, 0.8f, 0.3f, 1.0f, 0.2f, 0.1f);
 
-	float pos2_sp[] = { car->getX() - 1.4f * sin(car->getAngle() - M_PI / 2) + 0.55f * sin(car->getAngle()), 0.95f,
-		car->getZ() + 0.45f * cos(car->getAngle()) - 1.5f * cos(car->getAngle() - M_PI / 2), 1.0f };
-	float cone2_sp[] = { car->getX() - 1.0f - cos(-car->getAngle()) * (-90),0.0f, car->getZ() + 1.0f - sin(-car->getAngle()) * (-90),0.0f };
+	float pos2_sp[] = { car_array[current_car]->getX() - 1.4f * sin(car_array[current_car]->getAngle() - M_PI / 2) + 0.55f * sin(car_array[current_car]->getAngle()), 0.95f,
+		car_array[current_car]->getZ() + 0.45f * cos(car_array[current_car]->getAngle()) - 1.5f * cos(car_array[current_car]->getAngle() - M_PI / 2), 1.0f };
+	float cone2_sp[] = { car_array[current_car]->getX() - 1.0f - cos(-car_array[current_car]->getAngle()) * (-90),0.0f, car_array[current_car]->getZ() + 1.0f - sin(-car_array[current_car]->getAngle()) * (-90),0.0f };
 
 	lights[8] = new Light(8, false, true, true, amb_dir, col_dir, pos2_sp, half_dir, cone2_sp, 0.8f, 0.3f, 1.0f, 0.2f, 0.1f);
 }
@@ -2001,28 +2102,38 @@ void createCheerios(void) {
 	objId++;
 }
 
-void createCar(void){
-	float amb_car[] = { 0.2f, 0.02f, 0.0f, 1.0f };
-	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
-	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
-	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	car = new Car(objId, 0.0f, 0.0f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0f, 1, 0.0f, 0.0f, 5.0f, 7.0f, 20.0f);
-	// create geometry and VAO of the car
-	carMeshID = objId;
+void createCars(void){
+	float filler[] = { 0.2f, 0.02f, 0.0f, 1.0f };
 	float emissive[] = { 0.0f,0.0f, 0.0f, 1.0f };
+	float lambo_height = -0.3f;
+	float bmw_height = -0.3f;
+	float rixa_height = -0.3f;
+	Car* lambo = new Car(objId, 0.0f, 0.0f, 10.0f, filler, filler, filler, filler, 70.0f, 1,
+		0.0f, 0.0f, 5.0f, 7.0f, 20.0f, lambo_height);
+	car_array.push_back(lambo);
+	// create geometry and VAO of the car
 	int v_index = 0;
 	int i_index = 0;
 
 	for (int i = 0; i < LAMBO; i++)
 	{
-		/*std::cout << i << "-->" << "[" << meshVector[i].kd[0] <<
-			"," << meshVector[i].kd[1] <<
-			"," << meshVector[i].kd[2] <<
-			"," << meshVector[i].kd[3] << "]" << std::endl;*/
-		setMaterials(meshVector[i].ka, meshVector[i].kd, meshVector[i].ks, emissive, meshVector[i].shin, 0);
-		createTeaPot(meshVector[i].n_vertices, v_index, i_index);
-		v_index += meshVector[i].n_vertices * 4;
-		i_index += meshVector[i].n_indices;
+		setMaterials(meshVector_lambo[i].ka, meshVector_lambo[i].kd, meshVector_lambo[i].ks, emissive, meshVector_lambo[i].shin, 0);
+		createTeaPot(meshVector_lambo[i].n_vertices, v_index, i_index,0);
+		v_index += meshVector_lambo[i].n_vertices * 4;
+		i_index += meshVector_lambo[i].n_indices;
+		objId++;
+	}
+	Car* bmw = new Car(objId, 0.0f, 0.0f, 10.0f, filler, filler, filler, filler, 70.0f, 1,
+		0.0f, 0.0f, 5.0f, 7.0f, 20.0f, bmw_height);
+	car_array.push_back(bmw);
+	v_index = 0;
+	i_index = 0;
+	for (int i = 0; i < BMW; i++)
+	{
+		setMaterials(meshVector_bmw[i].ka, meshVector_bmw[i].kd, meshVector_bmw[i].ks, emissive, meshVector_bmw[i].shin, 0);
+		createTeaPot(meshVector_bmw[i].n_vertices, v_index, i_index,1);
+		v_index += meshVector_bmw[i].n_vertices * 4;
+		i_index += meshVector_bmw[i].n_indices;
 		objId++;
 	}
 }
@@ -2202,7 +2313,7 @@ void init()
 	createTable();
 	createTableMirror();
 	createCheerios();
-	createCar();
+	createCars();
 	createButters();
 	createCandles();
 	createLights();
@@ -2279,7 +2390,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
-	glutTimerFunc(0, updateOranges, 0);
+	//glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);

@@ -28,7 +28,7 @@ void createTorus(float innerRadius, float outerRadius, int rings, int sides);
 void createCylinder(float height, float radius, int sides);
 void createCone(float height, float baseRadius, int sides);
 void createPawn();
-void createTeaPot(int numv, int v_index, int i_index);
+void createTeaPot(int numv, int v_index, int i_index, int type);
 void computeVAO(int numP, float *p, float *pfloatoints, int sides, float smoothCos);
 void create (float *p, int numP, int sides, int closed, float smoothCos);
 int revSmoothNormal2(float *p, float *nx, float *ny, float smoothCos, int beginEnd);
