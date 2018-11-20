@@ -1091,7 +1091,7 @@ void renderLensFlare(void) {
 		if (i == 0 || i == N_FLARES - 1){ // large halos
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 1.0f, 0.5f, 0.5f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -1100,7 +1100,7 @@ void renderLensFlare(void) {
 		else if (i == 1 || i == N_FLARES - 2) { // small circles
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 0.2f, 0.2f, 1.0f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -1109,7 +1109,7 @@ void renderLensFlare(void) {
 		else { // hexagons
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 1.0f, 1.0f, 0.5f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
