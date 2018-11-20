@@ -56,6 +56,8 @@ uniform int drawFog;
 const vec3 fogColor = vec3(0.5, 0.5, 0.5);
 const float FogDensity = 0.05;
 
+uniform int drawingReflection = 0;
+
 void main() {
 	vec3 scatteredLight = vec3(0.0); // or, to a global ambient light
 	vec3 reflectedLight = vec3(0.0);
@@ -141,6 +143,11 @@ void main() {
 		else{ // default
 			FragColor = vec4(rgb,mat.diffuse.a);
 		}
+	}
+
+	if(drawingReflection == 1){
+		vec4 overrideColor = vec4(0.3,0.3,0.3,1.0);
+		FragColor = overrideColor * FragColor;
 	}
 
 	if(texMode != 2 && drawFog == 1){ // fog

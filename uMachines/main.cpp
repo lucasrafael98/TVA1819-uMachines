@@ -159,6 +159,7 @@ GLint vm_uniformId;
 GLint normal_uniformId;
 GLint tex_loc, tex_loc1, tex_loc2, skybox_loc;
 GLint texMode_uniformId;
+GLint drawingReflection_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
@@ -715,7 +716,7 @@ void renderButters(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butters[i]->getX(), !(drawingPlanarReflection) ? -0.25f : -1.0f, butters[i]->getZ());
+		translate(MODEL, butters[i]->getX(), !(drawingPlanarReflection) ? -0.25f : -1.25f, butters[i]->getZ());
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -1199,7 +1200,7 @@ void shadow_matrix(GLfloat m[4][4],	GLfloat plane[4],	GLfloat light[4]) {
 
 void renderScene(void) {
 	static GLfloat mat[4][4];
-	static GLfloat plano_chao[4] = { 0,1,0,0 };
+	static GLfloat plano_chao[4] = { 0,1,0,0.23 };
 
 	FrameCount++; 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -1247,6 +1248,8 @@ void renderScene(void) {
 	renderTableMirror();
 	drawingStencil = true;
 	drawingPlanarReflection = true;
+	glUniform1i(drawingReflection_uniformId, 1);
+
 	pushMatrix(MODEL);
 	scale(MODEL, 1, -1, 1); //reflect lights
 	renderLights();
@@ -1261,6 +1264,8 @@ void renderScene(void) {
 	}
 
 	renderTableMirror();
+
+	glUniform1i(drawingReflection_uniformId, 0);
 	drawingPlanarReflection = false;
 	drawingStencil = false;
 	popMatrix(MODEL);
@@ -1939,6 +1944,7 @@ GLuint setupShaders() {
 	fogSelector_uniformId = glGetUniformLocation(shader.getProgramIndex(), "fogSelector");
 	fogDepth_uniformId = glGetUniformLocation(shader.getProgramIndex(), "depthFog");
 	texMode_uniformId = glGetUniformLocation(shader.getProgramIndex(), "texMode");
+	drawingReflection_uniformId = glGetUniformLocation(shader.getProgramIndex(), "drawingReflection");
 	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVPMatrix");
 	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVMatrix");
 	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "NormalMatrix");
