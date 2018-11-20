@@ -179,7 +179,7 @@ int startX, startY, tracking = 0;
 // Car controllers
 
 std::vector<Car*> car_array;
-int current_car = 1;
+int current_car = 0;
 int goingForward = 1;
 float wheelTurnAngle = 0;
 
