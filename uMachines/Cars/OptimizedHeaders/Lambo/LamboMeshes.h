@@ -40,7 +40,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 5 H LINE: 41 NAME: metal_steering_wheel_metal_013.001_metal_steering_wheel_met.000_metal_steering_wheel_metal_013.001_metal_steering_wheel_met.000_lines.001
 {
 240,240,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 6 H LINE: 47 NAME: Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.003_Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.003_Body.001
@@ -268,13 +268,13 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 43 H LINE: 269 NAME: Mesh118_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh118_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 44 H LINE: 275 NAME: Mesh182_032Group9_032Gruppe_11_1_032Group1_032Lamborghini_A.002_Mesh182_032Group9_032Gruppe_11_1_032Group1_032Lamborghini_A.002_LICHTER5.001
 {
 90,90,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 45 H LINE: 281 NAME: Mesh183_032Group10_032Gruppe_15_1_032Group1_032Lamborghini_.003_Mesh183_032Group10_032Gruppe_15_1_032Group1_032Lamborghini_.003_TEILE1.001
@@ -286,7 +286,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 46 H LINE: 287 NAME: Mesh120_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh120_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 47 H LINE: 293 NAME: Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.002_Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.002_UNTERBODEN.001
@@ -346,7 +346,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 56 H LINE: 347 NAME: Mesh121_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh121_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 57 H LINE: 353 NAME: Mesh126_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh126_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_TEILE1.001
@@ -418,7 +418,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 68 H LINE: 419 NAME: plastic_steering_wheel_plastic_013.001_plastic_steering_whe.000_plastic_steering_wheel_plastic_013.001_plastic_steering_whe.000_lines.001
 {
 243,243,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 69 H LINE: 425 NAME: Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.001_Mesh177_032Group8_032bump_fro02_2_032Group1_032Lamborghini_.001_LICHTER3.001
@@ -496,7 +496,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 81 H LINE: 497 NAME: metal_interior_metal_013.001_metal_interior_metal_013.001_lines_metal_interior_metal_013.001_metal_interior_metal_013.001_lines_lines.001
 {
 720,720,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 82 H LINE: 503 NAME: headliner_interior_headliner_013.001_headliner_interior_headlin_headliner_interior_headliner_013.001_headliner_interior_headlin_interior.001
@@ -550,7 +550,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 90 H LINE: 551 NAME: badge_interior_badge_013.001_badge_interior_badge_013.001_signs_badge_interior_badge_013.001_badge_interior_badge_013.001_signs_signs.001
 {
 930,930,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 91 H LINE: 557 NAME: Mesh75_032Gruppe_12_1_032Group1_032Lamborghini_Aventador1_0.001_Mesh75_032Gruppe_12_1_032Group1_032Lamborghini_Aventador1_0.001_TEILE4.001
@@ -574,7 +574,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 94 H LINE: 575 NAME: plastic_interior_plastic_013.001_plastic_interior_plastic_0.001_plastic_interior_plastic_013.001_plastic_interior_plastic_0.001_lines.001
 {
 2211,2211,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 95 H LINE: 581 NAME: Mesh142_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh142_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_LICHTER1.001
@@ -646,7 +646,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 106 H LINE: 647 NAME: glass_interior_glass_013.001_glass_interior_glass_013.001_speed_glass_interior_glass_013.001_glass_interior_glass_013.001_speed_speedometer.001
 {
 75,75,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 107 H LINE: 653 NAME: Mesh84_032Group6_032bump_fro02_1_032Group1_032Lamborghini_A.002_Mesh84_032Group6_032bump_fro02_1_032Group1_032Lamborghini_A.002_TEILE1.001
@@ -658,7 +658,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 108 H LINE: 659 NAME: badge_interior_badge_013.001_badge_interior_badge_013.001_logo._badge_interior_badge_013.001_badge_interior_badge_013.001_logo._logo.001
 {
 12,12,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 109 H LINE: 665 NAME: Mesh233_032wheel4_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh233_032wheel4_032Group1_032Lamborghini_Aventador1_032Mo.000_FELGE1.001
@@ -772,7 +772,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 127 H LINE: 773 NAME: Mesh123_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh123_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 128 H LINE: 779 NAME: Mesh220_032wheel3_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh220_032wheel3_032Group1_032Lamborghini_Aventador1_032Mo.000_FELGE1.001
@@ -826,7 +826,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 136 H LINE: 827 NAME: badge_steering_wheel_badge_013.001_badge_steering_wheel_bad.001_badge_steering_wheel_badge_013.001_badge_steering_wheel_bad.001_logo.001
 {
 42,42,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 137 H LINE: 833 NAME: Mesh241_032Group15_032Gruppe_15_2_032Group1_032Lamborghini_.002_Mesh241_032Group15_032Gruppe_15_2_032Group1_032Lamborghini_.002_TEILE1.001
@@ -874,7 +874,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 144 H LINE: 875 NAME: Mesh56_032Group4_032Group1_032Lamborghini_Aventador1_032Mod.001_Mesh56_032Group4_032Group1_032Lamborghini_Aventador1_032Mod.001_FrontColor.001
 {
 429,429,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 145 H LINE: 881 NAME: Mesh193_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.000_Mesh193_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.000_TEILE1.001
@@ -898,7 +898,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 148 H LINE: 899 NAME: badge_seatL_badge_013.001_badge_seatL_badge_013.001_logo.001_badge_seatL_badge_013.001_badge_seatL_badge_013.001_logo.001_logo.001
 {
 15,15,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 149 H LINE: 905 NAME: Mesh26_032Group3_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh26_032Group3_032Group1_032Lamborghini_Aventador1_032Mod.000_LICHTER3.001
@@ -928,7 +928,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 153 H LINE: 929 NAME: Mesh117_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh117_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 154 H LINE: 935 NAME: Mesh82_032boot_ok1_032Group1_032Lamborghini_Aventador1_032M.001_Mesh82_032boot_ok1_032Group1_032Lamborghini_Aventador1_032M.001_TEILE1.001
@@ -1030,7 +1030,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 170 H LINE: 1031 NAME: Mesh112_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh112_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 171 H LINE: 1037 NAME: Mesh234_032wheel4_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh234_032wheel4_032Group1_032Lamborghini_Aventador1_032Mo.000_FELGE1.001
@@ -1054,13 +1054,13 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 174 H LINE: 1055 NAME: Mesh119_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh119_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 175 H LINE: 1061 NAME: Mesh116_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh116_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 176 H LINE: 1067 NAME: black_a_pillar_black_013.001_black_a_pillar_black_013.001_inter_black_a_pillar_black_013.001_black_a_pillar_black_013.001_inter_interior.001
@@ -1090,7 +1090,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 180 H LINE: 1091 NAME: Mesh122_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh122_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 181 H LINE: 1097 NAME: Mesh9_032Group2_032Group1_032Lamborghini_Aventador1_032Mode.000_Mesh9_032Group2_032Group1_032Lamborghini_Aventador1_032Mode.000_TEILE2.001
@@ -1294,7 +1294,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 214 H LINE: 1295 NAME: Mesh111_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh111_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 215 H LINE: 1301 NAME: Mesh191_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.001_Mesh191_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.001_TEILE2.001
@@ -1426,7 +1426,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 236 H LINE: 1427 NAME: Mesh115_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh115_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 237 H LINE: 1433 NAME: Mesh240_032Group14_032Gruppe_11_2_032Group1_032Lamborghini_.001_Mesh240_032Group14_032Gruppe_11_2_032Group1_032Lamborghini_.001_TEILE1.001
@@ -1444,7 +1444,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 239 H LINE: 1445 NAME: badge_seatR_badge_013.001_badge_seatR_badge_013.001_logo.001_badge_seatR_badge_013.001_badge_seatR_badge_013.001_logo.001_logo.001
 {
 15,15,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 240 H LINE: 1451 NAME: BackViewMirrorL_Mesh203_032Gruppe_12_2_032Group1_032Lamborghini_Aventador1_.003_TEILE3.001
@@ -1582,7 +1582,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 262 H LINE: 1583 NAME: Mesh113_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh113_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 263 H LINE: 1589 NAME: Mesh199_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.000_Mesh199_032Group11_032Gruppe_15_1_032Group1_032Lamborghini_.000_LICHTER1.001
@@ -1594,7 +1594,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 264 H LINE: 1595 NAME: badge_steering_wheel_badge_013.001_badge_steering_wheel_badge_0_badge_steering_wheel_badge_013.001_badge_steering_wheel_badge_0_signs.001
 {
 60,60,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 265 H LINE: 1601 NAME: WheelFL_Mesh223_032wheel3_032Group1_032Lamborghini_Aventador1_032Mo.000_REIFEN1.001
@@ -1678,7 +1678,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 278 H LINE: 1679 NAME: leather_interior_leather_013.001_leather_interior_leather_013.0_leather_interior_leather_013.001_leather_interior_leather_013.0_lines.001
 {
 120,120,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 279 H LINE: 1685 NAME: Mesh132_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh132_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_MOTOR1.001
@@ -1702,7 +1702,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 282 H LINE: 1703 NAME: Mesh124_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh124_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 228,228,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 283 H LINE: 1709 NAME: Mesh25_032Group3_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh25_032Group3_032Group1_032Lamborghini_Aventador1_032Mod.000_LICHTER3.001
@@ -1732,13 +1732,13 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 287 H LINE: 1733 NAME: Mesh240_032Group14_032Gruppe_11_2_032Group1_032Lamborghini_.000_Mesh240_032Group14_032Gruppe_11_2_032Group1_032Lamborghini_.000_LICHTER5.001
 {
 90,90,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 288 H LINE: 1739 NAME: Mesh114_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_Mesh114_032glass1_032Group1_032Lamborghini_Aventador1_032Mo.000_LICHTER4.001
 {
 444,444,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.33,0.33,0.33,1},
 254.902},
 //INDEX: 289 H LINE: 1745 NAME: Mesh77_032Gruppe_12_1_032Group1_032Lamborghini_Aventador1_0.000_Mesh77_032Gruppe_12_1_032Group1_032Lamborghini_Aventador1_0.000_Body.001
@@ -1858,7 +1858,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 308 H LINE: 1859 NAME: plastic_interior_plastic_013.001_plastic_interior_plastic_013.0_plastic_interior_plastic_013.001_plastic_interior_plastic_013.0_signs.001
 {
 528,528,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 309 H LINE: 1865 NAME: Mesh60_032wheel1_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh60_032wheel1_032Group1_032Lamborghini_Aventador1_032Mod.000_FELGE1.001
@@ -2050,7 +2050,7 @@ customMesh meshVector_lambo[LAMBO] = {
 //INDEX: 340 H LINE: 2051 NAME: solid_interior_solid_013.001_solid_interior_solid_013.001_lines_solid_interior_solid_013.001_solid_interior_solid_013.001_lines_lines.001
 {
 30,30,{0,0,0,1},
-{1,1,1,1},
+{0.401968,0.251166,0.129595,1},
 {0.05,0.05,0.05,1},
 254.902},
 //INDEX: 341 H LINE: 2057 NAME: Mesh150_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_Mesh150_032mesh1_032Group1_032Lamborghini_Aventador1_032Mod.000_MOTOR1.001
