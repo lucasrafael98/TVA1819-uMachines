@@ -75,78 +75,82 @@ void main() {
 		//range based
 		dist = length(DataIn.Position);
 	}
-	for (int light = 0; light < MaxLights; ++light) {
-		if (! Lights[light].isEnabled)
-			continue;
-		vec3 halfVector;
-		vec3 lightDirection = vec3(Lights[light].position);
-		float attenuation = 1.0;
+	if(texMode == 5){
+		FragColor = vec4(0.0f, 0.0f, 0.0f, 0.25f);
+	} else {
+		for (int light = 0; light < MaxLights; ++light) {
+			if (! Lights[light].isEnabled)
+				continue;
+			vec3 halfVector;
+			vec3 lightDirection = vec3(Lights[light].position);
+			float attenuation = 1.0;
 
-		if (Lights[light].isLocal) {
-			lightDirection = lightDirection - vec3(DataIn.Position);
-			float lightDistance = length(lightDirection);
-			//lightDirection = lightDirection / lightDistance;
-			attenuation = 1.0 /(Lights[light].constantAttenuation + Lights[light].linearAttenuation * lightDistance + Lights[light].quadraticAttenuation * lightDistance * lightDistance);
-			if (Lights[light].isSpot) {
-				float spotCos = dot(lightDirection / lightDistance, normalize(vec3(-Lights[light].coneDirection)));
-				if (spotCos < Lights[light].spotCosCutoff){
-					attenuation = 0.0;
+			if (Lights[light].isLocal) {
+				lightDirection = lightDirection - vec3(DataIn.Position);
+				float lightDistance = length(lightDirection);
+				//lightDirection = lightDirection / lightDistance;
+				attenuation = 1.0 /(Lights[light].constantAttenuation + Lights[light].linearAttenuation * lightDistance + Lights[light].quadraticAttenuation * lightDistance * lightDistance);
+				if (Lights[light].isSpot) {
+					float spotCos = dot(lightDirection / lightDistance, normalize(vec3(-Lights[light].coneDirection)));
+					if (spotCos < Lights[light].spotCosCutoff){
+						attenuation = 0.0;
+					}
+					else{
+						attenuation *= pow(spotCos,Lights[light].spotExponent);
+					}
 				}
-				else{
-					attenuation *= pow(spotCos,Lights[light].spotExponent);
-				}
+				halfVector = normalize(lightDirection + DataIn.Eye);
+			} 
+			else {
+				lightDirection = normalize(lightDirection);
+				halfVector = normalize((lightDirection + DataIn.Eye) /2);
 			}
-			halfVector = normalize(lightDirection + DataIn.Eye);
-		} 
-		else {
-			lightDirection = normalize(lightDirection);
-			halfVector = normalize((lightDirection + DataIn.Eye) /2);
+
+			float diffuse = max(0.0, dot(DataIn.Normal, lightDirection));
+			float specular = max(0.0, dot(DataIn.Normal, halfVector));
+			if (diffuse == 0.0)
+				specular = 0.0;
+			else
+				specular = pow(specular, mat.shininess);
+
+			// Accumulate all the lights effects
+			scatteredLight += Lights[light].ambient.rgb * mat.ambient.rgb * attenuation + Lights[light].color.rgb * diffuse * mat.diffuse.rgb * attenuation;
+			reflectedLight += Lights[light].color.rgb * mat.specular.rgb * specular * attenuation;
 		}
 
-		float diffuse = max(0.0, dot(DataIn.Normal, lightDirection));
-		float specular = max(0.0, dot(DataIn.Normal, halfVector));
-		if (diffuse == 0.0)
-			specular = 0.0;
-		else
-			specular = pow(specular, mat.shininess);
-
-		// Accumulate all the lights effects
-		scatteredLight += Lights[light].ambient.rgb * mat.ambient.rgb * attenuation + Lights[light].color.rgb * diffuse * mat.diffuse.rgb * attenuation;
-		reflectedLight += Lights[light].color.rgb * mat.specular.rgb * specular * attenuation;
-	}
-
-	vec3 rgb = min(mat.emissive.rgb + scatteredLight + reflectedLight, vec3(1.0));
-	if(texMode == 0){ // multi texture
-		texel = texture(texmap, DataIn.tex_coord);
-		texel1 = texture(texmap1, DataIn.tex_coord);
-		FragColor = vec4(rgb, mat.diffuse.a)* texel * texel1;
-	}
-	else if(texMode == 2){ // HUD
+		vec3 rgb = min(mat.emissive.rgb + scatteredLight + reflectedLight, vec3(1.0));
+		if(texMode == 0){ // multi texture
+			texel = texture(texmap, DataIn.tex_coord);
+			texel1 = texture(texmap1, DataIn.tex_coord);
+			FragColor = vec4(rgb, mat.diffuse.a)* texel * texel1;
+		}
+		else if(texMode == 2){ // HUD
 		
-		texel = texture(texmap2, DataIn.tex_coord);
+			texel = texture(texmap2, DataIn.tex_coord);
 
-		FragColor = texel;
+			FragColor = texel;
 
-	}
-	else if(texMode == 3){ // skybox
-		FragColor = texture(skybox, TexCoords);
-	}
-	else if(texMode == 4){ // single texture
-		texel = texture(texmap, DataIn.tex_coord);
-		FragColor = vec4(rgb, mat.diffuse.a) * texel;
-	}
-	else{ // default
-		FragColor = vec4(rgb,mat.diffuse.a);
+		}
+		else if(texMode == 3){ // skybox
+			FragColor = texture(skybox, TexCoords);
+		}
+		else if(texMode == 4){ // single texture
+			texel = texture(texmap, DataIn.tex_coord);
+			FragColor = vec4(rgb, mat.diffuse.a) * texel;
+		}
+		else{ // default
+			FragColor = vec4(rgb,mat.diffuse.a);
+		}
 	}
 
 	if(texMode != 2 && drawFog == 1){ // fog
-		rgb = vec3(FragColor);
+		vec3 rgb = vec3(FragColor);
 		if(fogSelector == 0)//linear fog
 		{
 			// 20 - fog starts; 80 - fog ends
 			fogFactor = (80 - dist)/(80 - 20);
 			fogFactor = clamp( fogFactor, 0.0, 1.0 );
- 
+
 			//if you inverse color in glsl mix function you have to
 			//put 1.0 - fogFactor
 			rgb = mix(fogColor, rgb, fogFactor);
@@ -155,7 +159,7 @@ void main() {
 		{
 			fogFactor = 1.0 /exp(dist * FogDensity);
 			fogFactor = clamp( fogFactor, 0.0, 1.0 );
- 
+
 			// mix function fogColor⋅(1−fogFactor) + rgb⋅fogFactor
 			rgb = mix(fogColor, rgb, fogFactor);
 		}
@@ -163,8 +167,7 @@ void main() {
 		{
 			fogFactor = 3.0 /exp( (dist * FogDensity)* (dist * FogDensity));
 			fogFactor = clamp( fogFactor, 0.0, 1.0 );
- 
-			rgb = mix(fogColor, rgb, fogFactor);
+ 			rgb = mix(fogColor, rgb, fogFactor);
 		}
 		FragColor = vec4(rgb,FragColor.a);
 	}
