@@ -642,7 +642,7 @@ void renderCar(void) {
 				pushMatrix(MODEL);
 				translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
 				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-				rotate(MODEL, carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
 				getMaterials();
 				drawMesh();
@@ -655,7 +655,7 @@ void renderCar(void) {
 				pushMatrix(MODEL);
 				translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
 				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity())*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
 				getMaterials();
 				drawMesh();
@@ -667,7 +667,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, 1.52979f, 0.43317f, 1.08958f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, -1.52979f, -0.43317f, -1.08958f);
 				getMaterials();
 				drawMesh();
@@ -679,7 +679,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, 1.52979f, 0.43317f, -1.04957f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, -1.52979f, -0.42877f, 1.04957f);
 				getMaterials();
 				drawMesh();
@@ -735,7 +735,7 @@ void renderCar(void) {
 				pushMatrix(MODEL);
 				translate(MODEL, -1.46123f, 0.39022f, 0.86689f);
 				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.46123f, -0.39022f, -0.86689f);
 				getMaterials();
 				drawMesh();
@@ -747,8 +747,8 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -1.46155f, 0.39022f, -0.86112f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity())*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.46155f, -0.39022f, 0.86112f);
 				getMaterials();
 				drawMesh();
@@ -760,7 +760,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, 1.36323f, 0.39022f, 0.866338f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, -1.36323f, -0.39022f, -0.866338f);
 				getMaterials();
 				drawMesh();
@@ -772,7 +772,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, 1.36292f, 0.39022f, -0.861115f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, -lastKeyPress * carBraking * abs(car_array[current_car]->getVelocity()) * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, -1.36292f, -0.39022f, 0.861115f);
 				getMaterials();
 				drawMesh();
