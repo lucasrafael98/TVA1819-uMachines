@@ -103,7 +103,6 @@ Table* table;
 Table* tableMirror;
 Table* skybox;
 Table* teapot;
-Car* car;
 Butter* butters[N_BUTTERS];
 Orange* oranges[N_ORANGES];
 Cheerio* cheerios[N_CHEERIOS_INNER + N_CHEERIOS_OUTER];
@@ -1539,8 +1538,8 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.0f + 1.9f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
-													0.85f, butters[i]->getZ() + 1.25f, car->getZ())) {
+			if (pow(2.0f + 1.9f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
+													0.85f, butters[i]->getZ() + 1.25f, car_array[current_car]->getZ())) {
 				butterCollision = true;
 				butters[i]->setDirection(lastKeyPress);
 				butters[i]->setVelocity(lastKeyPress * 0.00001f);
@@ -2455,7 +2454,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
-	//glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
