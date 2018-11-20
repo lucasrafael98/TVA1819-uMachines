@@ -59,7 +59,7 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
-#define MAX_PARTICLES 1000
+#define MAX_PARTICLES 400
 #define N_FLARES 6
 #define MAX_CARS 2
 
@@ -81,6 +81,7 @@ bool toggleSL = false;
 bool spotLight = true;
 bool fireworks = false;
 bool lensFlare = TRUE;
+bool changeCar = false;
 // Check key presses.
 bool keystates[256];
 
@@ -1539,7 +1540,7 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.0f + 1.9f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
+			if (pow(2.0f + 2.1f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
 													0.85f, butters[i]->getZ() + 1.25f, car_array[current_car]->getZ())) {
 				butterCollision = true;
 				butters[i]->setDirection(lastKeyPress);
@@ -1838,14 +1839,6 @@ void processKeys(int value) {
 		if (keystates['c']) {
 			togglePL = true;
 		}
-		if (keystates['k']) {
-			if (current_car == MAX_CARS - 1) {
-				current_car = 0;
-			}
-			else {
-				current_car++;
-			}
-		}
 		if (togglePL && !keystates['c']) {
 			pointLight = !pointLight;
 			togglePL = false;
@@ -1863,6 +1856,18 @@ void processKeys(int value) {
 		if (!keystates['f'] && shouldToggleFog) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
+		}
+		if (keystates['k']) {
+			changeCar = true;
+		}
+		if (!keystates['k'] && changeCar) {
+			if (current_car == MAX_CARS - 1) {
+				current_car = 0;
+			}
+			else {
+				current_car++;
+			}
+			changeCar = false;
 		}
 		if ( (gamePoints != 0) && (gamePoints % 5) == 0 && (lastFireworks != gamePoints) && !fireworks ) {
 			fireworks = true;
