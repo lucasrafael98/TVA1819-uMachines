@@ -146,6 +146,7 @@ float yFlare = WinY / 2;
 int     xMouse = 0, yMouse = 0;
 bool drawingStencil = false;
 bool drawingPlanarReflection = false;
+bool drawingPlanarShadow = false;
 bool drawingMirror = false;
 
 //External array storage defined in AVTmathLib.cpp
@@ -162,6 +163,7 @@ GLint vm_uniformId;
 GLint normal_uniformId;
 GLint tex_loc, tex_loc1, tex_loc2, skybox_loc;
 GLint texMode_uniformId;
+GLint drawingReflection_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
@@ -284,6 +286,10 @@ void drawMesh() {
 	else if (drawingPlanarReflection) {
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	}
+	else if (drawingPlanarShadow) {
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
 	}
 
 	glBindVertexArray(mesh[objId].vao);
@@ -556,36 +562,18 @@ void renderTrack(void) {
 
 	// inner cheerio ring
 	for (int i = 0; i != 20; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !(drawingPlanarReflection) ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
 
 	// outer cheerio ring
 	for (int i = 20; i != 60; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !(drawingPlanarReflection) ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -605,7 +593,7 @@ void renderCar(void) {
 		objId = car_array[current_car]->getId() + 20; //mirrorMidle
 	}
 	objId = car_array[current_car]->getId() + 19; //mirrorMidle
-	if (cameraMode == 4 && !paused && !gameOver && !drawingPlanarReflection) {
+	if (cameraMode == 4 && !paused && !gameOver && !(drawingPlanarReflection || drawingPlanarShadow)) {
 		pushMatrix(MODEL);
 		rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 
@@ -636,14 +624,17 @@ void renderCar(void) {
 				continue;
 			}
 			else if (std::find(std::begin(glass_indexes_lambo), std::end(glass_indexes_lambo), i) != std::end(glass_indexes_lambo)) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				if (!drawingPlanarShadow) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
 				pushMatrix(MODEL);
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				getMaterials();
 				drawMesh();
 				popMatrix(MODEL);
-				glDisable(GL_BLEND);
+				if (!drawingPlanarShadow)
+					glDisable(GL_BLEND);
 			}
 			else if (std::find(std::begin(FLwheel_indexes_lambo), std::end(FLwheel_indexes_lambo), i) != std::end(FLwheel_indexes_lambo)) {
 				pushMatrix(MODEL);
@@ -726,14 +717,17 @@ void renderCar(void) {
 				continue;
 			}
 			else if (std::find(std::begin(glass_indexes_bmw), std::end(glass_indexes_bmw), i) != std::end(glass_indexes_bmw)) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				if (!drawingPlanarShadow) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
 				pushMatrix(MODEL);
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				getMaterials();
 				drawMesh();
 				popMatrix(MODEL);
-				glDisable(GL_BLEND);
+				if (!drawingPlanarShadow)
+					glDisable(GL_BLEND);
 			}
 			else if (std::find(std::begin(FLwheel_indexes_bmw), std::end(FLwheel_indexes_bmw), i) != std::end(FLwheel_indexes_bmw)) {
 				pushMatrix(MODEL);
@@ -815,18 +809,9 @@ void renderButters(void) {
 	objId = butters[0]->getId();
 	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
-		if (butters[i]->getVelocity()) {
-			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
-				butters[i]->setVelocity(0);
-			else {
-				butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
-				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
-				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butters[i]->getX(), !drawingPlanarReflection ? -0.25f : -1.0f, butters[i]->getZ());
+		translate(MODEL, butters[i]->getX(), !(drawingPlanarReflection) ? -0.25f : -1.25f, butters[i]->getZ());
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -839,8 +824,8 @@ void renderCandles(void) {
 		objId = candles[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, candles[i]->getX(), !drawingPlanarReflection ? candles[i]->getY() : -1.5f, candles[i]->getZ());
-		if (drawingPlanarReflection)
+		translate(MODEL, candles[i]->getX(), !(drawingPlanarReflection) ? candles[i]->getY() : -1.5f, candles[i]->getZ());
+		if ((drawingPlanarReflection))
 			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		pushMatrix(MODEL);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
@@ -864,15 +849,15 @@ void renderOranges(void) {
 		objId = oranges[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, oranges[i]->getX(), !drawingPlanarReflection ? 2.5f : -2.8f, oranges[i]->getZ());
+		translate(MODEL, oranges[i]->getX(), !(drawingPlanarReflection) ? 2.5f : -2.8f, oranges[i]->getZ());
 		rotate(MODEL, oranges[i]->getAngleX() * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
-		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, !drawingPlanarReflection ? -1.0f : 1.0f); //angulo sobre ela mesma de rotacao
+		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, !(drawingPlanarReflection) ? -1.0f : 1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 
 		objId = oranges[0]->getStem()->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, 0.0f, !drawingPlanarReflection ? 2.5f : -2.8f, 0.0f);
+		translate(MODEL, 0.0f, !(drawingPlanarReflection) ? 2.5f : -2.8f, 0.0f);
 		drawMesh();
 		popMatrix(MODEL);
 		popMatrix(MODEL);
@@ -1144,7 +1129,7 @@ void renderTree(void) {
 		getMaterials();
 
 		pushMatrix(MODEL);
-		if (drawingPlanarReflection)
+		if ((drawingPlanarReflection))
 			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		translate(MODEL, 0.0f, bb[1], 0.0f);
 
@@ -1189,7 +1174,7 @@ void renderLensFlare(void) {
 		if (i == 0 || i == N_FLARES - 1){ // large halos
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 1.0f, 0.5f, 0.5f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -1198,7 +1183,7 @@ void renderLensFlare(void) {
 		else if (i == 1 || i == N_FLARES - 2) { // small circles
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 0.2f, 0.2f, 1.0f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -1207,7 +1192,7 @@ void renderLensFlare(void) {
 		else { // hexagons
 			glUniform1i(texMode_uniformId, 4);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
 			glUniform1i(tex_loc, 0);
 			float amb_lf1[] = { 1.0f, 1.0f, 0.5f, 1.0f };
 			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -1262,7 +1247,34 @@ void renderLensFlare(void) {
 
 }
 
+void shadow_matrix(GLfloat m[4][4],	GLfloat plane[4],	GLfloat light[4]) {
+	GLfloat dot = plane[0] * light[0] + plane[1] * light[1] + plane[2] * light[2] + plane[3] * light[3];
+
+	m[0][0] = dot - light[0] * plane[0];
+	m[1][0] = -light[0] * plane[1];
+	m[2][0] = -light[0] * plane[2];
+	m[3][0] = -light[0] * plane[3];
+
+	m[0][1] = -light[1] * plane[0];
+	m[1][1] = dot - light[1] * plane[1];
+	m[2][1] = -light[1] * plane[2];
+	m[3][1] = -light[1] * plane[3];
+
+	m[0][2] = -light[2] * plane[0];
+	m[1][2] = -light[2] * plane[1];
+	m[2][2] = dot - light[2] * plane[2];
+	m[3][2] = -light[2] * plane[3];
+
+	m[0][3] = -light[3] * plane[0];
+	m[1][3] = -light[3] * plane[1];
+	m[2][3] = -light[3] * plane[2];
+	m[3][3] = dot - light[3] * plane[3];
+}
+
 void renderScene(void) {
+	static GLfloat mat[4][4];
+	static GLfloat plano_chao[4] = { 0,1,0,0.23 };
+
 	FrameCount++; 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	// load identity matrices
@@ -1299,8 +1311,6 @@ void renderScene(void) {
 		glEnable(GL_STENCIL_TEST);
 	}
 
-	renderLights();
-	renderCar();
 	glDepthMask(GL_FALSE);
 	renderTable();
 	glDepthMask(GL_TRUE);
@@ -1315,11 +1325,16 @@ void renderScene(void) {
 	
 	glEnable(GL_STENCIL_TEST);
 
-	glPushMatrix();
+	pushMatrix(MODEL);
 	renderTableMirror();
 	drawingStencil = true;
 	drawingPlanarReflection = true;
-	//renderLights();
+	glUniform1i(drawingReflection_uniformId, 1);
+
+	pushMatrix(MODEL);
+	scale(MODEL, 1, -1, 1); //reflect lights
+	renderLights();
+	popMatrix(MODEL);
 	renderCar();
 	renderTrack();
 	renderButters();
@@ -1330,10 +1345,55 @@ void renderScene(void) {
 	}
 
 	renderTableMirror();
+
+	glUniform1i(drawingReflection_uniformId, 0);
 	drawingPlanarReflection = false;
 	drawingStencil = false;
-	glPopMatrix();
+	popMatrix(MODEL);
 	glDisable(GL_STENCIL_TEST);
+
+	if (directionalLight) { // shadows without light doesnt exist
+		shadow_matrix(mat, plano_chao, lights[0]->getPosition());
+
+		glEnable(GL_STENCIL_TEST);
+		drawingStencil = true;
+		drawingPlanarShadow = true;
+
+		pushMatrix(MODEL);
+		glUniform1i(texMode_uniformId, 5); //ignore lights
+		multMatrix(MODEL, &mat[0][0]);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		renderCar();
+		renderTrack();
+		renderButters();
+		renderCandles();
+		renderOranges();
+
+		glDisable(GL_BLEND);
+		popMatrix(MODEL);
+
+		drawingPlanarShadow = false;
+		drawingStencil = false;
+		glDisable(GL_STENCIL_TEST);
+	}	
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
+
+	if (cameraMode != 4) {
+		glDisable(GL_STENCIL_TEST);
+	}
+	else {
+		glEnable(GL_STENCIL_TEST);
+	}
+
+	renderLights();
+	renderCar();
+	renderTrack();
+	renderButters();
+	renderCandles();
+	renderOranges();
 
 	if (cameraMode != 1) {
 		renderTree();
@@ -1343,6 +1403,7 @@ void renderScene(void) {
 			renderLensFlare();
 	}
 
+	glDisable(GL_DEPTH_TEST);
 	renderHUD();
 	renderPoints();
 
@@ -1351,6 +1412,8 @@ void renderScene(void) {
 
 	if (gameOver)
 		renderGameOverBox();
+
+	glEnable(GL_DEPTH_TEST);
 
 	popMatrix(PROJECTION);
 
@@ -1476,8 +1539,8 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(butters[i]->getX() + 2.5f, car_array[current_car]->getX(), 0.0f,
-													0.85f, butters[i]->getZ() + 1.25f, car_array[current_car]->getZ())) {
+			if (pow(2.0f + 1.9f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
+													0.85f, butters[i]->getZ() + 1.25f, car->getZ())) {
 				butterCollision = true;
 				butters[i]->setDirection(lastKeyPress);
 				butters[i]->setVelocity(lastKeyPress * 0.00001f);
@@ -1972,6 +2035,7 @@ GLuint setupShaders() {
 	fogSelector_uniformId = glGetUniformLocation(shader.getProgramIndex(), "fogSelector");
 	fogDepth_uniformId = glGetUniformLocation(shader.getProgramIndex(), "depthFog");
 	texMode_uniformId = glGetUniformLocation(shader.getProgramIndex(), "texMode");
+	drawingReflection_uniformId = glGetUniformLocation(shader.getProgramIndex(), "drawingReflection");
 	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVPMatrix");
 	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "MVMatrix");
 	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "NormalMatrix");
@@ -1981,6 +2045,7 @@ GLuint setupShaders() {
 	skybox_loc = glGetUniformLocation(shader.getProgramIndex(), "skybox");
 
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
+	//while (true);
 
 	return(shader.isProgramLinked());
 }
@@ -1997,7 +2062,7 @@ void setMaterials(float* amb, float* diff, float* spec, float* emissive, float s
 void createLights(void) {
 	float amb_dir[] = { 1.0f, 1.0f, 1.0f , 1.0f };
 	float col_dir[] = { 1.0f, 1.0f, 1.0f , 1.0f };
-	float pos_dir[] = { 4.0f, 6.0f, 2.0f , 0.0f };
+	float pos_dir[] = { 25.0f, 25.0f, 25.0f , 0.0f };
 	float half_dir[] = { 0.0f, 0.0f, 0.0f , 0.0f };
 	float cone_dir[] = { 0.0f, 0.0f, 0.0f , 0.0f };
 	lights[0] = new Light(0, false, false, false, amb_dir, col_dir,
