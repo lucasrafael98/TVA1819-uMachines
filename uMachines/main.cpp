@@ -710,8 +710,8 @@ void renderButters(void) {
 				butters[i]->setVelocity(0);
 			else {
 				butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
-				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
-				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle() * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection()));
+				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
+				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
 			}
 		}
 		getMaterials();
