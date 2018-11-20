@@ -1457,7 +1457,7 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
+			if (pow(2.0f + 1.9f, 2) > sphDistance(butters[i]->getX() + 2.5f, car->getX(), 0.0f,
 													0.85f, butters[i]->getZ() + 1.25f, car->getZ())) {
 				butterCollision = true;
 				butters[i]->setDirection(lastKeyPress);
