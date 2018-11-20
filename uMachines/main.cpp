@@ -641,8 +641,8 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
-				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
 				getMaterials();
 				drawMesh();
@@ -654,7 +654,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
 				getMaterials();
@@ -691,7 +691,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -0.575624f, 0.864878f, 0.409782f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
 				translate(MODEL, 0.575624f, -0.864878f, -0.409782f);
 				getMaterials();
 				drawMesh();
@@ -734,7 +734,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -1.46123f, 0.39022f, 0.86689f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 				rotate(MODEL, -lastKeyPress * carBraking * car_array[current_car]->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 				translate(MODEL, 1.46123f, -0.39022f, -0.86689f);
 				getMaterials();
@@ -1627,6 +1627,7 @@ void resetGame() {
 	car_array[current_car]->setZ(10);
 	car_array[current_car]->setAngle(0);
 	car_array[current_car]->setVelocity(0);
+	wheelTurnAngle = 0;
 
 	//resetOrange
 	for (int i = 0; i < N_ORANGES; i++) {
@@ -1764,7 +1765,7 @@ void processKeys(int value) {
 			car_array[current_car]->setVelocity(0); // If it's negative, the car's brakes are going on overdrive. We don't want that.
 		}
 		if (keystates['o']) { // Left
-			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + M_PI *(car_array[current_car]->getVelocity() / 1000));
+			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + (lastKeyPress == -1 ? -1 : 1) * M_PI *(car_array[current_car]->getVelocity() / 1000));
 			if (wheelTurnAngle * 180 / M_PI < 45)
 			{
 				wheelTurnAngle += M_PI * (car_array[current_car]->getVelocity() / 1000);
@@ -1781,7 +1782,7 @@ void processKeys(int value) {
 			}
 		}
 		if (keystates['p']) { // Right
-			car_array[current_car]->setAngle(car_array[current_car]->getAngle() - M_PI * (car_array[current_car]->getVelocity() / 1000));
+			car_array[current_car]->setAngle(car_array[current_car]->getAngle() + (lastKeyPress == -1 ? 1 : -1) * M_PI * (car_array[current_car]->getVelocity() / 1000));
 			if (wheelTurnAngle * 180 / M_PI > -45)
 			{
 				wheelTurnAngle -= M_PI * (car_array[current_car]->getVelocity() / 1000);
