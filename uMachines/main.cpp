@@ -47,6 +47,7 @@
 #include "Cars/OptimizedHeaders/Lambo/LamboMeshes.h"
 
 #define frand()			((float)rand()/RAND_MAX)
+#define isqrt(x)        (int)((double)(x))
 #ifdef _WIN32
 #define M_PI       3.14159265358979323846f //DESCOBRIR COMO USAR O OUTRO CPP AVTMATHLIB
 #endif
@@ -57,7 +58,8 @@
 #define N_ORANGES 5
 #define N_CANDLES 6
 #define N_LIVES 3
-#define MAX_PARTICLES 100
+#define MAX_PARTICLES 1000
+#define N_FLARES 6
 
 #define CAPTION "MicroMachines - Group 2"
 int WindowHandle = 0;
@@ -76,6 +78,7 @@ bool pointLight = true;
 bool toggleSL = false;
 bool spotLight = true;
 bool fireworks = false;
+bool lensFlare = TRUE;
 // Check key presses.
 bool keystates[256];
 
@@ -95,6 +98,7 @@ int carBraking = 0;
 bool hasToStop = false;
 
 Table* table;
+Table* tableMirror;
 Table* skybox;
 Table* teapot;
 Car* car;
@@ -125,10 +129,22 @@ int domeMeshID;
 int treeMeshID;
 int partMeshID;
 int startTestID;
+int lensFlareID;
+int tableMirrorMeshID;
 
 unsigned int cubemapTexture;
 int gamePoints = 0;
+int lastFireworks = 0;
 
+float flaresColor[4] = { 1.0f, 1.0f, 1.0f, 0.5f };
+float flaresPos[N_FLARES] = { 0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f };
+float flaresScale[N_FLARES] = { 1.0f, 0.25f, 0.5f, 0.5f, 0.25f, 0.75f };
+float xFlare = WinX / 2;
+float yFlare = WinY / 2;
+int     xMouse = 0, yMouse = 0;
+bool drawingStencil = false;
+bool drawingPlanarReflection = false;
+bool drawingMirror = false;
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -147,7 +163,7 @@ GLint texMode_uniformId;
 GLint fogSelector_uniformId, fogDepth_uniformId, drawFog;
 GLint loc;
 
-GLuint TextureArray[8];
+GLuint TextureArray[11];
 GLuint FontArray[11]; //10 numbers [0-9] + pointsText
 
 // Camera Position
@@ -251,6 +267,21 @@ void drawMesh() {
 	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
 	computeNormalMatrix3x3();
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	if (cameraMode == 4) {
+		if (drawingMirror) {
+			glStencilFunc(GL_EQUAL, 2, 0xFF);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		}
+		else {
+			glStencilFunc(GL_NOTEQUAL, 2, 0xFF);
+		}
+	}
+	else if (drawingPlanarReflection) {
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	}
+
 	glBindVertexArray(mesh[objId].vao);
 	if (!shader.isProgramValid()) {
 		printf("Program Not Valid!\n");
@@ -424,6 +455,61 @@ void renderLights() {
 	}
 }
 
+void renderSkybox() {
+
+	objId = 0;
+	getMaterials();
+
+	glUniform1i(texMode_uniformId, 3);
+
+	glDepthFunc(GL_FALSE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	glUniform1i(skybox_loc, 0);
+
+	drawMesh();
+
+	glUniform1i(texMode_uniformId, 1);
+
+	glDepthFunc(GL_TRUE);
+}
+
+void renderTableMirror(void) {
+	//table
+	objId = tableMirror->getId();
+	getMaterials();
+
+	pushMatrix(MODEL);
+	translate(MODEL, -20.0f, -0.74f, -20.0f);
+	scale(MODEL, 40.0f, 0.5f, 40.0f);
+
+	if (drawingStencil) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	if (!drawingStencil) {
+		glStencilFunc(GL_NEVER, 1, 0xFF);
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+	}
+	
+	glBindVertexArray(mesh[objId].vao);
+	glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	if (drawingStencil) {
+		glDisable(GL_BLEND);
+	}
+
+	popMatrix(MODEL);
+}
+
 void renderTable(void) {
 	//table
 	objId = table->getId();
@@ -496,7 +582,7 @@ void renderTrack(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -514,7 +600,7 @@ void renderTrack(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, cheerios[i]->getX(), 0.0f, cheerios[i]->getZ());
+		translate(MODEL, cheerios[i]->getX(), !drawingPlanarReflection ? 0.0f : -0.5f, cheerios[i]->getZ());
 		drawMesh();
 		popMatrix(MODEL);
 	}
@@ -523,16 +609,47 @@ void renderCar(void) {
 
 	objId = car->getId();
 	pushMatrix(MODEL);
-	translate(MODEL, car->getX(), -0.30f, car->getZ());
+	translate(MODEL, car->getX(), !drawingPlanarReflection ? -0.30f : -0.20f, car->getZ());
 	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+	if(drawingPlanarReflection)
+		rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 	int glass_indexes[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
 	int FLwheel_indexes[] = { 51,64,72,162,265,314 };
 	int FRwheel_indexes[] = { 35,50,203,267,284 };
 	int BLwheel_indexes[] = { 201,273};
 	int BRwheel_indexes[] = { 123,312 };
+
+	objId = car->getId() + 19; //mirrorMidle
+	if (cameraMode == 4 && !paused && !gameOver && !drawingPlanarReflection) {
+		pushMatrix(MODEL);
+		rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
+
+		getMaterials();
+
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		glStencilFunc(GL_NEVER, 2, 0xFF);
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+
+		glBindVertexArray(mesh[objId].vao);
+		glDrawElements(mesh[objId].type, mesh[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+	}
+
+	objId = car->getId();
 	for (int i = 0; i < LAMBO; i++)
 	{
-		if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
+		if (i == 19) { //mirrorMidle
+			objId++;
+			continue;
+		}
+		else if (std::find(std::begin(glass_indexes), std::end(glass_indexes), i) != std::end(glass_indexes)) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			pushMatrix(MODEL);
@@ -547,7 +664,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
-			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
 			getMaterials();
@@ -560,7 +677,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
-			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, !drawingPlanarReflection ? 1.0f : -1.0f, 0.0f);
 			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
 			getMaterials();
@@ -601,6 +718,7 @@ void renderCar(void) {
 		}
 		objId++;
 	}
+
 	popMatrix(MODEL);
 
 }
@@ -620,7 +738,7 @@ void renderButters(void) {
 		}
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, butters[i]->getX(), -0.25f, butters[i]->getZ());
+		translate(MODEL, butters[i]->getX(), !drawingPlanarReflection ? -0.25f : -1.0f, butters[i]->getZ());
 		scale(MODEL, 5.0f, 1.0f, 2.5f);
 		drawMesh();
 		popMatrix(MODEL);
@@ -633,7 +751,9 @@ void renderCandles(void) {
 		objId = candles[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, candles[i]->getX(), candles[i]->getY(), candles[i]->getZ());
+		translate(MODEL, candles[i]->getX(), !drawingPlanarReflection ? candles[i]->getY() : -1.5f, candles[i]->getZ());
+		if (drawingPlanarReflection)
+			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		pushMatrix(MODEL);
 		scale(MODEL, 2.5f, 1.0f, 2.5f);
 		drawMesh();
@@ -656,15 +776,15 @@ void renderOranges(void) {
 		objId = oranges[0]->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, oranges[i]->getX(), 2.5f, oranges[i]->getZ());
+		translate(MODEL, oranges[i]->getX(), !drawingPlanarReflection ? 2.5f : -2.8f, oranges[i]->getZ());
 		rotate(MODEL, oranges[i]->getAngleX() * 180 / M_PI, 0.0f, 1.0f, 0.0f); //angulo do movimento
-		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, -1.0f); //angulo sobre ela mesma de rotacao
+		rotate(MODEL, oranges[i]->getAngleZ(), 0.0f, 0.0f, !drawingPlanarReflection ? -1.0f : 1.0f); //angulo sobre ela mesma de rotacao
 		drawMesh();
 
 		objId = oranges[0]->getStem()->getId();
 		getMaterials();
 		pushMatrix(MODEL);
-		translate(MODEL, 0.0f, 2.5f, 0.0f);
+		translate(MODEL, 0.0f, !drawingPlanarReflection ? 2.5f : -2.8f, 0.0f);
 		drawMesh();
 		popMatrix(MODEL);
 		popMatrix(MODEL);
@@ -819,7 +939,6 @@ void renderParticles(void) {
 	if (dead_num_particles == MAX_PARTICLES) {
 		fireworks = false;
 		dead_num_particles = 0;
-		printf("All particles dead\n");
 		for (int i = 0; i < MAX_PARTICLES; i++)
 			delete particles[i];
 	}
@@ -885,6 +1004,11 @@ void renderPoints() {
 
 bool distance(std::vector<float> x, std::vector<float> y) {
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 	float distX = (pow(x[0] - cam[0], 2) + pow(x[1] - cam[1], 2) + pow(x[2] - cam[2], 2));
 	float distY = (pow(y[0] - cam[0], 2) + pow(y[1] - cam[1], 2) + pow(y[2] - cam[2], 2));
 	return (distX > distY);
@@ -894,6 +1018,11 @@ void renderTree(void) {
 	
 	objId = treeMeshID;
 	float cam[] = { camX, camY, camZ };
+	if (cameraMode == 3) {
+		cam[0] = car->getX() - cos(-car->getAngle()) * 10;
+		cam[1] = 5;
+		cam[2] = car->getZ() - sin(-car->getAngle()) * 10;
+	}
 
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
@@ -927,6 +1056,8 @@ void renderTree(void) {
 		getMaterials();
 
 		pushMatrix(MODEL);
+		if (drawingPlanarReflection)
+			rotate(MODEL, 180, 1.0f, 0.0f, 0.0f);
 		translate(MODEL, 0.0f, bb[1], 0.0f);
 
 		drawMesh();
@@ -940,14 +1071,120 @@ void renderTree(void) {
 	glEnable(GL_CULL_FACE);
 }
 
+void renderLensFlare(void) {
+
+	GLint loc;
+	objId = lensFlareID;
+
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE); // FIXME Change the lens flare textures.
+
+	WinX = glutGet(GLUT_WINDOW_WIDTH);
+	WinY = glutGet(GLUT_WINDOW_HEIGHT);
+	int cx = WinX / 2;
+	int cy = WinY / 2;
+
+	int maxflaredist = isqrt(cx*cx + cy * cy);
+	int flaredist = isqrt((xFlare - cx)*(xFlare - cx) + (yFlare - cy)*(yFlare - cy));
+	flaredist = (maxflaredist - flaredist);
+	int flaremaxsize = (int)(WinX * 0.2);
+	int flarescale = (int)(WinX * 0.2);
+
+	int dx = cx + (cx - xFlare);
+	int dy = cy + (cy - yFlare);
+
+
+	for (int i = 0; i < N_FLARES; i++) {
+		getMaterials();
+		if (i == 0 || i == N_FLARES - 1){ // large halos
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[8]);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 1.0f, 0.5f, 0.5f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
+		}
+		else if (i == 1 || i == N_FLARES - 2) { // small circles
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[9]);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 0.2f, 0.2f, 1.0f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
+		}
+		else { // hexagons
+			glUniform1i(texMode_uniformId, 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, TextureArray[10]);
+			glUniform1i(tex_loc, 0);
+			float amb_lf1[] = { 1.0f, 1.0f, 0.5f, 1.0f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+			glUniform4fv(loc, 1, amb_lf1);
+			float diff_lf1[] = { 1.0f, 1.0f, 1.0f, 0.3f };
+			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+			glUniform4fv(loc, 1, diff_lf1);
+		}
+
+		// Position is interpolated along line between start and destination.
+		int px = flaresPos[i] * xFlare + (1.0f - flaresPos[i]) * dx;
+		int py = (1.0f - flaresPos[i])*yFlare + flaresPos[i] * dy;
+
+		// Piece size are 0 to 1; flare size is proportion of
+		// screen width; scale by flaredist/maxflaredist.
+		int width = (int)((flaredist*flarescale*flaresScale[i]) / maxflaredist);
+
+		// Width gets clamped, to allows the off-axis flares
+		// to keep a good size without letting the elements get
+		// too big when centered.
+		if (width > flaremaxsize)
+			width = flaremaxsize;
+
+		// Flare elements are square (round) so we'll use same value for width and height
+		int height = width;
+		int alpha = flaredist / maxflaredist;
+		if (width < 1) continue;
+
+		flaresColor[3] = alpha;
+
+		pushMatrix(MODEL);
+		pushMatrix(PROJECTION);
+		pushMatrix(VIEW);
+
+		loadIdentity(VIEW);
+		loadIdentity(PROJECTION);
+		ortho(0, WinX, 0, WinY, 0, 1);
+		translate(MODEL, px - width / 2, py - height / 2, 0);
+		scale(MODEL, width, height, 0);
+
+		drawMesh();
+
+		popMatrix(MODEL);
+		popMatrix(VIEW);
+		popMatrix(PROJECTION);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+
+}
+
 void renderScene(void) {
-	FrameCount++;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	FrameCount++; 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	// load identity matrices
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
 	if (cameraMode == 3) {
 		lookAt(car->getX() - cos(-car->getAngle()) * 10, 5, car->getZ() - sin(-car->getAngle()) * 10, car->getX(), 0, car->getZ(), 0, 1, 0);
+	}
+	else if (cameraMode == 4) {
+		lookAt(car->getX(), 0.9, car->getZ(), car->getX() + cos(-car->getAngle()) * 10, 0.9, car->getZ() + sin(-car->getAngle()) * 10, 0, 1, 0);
 	}
 	else {
 		lookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
@@ -958,18 +1195,61 @@ void renderScene(void) {
 	glUniform1i(drawFog, enableFog);
 	glUniform1i(fogDepth_uniformId, 1);
 
+	// unbind textures and stop applying anything to colorOut
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
+
+	if (cameraMode != 4) {
+		glDisable(GL_STENCIL_TEST);
+	}
+	else {
+		glEnable(GL_STENCIL_TEST);
+	}
+
 	renderLights();
+	renderCar();
+	glDepthMask(GL_FALSE);
 	renderTable();
+	glDepthMask(GL_TRUE);
 	//renderSkybox();
 	renderTrack();
-	renderCar();
 	renderButters();
 	renderCandles();
 	renderOranges();
-	renderTree();
-	if (fireworks) {
-		renderParticles();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUniform1i(texMode_uniformId, 1);
+	
+	glEnable(GL_STENCIL_TEST);
+
+	glPushMatrix();
+	renderTableMirror();
+	drawingStencil = true;
+	drawingPlanarReflection = true;
+	//renderLights();
+	renderCar();
+	renderTrack();
+	renderButters();
+	renderCandles();
+	renderOranges();
+	if (cameraMode != 1) {
+		renderTree();
 	}
+
+	renderTableMirror();
+	drawingPlanarReflection = false;
+	drawingStencil = false;
+	glPopMatrix();
+	glDisable(GL_STENCIL_TEST);
+
+	if (cameraMode != 1) {
+		renderTree();
+		if (fireworks)
+			renderParticles();
+		if (lensFlare && !paused && !gameOver && directionalLight && !enableFog)
+			renderLensFlare();
+	}
+
 	renderHUD();
 	renderPoints();
 
@@ -980,6 +1260,28 @@ void renderScene(void) {
 		renderGameOverBox();
 
 	popMatrix(PROJECTION);
+
+
+	if (cameraMode == 4 && !paused && !gameOver) {
+		glEnable(GL_STENCIL_TEST);
+		lookAt(car->getX(), 1, car->getZ(), car->getX() - cos(-car->getAngle()) * 10, 0.3, car->getZ() - sin(-car->getAngle()) * 10, 0, 1, 0);
+
+		drawingMirror = true;
+		drawingStencil = true;
+		renderLights();
+		renderTable();
+		renderTrack();
+		renderButters();
+		renderCandles();
+		renderOranges();
+
+		renderTree();
+		if (lensFlare && !paused && !gameOver && directionalLight && !enableFog)
+			renderLensFlare();
+		drawingStencil = false;
+		drawingMirror = false;
+		glDisable(GL_STENCIL_TEST);
+	}
 
 	glutSwapBuffers();
 }
@@ -1091,7 +1393,7 @@ void checkCollisions(int value) {
 			}
 		}
 		for (int i = 0; i != 5; i++) {
-			if (pow(2.5f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
+			if (pow(2.4f + 2.4f, 2) > sphDistance(oranges[i]->getX(), car->getX(), 0.0f,
 													0.85f, oranges[i]->getZ(), car->getZ())) {
 				orangeCollision = true;
 			}
@@ -1236,7 +1538,6 @@ void processKeys(int value) {
 	else if (keystates['r'] && gameOver) {
 		resetGame();
 	}
-	// FIXME Checks if S has been released. The problem here is that if you hold down S, it'll keep pausing and unpausing.
 	if (shouldPause && !keystates['s'] && !gameOver) {
 		shouldPause = false;
 		paused = !paused;
@@ -1265,6 +1566,11 @@ void processKeys(int value) {
 			car->setZ(car->getZ() - sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = 1;
 			carBraking = 1;
+			if (cameraMode == 3 || cameraMode == 4) {
+				yFlare += (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				if (yFlare > WinY)
+					yFlare = WinY - 1;
+			}
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
 			car->setVelocity(0);
@@ -1283,6 +1589,11 @@ void processKeys(int value) {
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = -1;
 			carBraking = 1;
+			if (cameraMode == 3 || cameraMode == 4) {
+				yFlare -= (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60) * 10;
+				if (yFlare < 0)
+					yFlare = 0;
+			}
 		}
 		else if (car->getVelocity() > 0) { // Braking
 			carBraking = -1;
@@ -1301,6 +1612,11 @@ void processKeys(int value) {
 			{
 				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
 			}
+			if (cameraMode == 3 || cameraMode == 4) {
+				xFlare += M_PI * (car->getVelocity() / 100) * 10;
+				if (xFlare > WinX)
+					xFlare = WinX - 1;
+			}
 		}
 		else {
 			if (wheelTurnAngle > 0) {
@@ -1312,6 +1628,11 @@ void processKeys(int value) {
 			if (wheelTurnAngle * 180 / M_PI > -45)
 			{
 				wheelTurnAngle -= M_PI * (car->getVelocity() / 1000);
+			}
+			if (cameraMode == 3 || cameraMode == 4) {
+				xFlare -= M_PI * (car->getVelocity() / 100) * 10;
+				if (xFlare < 0)
+					xFlare = 0;
 			}
 		}
 		else{
@@ -1327,6 +1648,7 @@ void processKeys(int value) {
 			loadIdentity(PROJECTION);
 			ortho(-WinX / 20, WinX / 20, -WinY / 20, WinY / 20, -100, 100);
 			camX = 0.0f; camY = 10.0f; camZ = 0.001f; // FIXME Why can't z be 0?
+			lensFlare = false;
 		}
 		if (keystates['2']) {
 			cameraMode = 2;
@@ -1335,6 +1657,11 @@ void processKeys(int value) {
 		}
 		if (keystates['3']) {
 			cameraMode = 3;
+			loadIdentity(PROJECTION);
+			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
+		}
+		if (keystates['4']) {
+			cameraMode = 4;
 			loadIdentity(PROJECTION);
 			perspective(53.13f, (1.0f * WinX) / WinY, 0.1f, 1000.0f);
 		}
@@ -1373,8 +1700,9 @@ void processKeys(int value) {
 			shouldToggleFog = false;
 			enableFog = (enableFog == 0) ? 1 : 0;
 		}
-		if (gamePoints != 0 && (gamePoints % 5) == 0 && !fireworks) {
+		if ( (gamePoints != 0) && (gamePoints % 5) == 0 && (lastFireworks != gamePoints) && !fireworks ) {
 			fireworks = true;
+			lastFireworks = gamePoints;
 			initParticles();
 		}
 		if (fireworks) {
@@ -1387,7 +1715,7 @@ void processKeys(int value) {
 				particles[i]->setVelocX(particles[i]->getVelocX() + h * particles[i]->getAccelX());
 				particles[i]->setVelocY(particles[i]->getVelocY() + h * particles[i]->getAccelY());
 				particles[i]->setVelocZ(particles[i]->getVelocZ() + h * particles[i]->getAccelZ());
-				particles[i]->setLife(particles[i]->getLife() + h * particles[i]->getFade());
+				particles[i]->setLife(particles[i]->getLife() - h * particles[i]->getFade());
 			}
 		}
 	}
@@ -1407,10 +1735,27 @@ void processMouseButtons(int button, int state, int xx, int yy)
 		if (state == GLUT_DOWN) {
 			startX = xx;
 			startY = yy;
-			if (button == GLUT_LEFT_BUTTON)
+			if (button == GLUT_LEFT_BUTTON) {
 				tracking = 1;
-			else if (button == GLUT_RIGHT_BUTTON)
+				lensFlare = TRUE;
+				// Scale mouse coordinates to compensate for window size.
+				xFlare += (xx - xMouse)*WinX / glutGet(GLUT_WINDOW_WIDTH);
+				yFlare += (yy - yMouse)*WinY / glutGet(GLUT_WINDOW_HEIGHT);
+
+				// Clamping -- wouldn't be needed in fullscreen mode.
+				if (xFlare >= WinX)
+					xFlare = WinX - 1;
+				if (xFlare < 0)
+					xFlare = 0;
+				if (yFlare >= WinY)
+					yFlare = WinY - 1;
+				if (yFlare < 0)
+					yFlare = 0;
+			}
+			else if (button == GLUT_RIGHT_BUTTON) {
 				tracking = 2;
+				lensFlare = false;
+			}
 		}
 
 		//stop tracking the mouse
@@ -1433,6 +1778,17 @@ void processMouseButtons(int button, int state, int xx, int yy)
 
 void processMouseMotion(int xx, int yy)
 {
+
+	if (tracking == 1) {
+		/***********flares***************/
+		xMouse = xx;
+		yMouse = yy;
+
+		xFlare = xx * WinX / glutGet(GLUT_WINDOW_WIDTH);
+		yFlare = yy * WinY / glutGet(GLUT_WINDOW_HEIGHT);
+		/********************************/
+
+	}
 
 	if (cameraMode == 2 && !gameOver && !paused) {
 		int deltaX, deltaY;
@@ -1603,6 +1959,19 @@ void createTable(void) {
 	objId++;
 }
 
+void createTableMirror(void) {
+	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
+	float diff[] = { 0.0f, 0.0f, 0.0f, 0.5f };
+	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	tableMirror = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 3);
+	setMaterials(tableMirror->getAmbient(), tableMirror->getDiffuse(), tableMirror->getSpecular(),
+		tableMirror->getEmissive(), tableMirror->getShininess(), tableMirror->getTexcount());
+	createCube();
+	tableMirrorMeshID = objId;
+	objId++;
+}
+
 void createCheerios(void) {
 	float amb_c[] = { 0.2f, 0.15f, 0.00f, 1.0f };
 	float diff_c[] = { 1.0f, 0.9f, 0.25f, 1.0f };
@@ -1716,7 +2085,7 @@ void createCandles(void) {
 
 void createOranges(void) {
 	float amb_orange[] = { 0.2f, 0.18f, 0.05f, 1.0f };
-	float diff_orange[] = { 0.99f, 0.54f, 0.13f, 1.0f };
+	float diff_orange[] = { 1.0f, 0.45f, 0.10f, 1.0f };
 	float spec_orange[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_orange[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	for (int i = 0; i != 5; i++) {
@@ -1753,6 +2122,18 @@ void createParticles(void) {
 	float emissive_tree[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	setMaterials(amb_tree, diff_tree, spec_tree, emissive_tree, 20.0f, 0);
 	createQuad(2, 2);
+	objId++;
+}
+
+void createLensFlare(void) {
+	float amb_lf[] = { 1.0f, 1.0f, 0.5f, 1.0f };
+	float diff_lf[] = { 1.0f, 1.0f, 1.0f, 0.6f };
+	float spec_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float emissive_lf[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	lensFlareID = objId;
+
+	setMaterials(amb_lf, diff_lf, spec_lf, emissive_lf, 1000.0f, 0);
+	createCube();
 }
 
 void init()
@@ -1784,7 +2165,10 @@ void init()
 	char blackbox[] = "img/blackbox.tga";
 	char tree[] = "textures/tree.tga";
 	char particle[] = "textures/particle.tga";
-	glGenTextures(8, TextureArray);
+	char flare1[] = "textures/flare1.tga";
+	char flare2[] = "textures/flare2.tga";
+	char flare3[] = "textures/flare3.tga";
+	glGenTextures(11, TextureArray);
 	TGA_Texture(TextureArray, checker, 0);
 	TGA_Texture(TextureArray, lightwood, 1);
 	TGA_Texture(TextureArray, life, 2);
@@ -1793,6 +2177,9 @@ void init()
 	TGA_Texture(TextureArray, blackbox, 5);
 	TGA_Texture(TextureArray, tree, 6);
 	TGA_Texture(TextureArray, particle, 7);
+	TGA_Texture(TextureArray, flare1, 8);
+	TGA_Texture(TextureArray, flare2, 9);
+	TGA_Texture(TextureArray, flare3, 10);
 
 	glGenTextures(11, FontArray);
 	for (int i = 0; i < 10; i++) {
@@ -1812,6 +2199,8 @@ void init()
 	objId = 0;
 	createTable();
 	//createSkybox();
+	createTable();
+	createTableMirror();
 	createCheerios();
 	createCar();
 	createButters();
@@ -1848,6 +2237,7 @@ void init()
 	objId++;
 
 	createParticles();
+	createLensFlare();
 
 	gamePoints = 0;
 
@@ -1855,7 +2245,9 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearStencil(0x0);
+	//cubemapTexture = loadCubemap(faces);
 }
 
 
@@ -1869,7 +2261,7 @@ int main(int argc, char **argv) {
 
 	//  GLUT initialization
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_STENCIL | GLUT_MULTISAMPLE);
 
 	glutInitContextVersion(4, 3);
 	glutInitContextProfile(GLUT_CORE_PROFILE);
@@ -1887,7 +2279,7 @@ int main(int argc, char **argv) {
 	//glutIdleFunc(renderScene);		// Use for maximum performance.
 	glutTimerFunc(0, refresh, 0);		// Use it to lock to 60 FPS.
 	glutTimerFunc(0, processKeys, 0);
-	//glutTimerFunc(0, updateOranges, 0);
+	glutTimerFunc(0, updateOranges, 0);
 	glutTimerFunc(0, updateButters, 0);
 	glutTimerFunc(0, updateCheerios, 0);
 	glutTimerFunc(0, checkCollisions, 0);
