@@ -1295,6 +1295,7 @@ void renderScene(void) {
 			renderLensFlare();
 	}
 
+	glDisable(GL_DEPTH_TEST);
 	renderHUD();
 	renderPoints();
 
@@ -1303,6 +1304,8 @@ void renderScene(void) {
 
 	if (gameOver)
 		renderGameOverBox();
+
+	glEnable(GL_DEPTH_TEST);
 
 	//renderSkybox();
 
