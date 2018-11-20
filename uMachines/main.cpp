@@ -784,7 +784,7 @@ void renderCar(void) {
 				rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 				pushMatrix(MODEL);
 				translate(MODEL, -0.46108f, 1.05983f,  0.39857f);
-				rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
+				rotate(MODEL, wheelTurnAngle * 180 / M_PI, 1.0f, 0.0f, 0.0f);
 				translate(MODEL, 0.46108f, -1.05983f, -0.39857f);
 				getMaterials();
 				drawMesh();
