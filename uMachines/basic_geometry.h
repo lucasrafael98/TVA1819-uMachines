@@ -20,7 +20,6 @@ struct MyMesh {
 		struct Material mat;
 	};
 
-//bool loadObj(const char* filename, std::vector<float> &v, std::vector<float> &n, std::vector<float> &uvs, std::vector<int> &faces);
 void createSkyBox();
 void createCube();
 void createQuad(float size_x, float size_y);

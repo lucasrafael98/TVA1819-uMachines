@@ -88,6 +88,8 @@ int enableFog = 1;
 
 // Multiplier that will only be 1 or -1 (depending on whether Q or A was the last key press).
 int lastKeyPress = 0;
+// Multiplier that will only be 1 or -1 (depending on whether the car is stopping).
+int carBraking = 0;
 
 // true if the car collided with a cheerio/butter.
 bool hasToStop = false;
@@ -106,7 +108,7 @@ int dead_num_particles = 0;
 
 VSShaderLib shader;
 
-struct MyMesh mesh[13 + LAMBO];
+struct MyMesh mesh[15 + LAMBO];
 int objId = 0; //id of the object mesh - to be used as index of mesh: mesh[objID] means the current mesh
 
 int tableMeshID;
@@ -261,15 +263,17 @@ void drawMesh() {
 unsigned int loadCubemap(vector<std::string> faces)
 {
 	unsigned int textureID;
+	glEnable(GL_TEXTURE_CUBE_MAP);
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-	int width, height, nrComponents;
+	int width, height, nrChannels;
 	for (unsigned int i = 0; i < faces.size(); i++)
 	{
-		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
+		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
+			std:cout << "LARGURAS: " << width << ":" << height << std::endl;
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}
@@ -278,14 +282,13 @@ unsigned int loadCubemap(vector<std::string> faces)
 			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
 			stbi_image_free(data);
 		}
-
 	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
+	glDisable(GL_TEXTURE_CUBE_MAP);
 	return textureID;
 }
 // ------------------------------------------------------------
@@ -421,25 +424,6 @@ void renderLights() {
 	}
 }
 
-void renderSkybox() {
-
-	objId = 0;
-	getMaterials();
-
-	glUniform1i(texMode_uniformId, 3);
-
-	glDepthFunc(GL_FALSE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-	glUniform1i(skybox_loc, 0);
-
-	drawMesh();
-
-	glUniform1i(texMode_uniformId, 1);
-
-	glDepthFunc(GL_TRUE);
-}
-
 void renderTable(void) {
 	//table
 	objId = table->getId();
@@ -466,6 +450,35 @@ void renderTable(void) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUniform1i(texMode_uniformId, 1);
 }
+
+void renderSkybox() {
+
+	objId = skybox->getId();
+
+	getMaterials();
+	pushMatrix(MODEL);
+	translate(MODEL, 0.0f, 0.0f, 0.0f);
+	scale(MODEL, 100.0f, 100.0f, 100.0f);
+
+	glUniform1i(texMode_uniformId, 3);
+
+	GLint OldCullFaceMode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &OldCullFaceMode);
+	GLint OldDepthFuncMode;
+	glGetIntegerv(GL_DEPTH_FUNC, &OldDepthFuncMode);
+	glCullFace(GL_FRONT);
+
+	glDepthFunc(GL_LEQUAL);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	drawMesh();
+	popMatrix(MODEL);
+	glUniform1i(texMode_uniformId, 1);
+
+	glCullFace(OldCullFaceMode);
+	glDepthFunc(OldDepthFuncMode);
+}
+
 void renderTrack(void) {
 	//cheerio
 	objId = cheerios[0]->getId();
@@ -510,7 +523,7 @@ void renderCar(void) {
 
 	objId = car->getId();
 	pushMatrix(MODEL);
-	translate(MODEL, car->getX(), 0.10f, car->getZ());
+	translate(MODEL, car->getX(), -0.30f, car->getZ());
 	rotate(MODEL, car->getAngle() * 180 / M_PI, 0.0f, 1.0f, 0.0f);
 	int glass_indexes[] = { 48,92,97,99,138,189,229,303,304,313,327,332 };
 	int FLwheel_indexes[] = { 51,64,72,162,265,314 };
@@ -534,8 +547,8 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, 1.09287f);
-			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
-			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, -1.09287f);
 			getMaterials();
 			drawMesh();
@@ -547,8 +560,8 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, -1.55558f, 0.42877f, -1.05288f);
-			rotate(MODEL, wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
-			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			rotate(MODEL, lastKeyPress * wheelTurnAngle * 180 / M_PI, 0.0f, 1.0f, 0.0f);
+			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity()*1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, 1.55558f, -0.42877f, 1.05288f);
 			getMaterials();
 			drawMesh();
@@ -560,7 +573,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, 1.52979f, 0.43317f, 1.08958f);
-			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, -1.52979f, -0.43317f, -1.08958f);
 			getMaterials();
 			drawMesh();
@@ -572,7 +585,7 @@ void renderCar(void) {
 			rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
 			pushMatrix(MODEL);
 			translate(MODEL, 1.52979f, 0.43317f, -1.04957f);
-			rotate(MODEL, goingForward * car->getVelocity() * 180 / M_PI, 0.0f, 0.0f, -1.0f);
+			rotate(MODEL, -lastKeyPress * carBraking * car->getVelocity() * 1.2f * 180 / M_PI, 0.0f, 0.0f, -1.0f);
 			translate(MODEL, -1.52979f, -0.42877f, 1.04957f);
 			getMaterials();
 			drawMesh();
@@ -656,28 +669,6 @@ void renderOranges(void) {
 		popMatrix(MODEL);
 		popMatrix(MODEL);
 	}
-}
-
-void renderTeapot() {
-	objId = startTestID;
-	pushMatrix(MODEL);
-	translate(MODEL, 10.0f, 2.0f, 0.0f);
-	for (int i = 0; i < LAMBO; i++)
-	{
-		if (i > 167 && i < 180) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-		pushMatrix(MODEL);
-		getMaterials();
-		drawMesh();
-		popMatrix(MODEL);
-		objId++;
-		if (i > 167 && i < 180) {
-			glDisable(GL_BLEND);
-		}
-	}
-	popMatrix(MODEL);
 }
 
 void renderHUD(void) {
@@ -969,12 +960,12 @@ void renderScene(void) {
 
 	renderLights();
 	renderTable();
+	//renderSkybox();
 	renderTrack();
 	renderCar();
 	renderButters();
 	renderCandles();
 	renderOranges();
-	//renderTeapot();
 	renderTree();
 	if (fireworks) {
 		renderParticles();
@@ -988,7 +979,6 @@ void renderScene(void) {
 	if (gameOver)
 		renderGameOverBox();
 
-	//renderSkybox();
 	popMatrix(PROJECTION);
 
 	glutSwapBuffers();
@@ -1264,7 +1254,6 @@ void processKeys(int value) {
 			car->setVelocity(0);
 		}
 		else if (keystates['q']) { // Forward
-			goingForward = -1;
 			if (hasToStop) {
 				hasToStop = false;
 				car->setVelocity(10);
@@ -1275,12 +1264,12 @@ void processKeys(int value) {
 			car->setX(car->getX() + cos(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			car->setZ(car->getZ() - sin(car->getAngle()) * (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = 1;
+			carBraking = 1;
 		}
 		else if (keystates['a'] && hasToStop && lastKeyPress == -1) {
 			car->setVelocity(0);
 		}
 		else if (keystates['a']) { // Backward
-			goingForward = 1;
 			if (hasToStop) {
 				hasToStop = false;
 				car->setVelocity(1);
@@ -1293,8 +1282,10 @@ void processKeys(int value) {
 			car->setZ( car->getZ() + sin(car->getAngle()) 
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
 			lastKeyPress = -1;
+			carBraking = 1;
 		}
 		else if (car->getVelocity() > 0) { // Braking
+			carBraking = -1;
 			car->setVelocity(car->getVelocity() - car->getBrakeAcceleration() * 1 / 60);
 			car->setX(car->getX() + lastKeyPress * cos(car->getAngle())
 					* (car->getVelocity() * 1 / 60 + 0.5 * car->getAcceleration() * 1 / 60));
@@ -1320,7 +1311,7 @@ void processKeys(int value) {
 			car->setAngle(car->getAngle() - M_PI * (car->getVelocity() / 1000));
 			if (wheelTurnAngle * 180 / M_PI > -45)
 			{
-				wheelTurnAngle += M_PI * (car->getVelocity() / 1000);
+				wheelTurnAngle -= M_PI * (car->getVelocity() / 1000);
 			}
 		}
 		else{
@@ -1588,11 +1579,11 @@ void createLights(void) {
 // Model loading and OpenGL setup
 //
 void createSkybox(void) {
-	float amb[] = { 0.2f, 0.15f, 0.1f, 1.0f };
-	float diff[] = { 0.43f, 0.25f, 0.12f, 1.0f };
+	float amb[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float diff[] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	float spec[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	skybox = new Table(objId, -20.0f, -0.75f, -20.0f, amb, diff, spec, emissive, 70.0f, 2);
+	skybox = new Table(objId, 0.0f, 0.0f, 0.0f, amb, diff, spec, emissive, 70.0f, 3);
 	setMaterials(skybox->getAmbient(), skybox->getDiffuse(), skybox->getSpecular(),
 		skybox->getEmissive(), skybox->getShininess(), skybox->getTexcount());
 	createCube();
@@ -1646,7 +1637,7 @@ void createCar(void){
 	float diff_car[] = { 1.0f, 0.25f, 0.12f, 1.0f };
 	float spec_car[] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	float emissive_car[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	car = new Car(objId, 0.0f, 0.0f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0f, 1, 0.0f, 0.0f, 5.0f, 20.0f, 20.0f);
+	car = new Car(objId, 0.0f, 0.0f, 10.0f,amb_car, diff_car, spec_car, emissive_car, 70.0f, 1, 0.0f, 0.0f, 5.0f, 7.0f, 20.0f);
 	// create geometry and VAO of the car
 	carMeshID = objId;
 	float emissive[] = { 0.0f,0.0f, 0.0f, 1.0f };
@@ -1655,45 +1646,16 @@ void createCar(void){
 
 	for (int i = 0; i < LAMBO; i++)
 	{
-		std::cout << i << "-->" << "[" << meshVector[i].kd[0] <<
+		/*std::cout << i << "-->" << "[" << meshVector[i].kd[0] <<
 			"," << meshVector[i].kd[1] <<
 			"," << meshVector[i].kd[2] <<
-			"," << meshVector[i].kd[3] << "]" << std::endl;
+			"," << meshVector[i].kd[3] << "]" << std::endl;*/
 		setMaterials(meshVector[i].ka, meshVector[i].kd, meshVector[i].ks, emissive, meshVector[i].shin, 0);
 		createTeaPot(meshVector[i].n_vertices, v_index, i_index);
 		v_index += meshVector[i].n_vertices * 4;
 		i_index += meshVector[i].n_indices;
 		objId++;
 	}
-
-
-	//for (int i = 0; i != 4; i++) {
-
-	//	// create wheels
-	//	setMaterials(car->getWheel(i)->getAmbient(), car->getWheel(i)->getDiffuse(), car->getWheel(i)->getSpecular(),
-	//				car->getWheel(i)->getEmissive(), car->getWheel(i)->getShininess(), car->getWheel(i)->getTexcount());
-	//	createTorus(0.2f, 0.7f, 14, 14);
-	//	
-	//}
-	//wheelMeshID = objId;
-	//objId++;
-
-	//for (int i = 0; i != 2; i++) {
-
-	//	// create headlights
-	//	setMaterials(car->getHeadlight(i)->getAmbient(), car->getHeadlight(i)->getDiffuse(), car->getHeadlight(i)->getSpecular(),
-	//				car->getHeadlight(i)->getEmissive(), car->getHeadlight(i)->getShininess(), car->getHeadlight(i)->getTexcount());
-	//	createCube();
-	//	
-	//}
-	//headlightMeshID = objId;
-	//objId++;
-
-	//setMaterials(car->getGlass()->getAmbient(), car->getGlass()->getDiffuse(), car->getGlass()->getSpecular(),
-	//			car->getGlass()->getEmissive(), car->getGlass()->getShininess(), car->getGlass()->getTexcount());
-	//createSphere(0.6, 20);
-	//domeMeshID = objId;
-	//objId++;
 }
 
 void createButters(void) {
@@ -1806,14 +1768,14 @@ void init()
 	
 	vector<std::string> faces
 	{
-		"textures/sgod_rt.tga",
-		"textures/sgod_lf.tga",
-		"textures/sgod_up.tga",
-		"textures/sgod_dn.tga",
-		"textures/sgod_ft.tga",
-		"textures/sgod_bk.tga"
+		"textures/iceflats_rt.tga",
+		"textures/iceflats_lf.tga",
+		"textures/iceflats_up.tga",
+		"textures/iceflats_dn.tga",
+		"textures/iceflats_ft.tga",
+		"textures/iceflats_bk.tga"
 	};
-
+	cubemapTexture = loadCubemap(faces);
 	char checker[] = "textures/stone.tga";
 	char lightwood[] = "textures/lightwood.tga";
 	char life[] = "img/life.tga";
@@ -1844,19 +1806,18 @@ void init()
 	}
 	char points[] = "font/points.tga";
 	TGA_Texture(FontArray, points, 10);
-
+	cubemapTexture = loadCubemap(faces);
 	srand(time(NULL));
 
 	objId = 0;
-	//createSkybox();
 	createTable();
+	//createSkybox();
 	createCheerios();
 	createCar();
 	createButters();
 	createCandles();
 	createLights();
 	createOranges();
-	//createTeapot();
 
 	// hud materials
 	// FIXME Refactor after you're done
@@ -1894,8 +1855,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	//cubemapTexture = loadCubemap(faces);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 

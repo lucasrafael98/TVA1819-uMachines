@@ -1,4 +1,4 @@
-﻿#version 330
+﻿#version 330 core
 
 struct LightProperties {
 	bool isEnabled;
@@ -139,7 +139,7 @@ void main() {
 		FragColor = vec4(rgb,mat.diffuse.a);
 	}
 
-	if(texMode != 2 && drawFog == 1){ // fog
+	if(texMode != 2 && texMode != 3 && drawFog == 1){ // fog
 		rgb = vec3(FragColor);
 		if(fogSelector == 0)//linear fog
 		{
