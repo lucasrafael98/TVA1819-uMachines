@@ -591,7 +591,7 @@ void renderCar(void) {
 	else if (current_car == 1) {
 		objId = car_array[current_car]->getId() + 20; //mirrorMidle
 	}
-	objId = car_array[current_car]->getId() + 19; //mirrorMidle
+
 	if (cameraMode == 4 && !paused && !gameOver && !(drawingPlanarReflection || drawingPlanarShadow)) {
 		pushMatrix(MODEL);
 		rotate(MODEL, 180.0f, 0.0f, 1.0f, 0.0f);
@@ -1287,7 +1287,7 @@ void renderScene(void) {
 			lookAt(car_array[current_car]->getX(), 0.9, car_array[current_car]->getZ(), car_array[current_car]->getX() + cos(-car_array[current_car]->getAngle()) * 10, 0.9, car_array[current_car]->getZ() + sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
 		}
 		else if (current_car == 1) {
-			lookAt(car_array[current_car]->getX() - 0.2f, 1.1, car_array[current_car]->getZ(), car_array[current_car]->getX() + cos(-car_array[current_car]->getAngle()) * 10, 0.9, car_array[current_car]->getZ() + sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+			lookAt(car_array[current_car]->getX() - 0.4 * cos(-car_array[current_car]->getAngle()), 1.2, car_array[current_car]->getZ() - 0.4 * sin(-car_array[current_car]->getAngle()), car_array[current_car]->getX() + cos(-car_array[current_car]->getAngle()) * 10, 0.9, car_array[current_car]->getZ() + sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
 		}
 	}
 	else {
@@ -1314,10 +1314,6 @@ void renderScene(void) {
 	renderTable();
 	glDepthMask(GL_TRUE);
 	//renderSkybox();
-	renderTrack();
-	renderButters();
-	renderCandles();
-	renderOranges();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUniform1i(texMode_uniformId, 1);
@@ -1419,7 +1415,12 @@ void renderScene(void) {
 
 	if (cameraMode == 4 && !paused && !gameOver) {
 		glEnable(GL_STENCIL_TEST);
-		lookAt(car_array[current_car]->getX(), 1, car_array[current_car]->getZ(), car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10, 0.3, car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+		if (current_car == 0) {
+			lookAt(car_array[current_car]->getX(), 1, car_array[current_car]->getZ(), car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10, 0.3, car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+		}
+		else if (current_car == 1) {
+			lookAt(car_array[current_car]->getX(), 1, car_array[current_car]->getZ(), car_array[current_car]->getX() - cos(-car_array[current_car]->getAngle()) * 10, -0.5, car_array[current_car]->getZ() - sin(-car_array[current_car]->getAngle()) * 10, 0, 1, 0);
+		}
 
 		drawingMirror = true;
 		drawingStencil = true;
