@@ -545,15 +545,6 @@ void renderTrack(void) {
 
 	// inner cheerio ring
 	for (int i = 0; i != 20; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cheerios[i]->getX(), !(drawingPlanarReflection) ? 0.0f : -0.5f, cheerios[i]->getZ());
@@ -563,15 +554,6 @@ void renderTrack(void) {
 
 	// outer cheerio ring
 	for (int i = 20; i != 60; i++) {
-		if (cheerios[i]->getVelocity()) {
-			if (cheerios[i]->getVelocity() * cheerios[i]->getDirection() < 0)
-				cheerios[i]->setVelocity(0);
-			else {
-				cheerios[i]->setVelocity(cheerios[i]->getVelocity() + cheerios[i]->getAcceleration() / 60);
-				cheerios[i]->setX(cheerios[i]->getX() + cos(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-				cheerios[i]->setZ(cheerios[i]->getZ() - sin(cheerios[i]->getAngle()) * (cheerios[i]->getVelocity() * 1 / 60 + 0.5) * cheerios[i]->getDirection());
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, cheerios[i]->getX(), !(drawingPlanarReflection) ? 0.0f : -0.5f, cheerios[i]->getZ());
@@ -705,15 +687,6 @@ void renderButters(void) {
 	objId = butters[0]->getId();
 	for (int i = 0; i != 5; i++) // i/2 != 5, pq limite e' 10, 2 pos pra cada Butter, sem isso o Y de um era o X do proximo
 	{
-		if (butters[i]->getVelocity()) {
-			if (butters[i]->getVelocity() * butters[i]->getDirection() < 0)
-				butters[i]->setVelocity(0);
-			else {
-				butters[i]->setVelocity(butters[i]->getVelocity() + butters[i]->getAcceleration() / 60);
-				butters[i]->setX(butters[i]->getX() + cos(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
-				butters[i]->setZ(butters[i]->getZ() - sin(butters[i]->getAngle()) * (butters[i]->getVelocity() * 1 / 60 + 0.5) * butters[i]->getDirection());
-			}
-		}
 		getMaterials();
 		pushMatrix(MODEL);
 		translate(MODEL, butters[i]->getX(), !(drawingPlanarReflection) ? -0.25f : -1.25f, butters[i]->getZ());
