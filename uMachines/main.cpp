@@ -1243,11 +1243,14 @@ void renderScene(void) {
 	
 	glEnable(GL_STENCIL_TEST);
 
-	glPushMatrix();
+	pushMatrix(MODEL);
 	renderTableMirror();
 	drawingStencil = true;
 	drawingPlanarReflection = true;
-	//renderLights();
+	pushMatrix(MODEL);
+	scale(MODEL, 1, -1, 1); //reflect lights
+	renderLights();
+	popMatrix(MODEL);
 	renderCar();
 	renderTrack();
 	renderButters();
@@ -1260,7 +1263,7 @@ void renderScene(void) {
 	renderTableMirror();
 	drawingPlanarReflection = false;
 	drawingStencil = false;
-	glPopMatrix();
+	popMatrix(MODEL);
 	glDisable(GL_STENCIL_TEST);
 
 	if (directionalLight) { // shadows without light doesnt exist
