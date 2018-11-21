@@ -1665,6 +1665,7 @@ void resetGame() {
 	fireworks = false;
 	gameOver = false;
 	gamePoints = 0;
+	lastFireworks = 0;
 	
 	glutTimerFunc(0, refresh, 0);
 	glutTimerFunc(0, updateOranges, 0);
