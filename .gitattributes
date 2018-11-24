@@ -5,3 +5,4 @@ uMachines/stb_image.h linguist-vendored=true
 uMachines/OBJ_Loader.h linguist-vendored=true
 uMachines/Cars/OptimizedHeaders/* linguist-generated=true
 uMachines/BmwMeshes.h linguist-generated=true
+uMachines/Bmw.h linguist-generated=true
