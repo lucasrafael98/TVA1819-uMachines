@@ -1,3 +1,1 @@
-uMachines/*.h text diff=cpp
-uMachines/*.cpp text diff=cpp
-uMachines/*.obj binary
+*.h linguist-language=C++
