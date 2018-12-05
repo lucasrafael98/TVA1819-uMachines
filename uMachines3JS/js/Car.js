@@ -22,7 +22,8 @@ class Car extends Vehicle{
 		this.rotation.y = Math.PI / 2;
 		this.resetKeyFlags();
 		
-
+		this.Fwheel_indexes = [ 35,50,51,64,72,162,203,265,267,284,314 ];
+		this.Bwheel_indexes = [ 123,201,273,312 ];
 
 		this.addHorizon(0,-1,10);
 		this.addHeadLight(-0.8,0.75,2.4);
