@@ -53,3 +53,10 @@ function loadCandle(matPath,objPath,x,y,z){
         });
     });
 }
+
+function vectorbetween(obj1, obj2) {
+    var dx = obj1.position.x - obj2.position.x;
+    var dy = obj1.position.y - obj2.position.y;
+    var dz = obj1.position.z - obj2.position.z;
+    return new THREE.Vector3(-dx, -dy, -dz);
+}

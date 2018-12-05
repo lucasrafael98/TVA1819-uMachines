@@ -9,7 +9,6 @@ var objectArray;
 var arrayOranges;
 var arrayCheerios;
 var arrayButters;
-var array_mooving_cheerios;
 var clock;
 var aspect_ratio = 16/9;
 var scale = 0.012;
@@ -58,7 +57,6 @@ function createScene() {
   arrayOranges = new Array();
   arrayCheerios = new Array();
   arrayButters = new Array();
-  array_mooving_cheerios = new Array();
   selectedCamera = 0;
   cameras = new Array();
   lights = new Array();
@@ -100,12 +98,8 @@ function createScene() {
   for (var i = 0; i < 5; i++) {
     arrayOranges.push(new Orange(track, objectArray));
     arrayButters.push(new Butter());
-  }
 
-  //  TESTE  //
-
-  //  TESTE  //
-
+  } 
 }
 
 function createScene2() {
