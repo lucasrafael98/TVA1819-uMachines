@@ -28,6 +28,7 @@ class Car extends Vehicle{
 		this.updateDOF();
 
 		activeScene.add(this);
+		this.storeInitPos();
 	}
 
 	addHorizon(x, y, z) {

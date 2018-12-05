@@ -20,7 +20,7 @@ function onKeyDown(e) {
       alreadyLost = false;
       pause = false;
       lives = 5;
-      createGame();
+      resetGame();
     }
 
     return;

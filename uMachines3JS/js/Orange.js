@@ -49,15 +49,16 @@ class Orange extends GameElement{
 
 	  
 	  
-	  if(Math.sin(randomAngle) < 0)
-        this.rotationAxis = new THREE.Vector3(0,-1,0);
-		else {
-			this.rotationAxis = new THREE.Vector3(0,1,0);
-		}
-		
-	  this.rotationAxis.cross(this.DOF);
+      if(Math.sin(randomAngle) < 0)
+          this.rotationAxis = new THREE.Vector3(0,-1,0);
+      else {
+        this.rotationAxis = new THREE.Vector3(0,1,0);
+      }
+      
+      this.rotationAxis.cross(this.DOF);
 
       scene.add(this);
+      this.storeInitPos();
     }
     /**
      * Checks if given coordinates match created oranges

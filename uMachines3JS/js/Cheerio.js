@@ -26,5 +26,6 @@ class Cheerio extends GameElement
         this.add(aabb);*/
         arrayCheerios.push(this);
         scene.add(this);
+        this.storeInitPos();
     }	
 }

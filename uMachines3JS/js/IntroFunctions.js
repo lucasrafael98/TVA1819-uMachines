@@ -82,8 +82,10 @@ function clicked(type)
 
 function createGame()
 {
+
 	createScene();
 	createScene2(); 
+
 	//Start orange clock speedup timer
 	orangeClock.start();
 	//Directional Light
@@ -103,6 +105,77 @@ function createGame()
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
 
+	render();
+	ready = true;
+}
+
+function resetGame(){
+	car.resetPos();
+	car.velocity = 0;
+	car.rotation.y = Math.PI / 2;
+	car.DOF = new THREE.Vector3(0,0,0);
+	car.resetKeyFlags();
+	for(var i = 0; i != arrayCheerios.length; i++){
+		arrayCheerios[i].resetPos();
+		arrayCheerios[i].velocity = 0;
+	}
+	for(var i = 0; i != arrayButters.length; i++){
+		arrayButters[i].w = track.getWidth();
+		arrayButters[i].h = track.getHeight();
+		var x,z;
+		
+		do { //keep creating random coordinates if already exists a butter at arrayButters[i] WCS
+			x = (Math.random() * -arrayButters[i].w/2) + (Math.random() * arrayButters[i].w/2);
+			z = (Math.random() * -arrayButters[i].h/2) + (Math.random() * arrayButters[i].h/2);
+
+		} while (arrayButters[i].anotherAlreadyExists(x,z,arrayButters));
+		
+		arrayButters[i].position.set(x, 1.5, z);
+		arrayButters[i].BBox = new THREE.Box3( new THREE.Vector3(x - 4,-1.5,z - 2.5), new THREE.Vector3(x + 4,1.5,z + 2.5));
+	}
+	for(var i = 0; i != arrayOranges.length; i++){
+		arrayOranges[i].w = track.getWidth();
+		arrayOranges[i].h = track.getHeight();
+		var x,z;
+		do { //keep creating random coordinates if already exists an orange at this WCS
+			x = (Math.random() * -arrayOranges[i].w/2) + (Math.random() * arrayOranges[i].w/2);
+			z = (Math.random() * -arrayOranges[i].h/2) + (Math.random() * arrayOranges[i].h/2);
+		  } while (arrayOranges[i].anotherAlreadyExists(x,z,arrayOranges));
+	
+		  
+		arrayOranges[i].position.x = x;
+		arrayOranges[i].position.y = 4;
+		arrayOranges[i].position.z = z;
+		arrayOranges[i].DOF = new THREE.Vector3(0,0,0);
+		arrayOranges[i].rotationFactor = 0.5;
+
+		arrayOranges[i].velocity = Math.random()/10 + 0.05 + velocityDificulty;
+		//The constant value for increase orange velocity
+		arrayOranges[i].velocityIncrease = 0.01;
+		var randomAngle = Math.random() * 2*Math.PI;
+		if(Math.sin(randomAngle) < 0)
+			arrayOranges[i].rotationFactor = -arrayOranges[i].rotationFactor;
+		
+		arrayOranges[i].DOF.x = Math.cos(randomAngle);
+		arrayOranges[i].DOF.z = Math.sin(randomAngle);
+
+		
+		
+		if(Math.sin(randomAngle) < 0)
+			arrayOranges[i].rotationAxis = new THREE.Vector3(0,-1,0);
+		else {
+			arrayOranges[i].rotationAxis = new THREE.Vector3(0,1,0);
+		}
+		
+		arrayOranges[i].rotationAxis.cross(arrayOranges[i].DOF);
+	}
+	//Start orange clock speedup timer
+	orangeClock.start();
+    
+	
+	window.addEventListener("keydown", onKeyDown);
+	window.addEventListener("keyup", onKeyUp);
+	pauseAction(1);
 	render();
 	ready = true;
 }

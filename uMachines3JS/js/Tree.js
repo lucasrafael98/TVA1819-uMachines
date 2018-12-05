@@ -8,5 +8,6 @@ class Tree extends GameElement {
         console.log(x + z);
         this.position.set(x, 2.5, z);
         scene.add(this);
+        this.storeInitPos();
     }
 }
