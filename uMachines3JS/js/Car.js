@@ -15,15 +15,18 @@ class Car extends Vehicle{
 
 		this.add(model);
 
+		console.log(model);
 		this.position.x = x;
 		this.position.y = y;
 		this.position.z = z;
 		this.rotation.y = Math.PI / 2;
 		this.resetKeyFlags();
 		
+
+
 		this.addHorizon(0,-1,10);
-		this.addHeadLight(0.7,0,0.2);
-		this.addHeadLight(-0.7,0,0.2);
+		this.addHeadLight(-0.8,0.75,2.4);
+		this.addHeadLight(0.8,0.75,2.4);
 		this.addCamera();
 		this.updateDOF();
 
@@ -43,7 +46,7 @@ class Car extends Vehicle{
 	addHeadLight(x, y, z, color=0xffffff) {
 		
 		//SpotLight( color, intensity, distance, angle, penumbra, decay )
-		var headlight = new THREE.SpotLight(color, 1.5, 81, Math.PI / 12, 0.2, 2.5);
+		var headlight = new THREE.SpotLight(color, 1.5, 81, 0.5, 0.2, 2.5);
 		headlight.position.set(x,y,z);
 		headlight.target = this.getHorizon();
 		headlight.visible = false;
