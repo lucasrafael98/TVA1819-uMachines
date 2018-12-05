@@ -49,11 +49,10 @@ function translateCheerioOnColision(cheerio, obj, velocity) {
   else s = 1;
   var x = s * (cheerio.position.x - obj.position.x);
   var z = s * (cheerio.position.z - obj.position.z);
-  if (x != 0 && z != 0 && velocity != 0 && array_mooving_cheerios.indexOf(cheerio) == -1)
+  if (x != 0 && z != 0 && velocity != 0)
   {
     cheerio.DOF = new THREE.Vector3(x,h,z);
     cheerio.velocity = velocity;
-    array_mooving_cheerios.push(cheerio);    
   }
 }
 

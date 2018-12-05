@@ -12,7 +12,11 @@ function checkColision() {
 		x = arrayCheerios[i].position.x;
 		z = arrayCheerios[i].position.z;
 		if (dcarc >= Math.pow(car.position.x - x, 2) + Math.pow(car.position.z - z, 2))
-		 translateCheerioOnColision(arrayCheerios[i], car, car.carVelocity);
+			arrayCheerios[i].carCollision = true;
+			if(car.velocity > 0)
+				arrayCheerios[i].fb = 1;
+			else if (car.velocity > 0)
+				arrayCheerios[i].fb = -1;
 	}
 
 	//car- butter colision
@@ -36,21 +40,14 @@ function checkColision() {
 	
 	//cheerio - cheerio colision
 	d = Math.pow(2 * cr, 2);
-	for (i = 0; i < array_mooving_cheerios.length; i++) {
+	for (i = 0; i < arrayCheerios.length; i++) {
 		for (j = 0; j < arrayCheerios.length; j++) {
-			d2obj2 = Math.pow(arrayCheerios[j].position.x - array_mooving_cheerios[i].position.x, 2) + Math.pow(arrayCheerios[j].position.z - array_mooving_cheerios[i].position.z, 2);
-			
-			if (d >= d2obj2){
-				translateCheerioOnColision(arrayCheerios[j], array_mooving_cheerios[i], array_mooving_cheerios[i].velocity);
-				//Remove overlaped cheerio
-				d2obj = Math.sqrt(d2obj2);
-				normaR = 2 * cr - d2obj;
-				direR = new THREE.Vector3(array_mooving_cheerios[i].position.x - arrayCheerios[j].position.x, 0, array_mooving_cheerios[i].position.z - arrayCheerios[j].position.z);
-				direR.normalize();
-				dire = new THREE.Vector3(normaR * direR.x, 0 ,normaR * direR.z);
-				array_mooving_cheerios[i].position.x += dire.x;
-				array_mooving_cheerios[i].position.z += dire.z;
-									
+			if(i != j){
+				d2obj2 = Math.pow(arrayCheerios[j].position.x - arrayCheerios[i].position.x, 2) + Math.pow(arrayCheerios[j].position.z - arrayCheerios[i].position.z, 2);
+				if (d >= d2obj2){
+					arrayCheerios[i].cheerioCollision = true;
+					arrayCheerios[i].collidesWith = j;					
+				}
 			}
 		}
 	}

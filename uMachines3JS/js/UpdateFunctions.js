@@ -3,7 +3,7 @@ function objUpdate() {
   if(car == null){return;}
 	 var d,x,z;
 	 var i, j, d;
-	//Car upadate 
+	//Car update 
   var dt = clock.getDelta();
   if (car.right()) {
 	car.rotate(-1, dt);
@@ -58,17 +58,72 @@ function objUpdate() {
 
 
   //Cheerios update
-  var dt = clock.getDelta() * 1000;
-  for (i = 0; i < array_mooving_cheerios.length; i++) {
-    if (Math.abs(array_mooving_cheerios[i].velocity) > 0 && Math.abs(array_mooving_cheerios[i].velocity) < 1) {
-      array_mooving_cheerios.splice(i, 1);
+  var cheerios_radius = 0.7;
+  for (i=0; i < arrayCheerios.length; i++){
+  	if (arrayCheerios[i].carCollision){
+  	  arrayCheerios[i].carCollision = false;
+      arrayCheerios[i].velocity = car.carVelocity * 1.7;
+      arrayCheerios[i].DOF = new THREE.Vector3(Math.cos(-car.rotation.y + (Math.PI / 2)), 0, Math.sin(-car.rotation.y + (Math.PI / 2)));
+      if(arrayCheerios[i].velocity > 0)
+  	    arrayCheerios[i].fb = 1;
+      if(arrayCheerios[i].velocity < 0)
+        arrayCheerios[i].fb = 2;
+  	}
+    if (arrayCheerios[i].cheerioCollision) {
+      if (arrayCheerios[i].collidesWith &&
+        arrayCheerios[i].hasCalculated === false &&
+        arrayCheerios[arrayCheerios[i].collidesWith].hasCalculated === false) {
+          if(!arrayCheerios[i].velocity && !arrayCheerios[arrayCheerios[i].collidesWith].velocity){
+            var vec = vectorbetween(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]);
+            arrayCheerios[i].position.x -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * vec.x;
+            arrayCheerios[i].position.z -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith])  + 0.04)/2 * vec.z;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.x += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * vec.x;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.z += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * vec.z;
+          }
+          else if (arrayCheerios[i].velocity >= arrayCheerios[arrayCheerios[i].collidesWith].velocity) {
+            arrayCheerios[i].position.x -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[i].DOF.x;
+            arrayCheerios[i].position.z -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith])  + 0.04)/2 * arrayCheerios[i].DOF.z;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.x += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[i].DOF.x;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.z += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[i].DOF.z;
+            arrayCheerios[arrayCheerios[i].collidesWith].velocity = arrayCheerios[i].velocity * 0.95;
+            arrayCheerios[i].velocity *= 0.04;
+            arrayCheerios[arrayCheerios[i].collidesWith].DOF = arrayCheerios[i].DOF;
+          }
+          else {
+            arrayCheerios[i].position.x += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[arrayCheerios[i].collidesWith].DOF.x;
+            arrayCheerios[i].position.z += (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[arrayCheerios[i].collidesWith].DOF.z;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.x -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[arrayCheerios[i].collidesWith].DOF.x;
+            arrayCheerios[arrayCheerios[i].collidesWith].position.z -= (2 * cheerios_radius - dist(arrayCheerios[i], arrayCheerios[arrayCheerios[i].collidesWith]) + 0.04)/2 * arrayCheerios[arrayCheerios[i].collidesWith].DOF.z;
+            arrayCheerios[i].velocity = arrayCheerios[arrayCheerios[i].collidesWith].velocity * 0.95;
+            arrayCheerios[i].velocity *= 0.04;
+            arrayCheerios[i].DOF = arrayCheerios[arrayCheerios[i].collidesWith].DOF;
+          }
+        arrayCheerios[i].hasCalculated = true;
+        arrayCheerios[arrayCheerios[i].collidesWith].hasCalculated = true;
       }
-    
-    else {
-      array_mooving_cheerios[i].velocity *= array_mooving_cheerios[i].breakFactor;
-      array_mooving_cheerios[i].position.x += array_mooving_cheerios[i].velocity * dt * array_mooving_cheerios[i].DOF.x;
-      array_mooving_cheerios[i].position.z += array_mooving_cheerios[i].velocity * dt * array_mooving_cheerios[i].DOF.z;
+      arrayCheerios[i].cheerioCollision = false;
+    }
+    if(arrayCheerios[i].velocity){
+      if(arrayCheerios[i].fb === 1){
+        if(arrayCheerios[i].velocity > 0){
+      	  arrayCheerios[i].velocity -= dt * 50;
+      	}
+        else if (arrayCheerios[i].velocity < 0){
+          arrayCheerios[i].velocity = 0;
         }
+      }
+      if(arrayCheerios[i].fb === 2){
+        if(arrayCheerios[i].velocity < 0){
+          arrayCheerios[i].velocity += dt * 50;
+        }
+        else if (arrayCheerios[i].velocity > 0){
+          arrayCheerios[i].velocity = 0;
+        }
+      }
+      var distance = arrayCheerios[i].velocity * dt;
+    	arrayCheerios[i].position.x += distance * arrayCheerios[i].DOF.x;
+      arrayCheerios[i].position.z += distance * arrayCheerios[i].DOF.z;
+    }
   }
 
 	//Butter colision update
