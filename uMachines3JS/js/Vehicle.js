@@ -151,14 +151,19 @@ class Vehicle extends GameElement
 	addCamera() {
 		//Settings for moving camera fixed with the car
 		var cam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+		var cam2 = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
 		//Car camera position according car's reference
-		cam.position.x = 0;
-		cam.position.y = 4;
-		cam.position.z = -10;
+		cam.position.set(0,4,-10);
 		cam.lookAt(new THREE.Vector3(0,1,7));
 		camera3 = cam;
 		cameras.push(cam);
 		this.add(cam);
+
+		cam2.position.set(0,1.1,-0.2);
+		cam2.lookAt(new THREE.Vector3(0,1,3));
+		camera4 = cam2;
+		cameras.push(cam2);
+		this.add(cam2);
 	}
 
 	isOutsideTrack() {

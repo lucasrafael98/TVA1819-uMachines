@@ -20,7 +20,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd D:\\Downloads\\d9547185d838e3835242d4d1c2368325\\roz.jpg
+map_Kd ../textures/roz.jpg
 
 newmtl flower
 Ns 96.078431
@@ -31,7 +31,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd D:\Downloads\d9547185d838e3835242d4d1c2368325\64 flow.jpg
+map_Kd ../textures/flow.jpg
 
 newmtl st_tile
 Ns 96.078431
