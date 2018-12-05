@@ -3,13 +3,13 @@ class Candle extends GameElement {
         super();
 		this.type = "Candle";
 		this.add(model);
-		this.addLight(0, 5, 0, color, intensity, distance, decay);
+		this.addLight(0, 20, 0, color, intensity, distance, decay);
 		this.position.set(x,y,z);
         scene.add(this);
     }
 	
 	addLight(x,y,z, color, intensity, distance, decay) {
-		var light = new THREE.PointLight(color, intensity, distance, decay);
+		var light = new THREE.PointLight(color, 100, distance, decay);
         light.position.set(x, y, z);
 		this.add(light);
 	}

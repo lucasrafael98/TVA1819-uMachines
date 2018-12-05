@@ -1,6 +1,6 @@
 /* global THREE */
 
-var camera1, camera2, camera3, introCamera, introScene, scene, scene2, renderer;
+var camera1, camera2, camera3,camera4, introCamera, introScene, scene, scene2, renderer;
 var geometry, material, mesh;
 var introCar,car,track,introOvni,ovni,truck;
 var sbArray,sb;
