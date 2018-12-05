@@ -69,8 +69,6 @@ class GameElement extends THREE.Object3D {
         }       
     }
     
-    
-
 	translate(dt) 
 	{
 	  	this.position.x +=  this.carVelocity*dt * this.DOF.x;

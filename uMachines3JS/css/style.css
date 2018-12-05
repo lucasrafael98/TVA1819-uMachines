@@ -1,0 +1,101 @@
+body
+{
+  margin: 0px;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.indicador {
+    display: none;
+}
+
+#introName
+{
+    font-family: 'Russo One', sans-serif;
+    font-size: 120px;
+    border: 5px solid #ff000000;
+    width: 100%;
+    height: 27%;
+    position: absolute;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 156%;
+    text-shadow: -5px 0 black, 0 5px black, 1px 0 black, 0 -1px black;
+    color: darkblue;
+}
+
+#introCarBox
+{
+    border: none;
+    position: absolute;
+    top: 35%;
+    left: 12%;
+    width: 450px;
+    height: 250px;
+    box-shadow: none;
+    cursor: pointer;   
+}
+
+#introOvniBox
+{
+    border: none;
+    position: absolute;
+    top: 35%;
+    right: 12%;
+    width: 450px;
+    height: 250px;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+#startButton
+{
+    font-family: 'Russo One', sans-serif;
+    font-size: 70px;
+    border: 5px solid #9686865c;
+    position: absolute;
+    bottom: 7%;
+    right: 33.8%;
+    width: 450px;
+    height: 100px;
+    cursor: pointer;
+}
+
+#startButton:hover
+{
+    transform: scale(1.1, 1.1); 
+}
+
+#changeSkyBoxButton
+{
+    font-family: 'Russo One', sans-serif;
+    font-size: 30px;
+    border: 5px solid #9686865c;
+    position: absolute;
+    bottom: 7%;
+    right: 1%;
+    width: 150px;
+    height: 100px;
+    cursor: pointer;
+}
+
+#changeSkyBoxButton:hover
+{
+    transform: scale(1.1, 1.1); 
+}
+
+#intrMenu
+{
+    display: block;
+}
+
+#info
+{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    color: rgba(135, 156, 173,0.7);
+    font-size: 20px;
+    text-align: center;
+    display: none;
+}

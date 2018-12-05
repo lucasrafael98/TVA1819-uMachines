@@ -1,10 +1,9 @@
 class Candle extends GameElement {
-    constructor(x,y,z,color,intensity, distance, decay) {
+	constructor(x,y,z,model,color,intensity, distance, decay) {
         super();
 		this.type = "Candle";
-		this.addLight(0, 10, 0, color, intensity, distance, decay);
-		this.addWax(0, 0, 0, 0xffffff);
-		this.addFlame(0, 3.75, 0, color);
+		this.add(model);
+		this.addLight(0, 5, 0, color, intensity, distance, decay);
 		this.position.set(x,y,z);
         scene.add(this);
     }
@@ -17,13 +16,13 @@ class Candle extends GameElement {
 	
 	addWax(x,y,z, color)
 	{
-		geometry = new THREE.CylinderGeometry( 1, 1, 5, 10 );
+		geometry = new THREE.CylinderGeometry( 2, 2, 5, 10 );
 		this.addMeshPosition(x,y,z,geometry,color);
 	}
 	
 	addFlame(x,y,z, color)
 	{
-		geometry = new THREE.CylinderGeometry(0, 0.5, 2.5, 10 );
+		geometry = new THREE.CylinderGeometry(0, 1, 2.5, 10 );
 		this.addMeshPosition(x,y,z,geometry,color);
 	}
 	

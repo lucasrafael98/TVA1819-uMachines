@@ -2,7 +2,7 @@
   * Class for creating butter
   *
   */
-class Butter extends GameElement {
+ class Butter extends GameElement {
   constructor() 
   {
     'use strict';

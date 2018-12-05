@@ -1,29 +1,51 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Projecto AVT - G02</title>
-        <link rel="stylesheet" href="css/main.css">
-        <script src="js/three.min.js"></script>
-        <script src="js/GameElement.js"></script>
-        <script src="js/Track.js"></script>
-        <script src="js/Orange.js"></script>
-        <script src="js/Butter.js"></script>
-        <script src="js/Cheerio.js"></script>
-        <script src="js/Skybox.js"></script>
-        <script src="js/Candle.js"></script>
-        <script src="js/Sun.js"></script>
-        <script src="js/Collisions.js"></script>
-        <script src="js/CallbackFunctions.js"></script>
-        <script src="js/Cameras.js"></script>
-        <script src="js/UpdateFunctions.js"></script>
-        <script src="js/OrbitControls.js"></script>
-        <!-- <script src="js/ObjectLoader.js"></script> -->
-        <script src="js/Main.js"></script>
-    </head>
-    <body>
-        <script>
-            init();
-            animate();
-        </script>
-    </body>
+  <head>
+    <meta charset="utf-8">
+    <title>Projecto CG - G42</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Anton|Audiowide|Kumar+One+Outline|Righteous|Shrikhand|Russo+One" rel="stylesheet">
+    <script src="js/three.min.js"></script>
+    <script src="js/GameElement.js"></script>
+    <script src="js/Track.js"></script>
+    <script src="js/Orange.js"></script>
+    <script src="js/Butter.js"></script>
+    <script src="js/Cheerio.js"></script>
+    <script src="js/Vehicle.js"></script>
+	  <script src="js/Car.js"></script>
+    <script src="js/Ovni.js"></script>
+    <script src="js/Sun.js"></script>
+    <script src="js/Skybox.js"></script>
+    <script src="js/Candle.js"></script>
+    <script src="js/Materials.js"></script>
+    <script src="js/UI.js"></script>
+    <script src="js/Collisions.js"></script>
+    <script src="js/CallbackFunctions.js"></script>
+    <script src="js/AuxFunctions.js"></script>
+    <script src="js/Cameras.js"></script>
+    <script src="js/UpdateFunctions.js"></script>
+    <script src="js/IntroFunctions.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/ParticleEngine.js"></script>
+    <script src="js/Flame.js"></script>
+    <script src="js/OBJLoader.js"></script>
+    <script src="js/MTLLoader.js"></script>
+    <script src="js/Main.js"></script>
+  </head>
+  <body>
+  <div id="introMenu">
+    <div id="introName">Micro Machines</div>
+    <div id="introCarBox" onmouseover="mouseOver(0)" onmouseleave="mouseLeave(0)" onclick="clicked(0)"></div>
+    <div id="introOvniBox" onmouseover="mouseOver(1)" onmouseleave="mouseLeave(1)" onclick="clicked(1)"></div>
+    <button id="startButton" onclick="clicked(2)">PLAY</button>
+    <button id="changeSkyBoxButton" onclick="clicked(3)">CHANGE VIEW</button>
+  </div>
+    <div id="info">
+      <img class="indicador" id="i_medios" src="img/medios.png"/><br>
+      L: Toggle lights | N: Toggle ambient light | C: Toggle point light | G: Toggle shading | A:Toggle wireframe status | 1,2,3: Toggle cameras
+    </div>
+    <script>
+      init();
+      animate();
+    </script>
+  </body>
 </html>

@@ -3,7 +3,7 @@ class Skybox extends THREE.Object3D
 	constructor(x,y,z,activeScene,sb_type)
 	{
 		super();
-		var geometry = new THREE.CubeGeometry(1024, 1024, 1024);
+		var geometry = new THREE.CubeGeometry(512, 512, 512);
 		var cubeMaterials;
 		if(sb_type == 0)
 		{

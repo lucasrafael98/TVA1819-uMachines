@@ -11,8 +11,9 @@ class Orange extends GameElement{
     constructor(track, obj_array) {
       'use strict';
       super();
-      geometry = new THREE.SphereGeometry( 3, 20, 20 );
+      geometry = new THREE.SphereGeometry( 3, 10, 10 );
       this.addMesh(geometry,0xf48c42, 1);
+      //material = new THREE.MeshBasicMaterial( {color: 0xf48c42, wireframe: wireframe_status} );
       this.w = track.getWidth();
       this.h = track.getHeight();
       var x,z;
