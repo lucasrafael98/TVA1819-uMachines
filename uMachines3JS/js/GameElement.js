@@ -6,6 +6,16 @@ class GameElement extends THREE.Object3D {
         this.materialsArray = new Array();
     }
 
+    storeInitPos(){
+        this.initPos = this.position;
+    }
+
+    resetPos(){
+        this.position.x = this.initPos.x;
+        this.position.y = this.initPos.y;
+        this.position.z = this.initPos.z;
+    }
+
     getMesh()
     {
     	return mesh;

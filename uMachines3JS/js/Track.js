@@ -26,6 +26,7 @@ class Track extends GameElement{
           new Cheerio(Math.cos(2* Math.PI * i /40) * 16, 1.5, Math.sin(2* Math.PI * i /40) * 16);  
         }
         
+        
     }
 
     getWidth()     {return this.width;}

@@ -5,7 +5,8 @@ class Candle extends GameElement {
 		this.add(model);
 		this.addLight(0, 6.85, 0, color, intensity, distance, decay);
 		this.position.set(x,y,z);
-        scene.add(this);
+		scene.add(this);
+		this.storeInitPos();
     }
 	
 	addLight(x,y,z, color, intensity, distance, decay) {

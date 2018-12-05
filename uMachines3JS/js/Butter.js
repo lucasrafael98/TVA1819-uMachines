@@ -24,6 +24,7 @@
     this.position.set(x, 1.5, z);
 	  this.BBox = new THREE.Box3( new THREE.Vector3(x - 4,-1.5,z - 2.5), new THREE.Vector3(x + 4,1.5,z + 2.5));
     scene.add(this);
+    this.storeInitPos();
   }
   
   /**
