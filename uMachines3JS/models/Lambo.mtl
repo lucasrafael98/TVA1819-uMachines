@@ -240,7 +240,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd D:\Downloads\7h15t5bvooe8-Aventador\interior_lod0.tga
 
 newmtl lines.001
 Ns 254.901961
@@ -261,7 +260,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd D:\Downloads\7h15t5bvooe8-Aventador\interior_lod0.tga
 
 newmtl signs.001
 Ns 254.901961
@@ -272,7 +270,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd D:\Downloads\7h15t5bvooe8-Aventador\interior_lod0.tga
 
 newmtl speedometer.001
 Ns 254.901961
@@ -283,5 +280,3 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd [Squir]\aventador-new\gaudges.jpg
-map_Ka [Squir]\\aventador-new\\gaudges.jpg

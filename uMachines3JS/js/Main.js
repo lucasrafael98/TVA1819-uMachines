@@ -42,6 +42,15 @@ var orthocam2;
 var msg_box_array;
 var ready = false;
 
+// Teste //
+
+var protonArray = [];
+var proton, emitter;
+
+// Teste //
+
+
+
 function createScene() {
   'use strict';
 
@@ -92,6 +101,11 @@ function createScene() {
     arrayOranges.push(new Orange(track, objectArray));
     arrayButters.push(new Butter());
   }
+
+  //  TESTE  //
+
+  //  TESTE  //
+
 }
 
 function createScene2() {
@@ -179,6 +193,10 @@ function render() {
   }
   else
   {
+    var temp = clock.getDelta();
+    for (let i = 0; i < protonArray.length; i++) {
+      protonArray[i].update(temp); 
+    }
     renderer.render(scene,cameras[selectedCamera]);
     renderer.clearDepth();
     renderer.render(scene2,orthocam2);

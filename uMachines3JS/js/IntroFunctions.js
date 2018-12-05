@@ -60,15 +60,13 @@ function clicked(type)
 			createGame();
 			selectedScene = 1;
 			document.getElementById("introMenu").style.display = "none";
-			document.getElementById("info").style.display = "block";
 		}
 		else if(choosen == 1)
 		{
 			selectedCar = 1;
 			createGame();
 			selectedScene = 1;
-			document.getElementById("introMenu").style.display = "none";
-			document.getElementById("info").style.display = "block";		
+			document.getElementById("introMenu").style.display = "none";		
 		}
 	}
 	else if(type == 3)
@@ -94,10 +92,13 @@ function createGame()
     for (let x = -1; x < 2; x+=2) {
         for (let y = -1; y < 2; y+=2) {
 			loadCandle("models/Candle.mtl","models/Candle.obj",18*x,5.5,18*y);
+			addProton(18*x,7.0,18*y);
         }
 	}
 	loadCandle("models/Candle.mtl","models/Candle.obj",-5,5.5,0);
+	addProton(-5,7.0,0);
 	loadCandle("models/Candle.mtl","models/Candle.obj",5,5.5,0);
+	addProton(5,7.0,0);
 	
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
