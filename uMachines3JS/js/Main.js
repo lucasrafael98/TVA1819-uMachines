@@ -9,7 +9,7 @@ var objectArray;
 var arrayOranges;
 var arrayCheerios;
 var arrayButters;
-var clock;
+var clock, delta;
 var aspect_ratio = 16/9;
 var scale = 0.012;
 var mul_width;
@@ -187,10 +187,6 @@ function render() {
   }
   else
   {
-    var temp = clock.getDelta();
-    for (let i = 0; i < protonArray.length; i++) {
-      protonArray[i].update(temp); 
-    }
     renderer.render(scene,cameras[selectedCamera]);
     renderer.clearDepth();
     renderer.render(scene2,orthocam2);
@@ -204,7 +200,8 @@ function animate() {
   {
     if(ready)
     {
-      objUpdate();
+      delta = clock.getDelta();
+      objUpdate(delta);
       controls.update();
       checkColision();
     }

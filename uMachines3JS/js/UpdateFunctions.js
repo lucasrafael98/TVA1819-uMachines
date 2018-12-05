@@ -1,10 +1,9 @@
 
-function objUpdate() {
+function objUpdate(dt) {
   if(car == null){return;}
 	 var d,x,z;
 	 var i, j, d;
 	//Car update 
-  var dt = clock.getDelta();
   if (car.right()) {
 	car.rotate(-1, dt);
   }
@@ -25,7 +24,10 @@ function objUpdate() {
   }
   car.translate(dt);
   
-
+  //Particle update
+  for (let i = 0; i < protonArray.length; i++) {
+    protonArray[i].update(dt); 
+  }
 
 
 	//Orange Update
