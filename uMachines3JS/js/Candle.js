@@ -12,12 +12,12 @@ class Candle extends GameElement {
 	
 			var lensflare = new THREE.Lensflare();
 	
-			lensflare.addElement( new THREE.LensflareElement( textureFlare0, 100, 0.25 ) );
-			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 1 ) );
-			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.8 ) );
-			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.7 ) );
-			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.5 ) );
-			lensflare.addElement( new THREE.LensflareElement( textureFlare2, 40, 0.4 ) );
+			lensflare.addElement( new THREE.LensflareElement( textureFlare0, 100, 0.25 , new THREE.Color(0xffff00)) );
+			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 1 , new THREE.Color(0xffa500)) );
+			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.8 , new THREE.Color(0xffa500)));
+			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.7 , new THREE.Color(0xffa500)));
+			lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.5 , new THREE.Color(0xffa500)));
+			lensflare.addElement( new THREE.LensflareElement( textureFlare2, 40, 0.4 , new THREE.Color(0xff0000)));
 	
 			light.add( lensflare );
 		}
