@@ -89,19 +89,19 @@ function createGame()
 	//Start orange clock speedup timer
 	orangeClock.start();
 	//Directional Light
-	directionalLight = new Sun(0,2,0, 0xffffff,1,scene);
+	directionalLight = new Sun(0,5,3, 0xffffff,1,scene);
 	//Set all candles with same parameters
     for (let x = -1; x < 2; x+=2) {
         for (let y = -1; y < 2; y+=2) {
 			loadCandle("models/Candle.mtl","models/Candle.obj",18*x,5.5,18*y);
-			addProton(18*x,7.0,18*y);
+			addProton(18*x,7.75,18*y);
         }
 	}
 	loadCandle("models/Candle.mtl","models/Candle.obj",-5,5.5,0);
-	addProton(-5,7.0,0);
+	addProton(-5,7.75,0);
 	loadCandle("models/Candle.mtl","models/Candle.obj",5,5.5,0);
-	addProton(5,7.0,0);
-	
+	addProton(5,7.75,0);
+
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
 
