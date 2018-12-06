@@ -9,3 +9,5 @@ uMachines/Bmw.h linguist-generated=true
 uMachines3JS/OBJLoader.js linguist-vendored=true
 uMachines3JS/MTLLoader.js linguist-vendored=true
 uMachines3JS/Lensflare.js linguist-vendored=true
+uMachines3JS/OrbitControls.js linguist-vendored=true
+uMachines3JS/Reflector.js linguist-vendored=true

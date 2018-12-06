@@ -19,11 +19,11 @@ class Track extends GameElement{
         scene.add(this);
 
         for (let i = 0; i < 20; i++) {
-          new Cheerio(Math.cos(2* Math.PI * i /20) * 6.5, 1.5, Math.sin(2* Math.PI * i /20) * 6.5);
+          new Cheerio(Math.cos(2* Math.PI * i /20) * 6.5, 1.15, Math.sin(2* Math.PI * i /20) * 6.5);
         }
 
         for (let i = 0; i < 40; i++) {
-          new Cheerio(Math.cos(2* Math.PI * i /40) * 16, 1.5, Math.sin(2* Math.PI * i /40) * 16);  
+          new Cheerio(Math.cos(2* Math.PI * i /40) * 16, 1.15, Math.sin(2* Math.PI * i /40) * 16);  
         }
         
         
@@ -36,8 +36,17 @@ class Track extends GameElement{
     addTableTop(x, y, z) {
       'use strict';
 
-      geometry = new THREE.CubeGeometry(this.width, 2, this.height);
-      this.addMeshPositionTexture(x,y,z,geometry,0x666666, "textures/ground.jpg", 1);
+      geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
+      this.addMeshPositionTexture(x,y,z,geometry,0x666666, "textures/ground.jpg", 1, 0.9);
+      var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
+      var mirror = new THREE.Reflector( geometry, {
+        clipBias: 0.003,
+        textureWidth: window.innerWidth * window.devicePixelRatio,
+        textureHeight: window.innerHeight * window.devicePixelRatio
+      } );
+      mirror.rotation.x = -Math.PI / 2;
+      mirror.position.copy(new THREE.Vector3(x,0.99,z));
+      scene.add(mirror);
     }
 }
 

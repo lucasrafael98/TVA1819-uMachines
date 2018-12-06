@@ -28,6 +28,7 @@
     <script src="js/ParticleFunctions.js"></script>
     <script src="js/IntroFunctions.js"></script>
     <script src="js/OrbitControls.js"></script>
+    <script src="js/Reflector.js"></script>
     <script src="js/Lensflare.js"></script>
     <script src="js/OBJLoader.js"></script>
     <script src="js/MTLLoader.js"></script>
@@ -44,6 +45,107 @@
     <script>
       init();
       animate();
+    </script>
+    <script id="frag_sh" type="x-shader/x-fragment">
+      #version 330 core
+      struct LightProperties {
+        bool isEnabled;
+        bool isLocal;
+        bool isSpot;
+        vec4 ambient;
+        vec4 color;
+        vec4 position;
+        vec3 halfVector;
+        vec4 coneDirection;
+        float spotCosCutoff;
+        float spotExponent;
+        float constantAttenuation;
+        float linearAttenuation;
+        float quadraticAttenuation;
+      };
+      uniform sampler2D texture;
+      uniform sampler2D texture2;
+      uniform vec3 color;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      const int MaxLights = 9;
+      uniform LightProperties Lights[MaxLights];
+      
+      void main() {
+        vec4 tc = vec4(color.r, color.g, color.b, 1.0 );
+        vec4 tColor = texture2D( texture, vUv );
+        vec4 tColor2 = texture2D( texture2, vUv );
+      
+        for (int light = 0; light < MaxLights; ++light) {
+          if (! Lights[light].isEnabled)
+            continue;
+          vec3 halfVector;
+          vec3 lightDirection = vec3(Lights[light].position);
+          float attenuation = 1.0;
+    
+          if (Lights[light].isLocal) {
+            lightDirection = lightDirection - vec3(DataIn.Position);
+            float lightDistance = length(lightDirection);
+            //lightDirection = lightDirection / lightDistance;
+            attenuation = 1.0 /(Lights[light].constantAttenuation + Lights[light].linearAttenuation * lightDistance + Lights[light].quadraticAttenuation * lightDistance * lightDistance);
+            if (Lights[light].isSpot) {
+              float spotCos = dot(lightDirection / lightDistance, normalize(vec3(-Lights[light].coneDirection)));
+              if (spotCos < Lights[light].spotCosCutoff){
+                attenuation = 0.0;
+              }
+              else{
+                attenuation *= pow(spotCos,Lights[light].spotExponent);
+              }
+            }
+            halfVector = normalize(lightDirection + DataIn.Eye);
+          } 
+          else {
+            lightDirection = normalize(lightDirection);
+            halfVector = normalize((lightDirection + DataIn.Eye) /2);
+          }
+    
+          float diffuse = max(0.0, dot(DataIn.Normal, lightDirection));
+          float specular = max(0.0, dot(DataIn.Normal, halfVector));
+          if (diffuse == 0.0)
+            specular = 0.0;
+          else
+            specular = pow(specular, mat.shininess);
+    
+          // Accumulate all the lights effects
+          scatteredLight += Lights[light].ambient.rgb * mat.ambient.rgb * attenuation + Lights[light].color.rgb * diffuse * mat.diffuse.rgb * attenuation;
+          reflectedLight += Lights[light].color.rgb * mat.specular.rgb * specular * attenuation;
+        }
+        }
+    </script>
+    <script id="vert_sh" type="x-shader/x-vertex">
+      #version 330
+      uniform mat4 MVPMatrix;
+      uniform mat4 MVMatrix;
+      uniform mat3 NormalMatrix;
+      in vec4 VertexColor;
+      in vec3 VertexNormal;
+      in vec4 VertexPosition;
+      in vec4 texCoord;
+      out vec3 TexCoords;
+
+      out Data {
+        vec3 Normal;
+        vec3 Eye;
+        vec4 Position;
+        vec2 tex_coord;
+      } DataOut;
+
+      void main () {
+
+        DataOut.Normal = normalize(NormalMatrix * VertexNormal);
+        DataOut.Position = MVMatrix * VertexPosition;
+        DataOut.Eye = vec3(-DataOut.Position);
+        DataOut.tex_coord = texCoord.st;
+        TexCoords = vec3(VertexPosition);
+        gl_Position = MVPMatrix * VertexPosition;
+        
+      }
     </script>
   </body>
 </html>

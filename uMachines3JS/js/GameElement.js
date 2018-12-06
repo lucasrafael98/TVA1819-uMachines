@@ -28,7 +28,9 @@ class GameElement extends THREE.Object3D {
         mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status}));
         mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular}));
         this.materialsArray.push(mats);
-    	this.add(new THREE.Mesh(geometry, mats[mat_option]));
+        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        mesh.castShadow = true;
+    	this.add(mesh);
     }
 
     addMeshPosition(x,y,z, geometry, color, shininess=30, specular=0x111111)
@@ -41,11 +43,12 @@ class GameElement extends THREE.Object3D {
         this.materialsArray.push(mats);
 
         var mesh = new THREE.Mesh(geometry, mats[mat_option]);
-        mesh.position.set(x,y,z);        
+        mesh.position.set(x,y,z);
+        mesh.castShadow = true;        
     	this.add(mesh);
     }
 	
-	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, specular=0x111111)
+	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, opacity=1, specular=0x111111)
     {
         var mats = new Array();
 		
@@ -54,12 +57,43 @@ class GameElement extends THREE.Object3D {
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set(4,4);
 		
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture}));
+        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, transparent:true, opacity: opacity}));
         this.materialsArray.push(mats);
 
         var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        mesh.position.set(x,y,z);    
+        mesh.castShadow = true;    
+        mesh.receiveShadow = true;
+    	this.add(mesh);
+    }
+
+    addMeshPositionMultiTexture(x,y,z, geometry, color, tex_path, tex_path1, shininess=30, specular=0x111111)
+    {
+        console.log(tex_path);
+        console.log(tex_path1);
+        var vertShader = document.getElementById('vert_sh').innerHTML;
+        var fragShader = document.getElementById('frag_sh').innerHTML;
+
+        var uniforms = {    // custom uniforms (your textures)
+
+            Lights: {},
+            color: { type: "c", value: new THREE.Color(color)},
+            texture1: { type: "t", value: THREE.ImageUtils.loadTexture( tex_path ) },
+            texture2: { type: "t", value: THREE.ImageUtils.loadTexture( tex_path1 ) }
+
+        };
+
+        var material_sh = new THREE.ShaderMaterial({
+
+            uniforms: uniforms,
+            vertexShader: vertShader,
+            fragmentShader: fragShader
+
+        });
+
+        var mesh = new THREE.Mesh(geometry, material_sh);
         mesh.position.set(x,y,z);        
     	this.add(mesh);
     }

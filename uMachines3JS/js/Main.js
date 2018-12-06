@@ -33,6 +33,7 @@ var wireframe_status = false;
 var fogBool = false;
 var mat_option = 2;
 var directionalLight;
+var lensflare;
 var lights = new Array();
 var pause = false;
 var lives = 5;
