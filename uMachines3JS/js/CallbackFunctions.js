@@ -74,7 +74,10 @@ function onKeyDown(e) {
 			case 78: //Tecla n
         //toggle function to enable/disable direction light
         directionalLight.toggleVisible();
-        lensflare.visible = !lensflare.visible;
+        if(lensflare.visible)
+          lensflare.visible = !lensflare.visible;
+        else if(!lensflare.visible)
+          lensflare.visible = !lensflare.visible;
       	break;
       case 90:
       case 122:
@@ -123,10 +126,13 @@ function onKeyUp(e) {
 function toggleFog(){
   fogBool = !fogBool;
   if(fogBool){
-    scene.fog = new THREE.FogExp2("0x7a7a7a", 0.05);    
+    scene.fog = new THREE.FogExp2("0x7a7a7a", 0.03);   
+    if(lensflare.visible)
+      lensflare.visible = !lensflare.visible;
   }else{
-    scene.fog.near = 0.1;
-    scene.fog.far = 0;
+    scene.fog.density = 0
+    if(!lensflare.visible)
+      lensflare.visible = !lensflare.visible;
   }
 }
 

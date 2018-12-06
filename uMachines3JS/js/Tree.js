@@ -6,7 +6,7 @@ class Tree extends GameElement {
         this.add(new THREE.Sprite(spriteMaterial));
         this.scale.set(5, 5, 5);
         console.log(x + z);
-        this.position.set(x, 2.5, z);
+        this.position.set(x, 3.6, z);
         scene.add(this);
         this.storeInitPos();
     }
