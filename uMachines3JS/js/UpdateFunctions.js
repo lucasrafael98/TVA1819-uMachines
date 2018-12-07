@@ -5,10 +5,14 @@ function objUpdate(dt) {
 	 var i, j, d;
 	//Car update 
   if (car.right()) {
-	car.rotate(-1, dt);
+  car.rotate(-1, dt);
+  car.turnWheels(-1);
+  car.turnSteeringWheel(-1);
   }
   if (car.left()) {
-	car.rotate(1, dt);
+  car.rotate(1, dt);
+  car.turnWheels(1);
+  car.turnSteeringWheel(1);
   }
   if (car.speed()) {
 	car.move(1, dt);

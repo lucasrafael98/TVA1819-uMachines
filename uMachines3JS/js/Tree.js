@@ -5,7 +5,6 @@ class Tree extends GameElement {
         var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff, alphaTest: 0.5, transparent: true } );
         this.add(new THREE.Sprite(spriteMaterial));
         this.scale.set(5, 5, 5);
-        console.log(x + z);
         this.position.set(x, 3.4, z);
         this.visible = false;
         scene.add(this);

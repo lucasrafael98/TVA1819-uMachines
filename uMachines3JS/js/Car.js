@@ -12,7 +12,6 @@ class Car extends Vehicle{
 	constructor(x, y, z, activeScene, model) {
 		super();
 
-		model.castShadow = true;
 		this.add(model);
 
 		
@@ -23,10 +22,12 @@ class Car extends Vehicle{
 		this.resetKeyFlags();
 		
 
-		this.wheelsIndexes = [148,190,229,250,341,76,109,161,176,235,255,283,30,59,63,246,331,108,319,305];
-		this.Fwheel_indexes = [ 148,190,229,250,341,30,59,63,246,331 ];
+		this.wheelsIndexes = [148,190,229,250,341,30,59,63,246,331,108,319,305,76,109,161,235,255,283];
+		this.steeringWheelIndexes = [6,13,103,267]
+		this.Fwheel_indexes = [ 148,190,229,250,341,30,59,63,246,331];
 		this.brakeHeadIndexes = [59,305,341,235,]
 		this.wheelsPivots = [];
+		this.steeringWheelPivots = [];
 
 		this.getPivots();
 
@@ -84,17 +85,57 @@ class Car extends Vehicle{
 		for (let i = 0; i < this.wheelsIndexes.length; i++) {
 			this.wheelsPivots.push(this.children[0].children[this.wheelsIndexes[i]].geometry.boundingBox.getCenter());
 		}
+		for (let i = 0; i < this.steeringWheelIndexes.length; i++) {
+			this.steeringWheelPivots.push(this.children[0].children[this.steeringWheelIndexes[i]].geometry.boundingBox.getCenter());
+		}
 	}
 
 	spinWheels(){
-		let mesh,center;
+		let mesh;
 		for (let i = 0; i < this.wheelsIndexes.length; i++) {
-			if(this.brakeHeadIndexes.includes(this.wheelsIndexes[i])){continue;}
+		  if(this.brakeHeadIndexes.includes(this.wheelsIndexes[i])){continue;}
 		  mesh = this.children[0].children[this.wheelsIndexes[i]];
-		  center = mesh.geometry.boundingBox.getCenter();
 		  mesh.geometry.center();
 		  mesh.position.set(this.wheelsPivots[i].x,this.wheelsPivots[i].y,this.wheelsPivots[i].z);
 		  mesh.rotation.z += this.carVelocity * this.spinFactor;
+		}
+	}
+
+	turnWheels(type){
+		let mesh;
+		for (let i = 0; i < this.Fwheel_indexes.length; i++) {
+		  mesh = this.children[0].children[this.Fwheel_indexes[i]];
+		  mesh.geometry.center();
+		  mesh.position.set(this.wheelsPivots[i].x,this.wheelsPivots[i].y,this.wheelsPivots[i].z);
+		  console.log(mesh.rotation.y);
+		  if(mesh.rotation.y < -0.5 || mesh.rotation.y > 0.5){continue;}
+		  if(type == 1){
+			  if(this.carVelocity < 0){
+				mesh.rotation.y += this.carVelocity * this.turnSpeedFactor;
+			  }else{
+				mesh.rotation.y -= this.carVelocity * this.turnSpeedFactor; 
+			  }
+		  }else if(type == -1){
+			if(this.carVelocity > 0){
+				mesh.rotation.y -= this.carVelocity * this.turnSpeedFactor;
+			  }else{
+				mesh.rotation.y += this.carVelocity * this.turnSpeedFactor; 
+			  }
+		  }
+		}
+	}
+
+	turnSteeringWheel(type){
+		let mesh;
+		for (let i = 0; i < this.steeringWheelIndexes.length; i++) {
+		  mesh = this.children[0].children[this.steeringWheelIndexes[i]];
+		  mesh.geometry.center();
+		  mesh.position.set(this.steeringWheelPivots[i].x,this.steeringWheelPivots[i].y,this.steeringWheelPivots[i].z);
+		  if(type == 1){
+			mesh.rotation.x += this.carVelocity * this.turnSpeedFactor;
+		  }else if(type == -1){
+			mesh.rotation.x -= this.carVelocity * this.turnSpeedFactor;
+		  }
 		}
 	}
 }

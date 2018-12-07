@@ -7,6 +7,7 @@ function load3DObject(matPath,objPath,objType,sceneType){
         objLoader.load(objPath, function ( object ) {
             object.rotation.y = Math.PI / 2;
             for (let i = 0; i < object.children.length; i++) {
+                object.children[i].castShadow = true;
                 object.children[i].geometry.computeBoundingBox();   
             }
             if(sceneType == 0){
