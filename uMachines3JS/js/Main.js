@@ -43,6 +43,7 @@ var h = 1.5;
 var orthocam2;
 var msg_box_array;
 var ready = false;
+var stats = new Stats();
 
 // Teste //
 
@@ -204,7 +205,7 @@ function render() {
 
 function animate() {
   'use strict';
-  
+  stats.begin();
   if (!pause) 
   {
     if(ready)
@@ -224,7 +225,7 @@ function animate() {
     render();
   }
   //else call pause callback function
-
+  stats.end();
   requestAnimationFrame(animate);
 }
 
