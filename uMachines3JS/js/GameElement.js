@@ -115,7 +115,11 @@ class GameElement extends THREE.Object3D {
 
         var materials = [mats[mat_option], mats1[mat_option]];
         var mesh = new THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
-        mesh.receiveShadow = true;
+        console.log(mesh);
+        for( var i = 0; i != 2; i++){
+            mesh.children[i].castShadow = true;
+            mesh.children[i].receiveShadow = true;
+        }
         mesh.position.set(x,y,z);        
     	this.add(mesh);
     }

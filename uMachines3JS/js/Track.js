@@ -37,7 +37,7 @@ class Track extends GameElement{
       'use strict';
 
       geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
-      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/ground.jpg", "textures/tex1.jpg", 1, 0.50);
+      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/ground.jpg", "textures/tex1.jpg", 1, 0.75);
       var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
       var mirror = new THREE.Reflector( geometry, {
         clipBias: 0.003,
