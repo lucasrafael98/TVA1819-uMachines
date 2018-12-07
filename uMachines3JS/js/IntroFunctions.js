@@ -91,7 +91,7 @@ function createGame()
 	//Start orange clock speedup timer
 	orangeClock.start();
 	//Directional Light
-	directionalLight = new Sun(60, 10, 60, 0xffffff,2.5,scene);
+	directionalLight = new Sun(60, 10, 60, new THREE.Color(0xffffff),2.5,scene);
 
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -122,7 +122,7 @@ function createGame()
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.7, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.5, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare2, 40, 0.4, new THREE.Color(0xff4c00), THREE.AdditiveBlending));
-	lensflare.addElement( new THREE.LensflareElement( textureFlare3, 700, 0.0, new THREE.Color(0xffffff), THREE.AdditiveBlending));
+	lensflare.addElement( new THREE.LensflareElement( textureFlare3, 1000, 0.0, new THREE.Color(0xffffff), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare4, 40, 0.9, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.6, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.2, new THREE.Color(0xffae00), THREE.AdditiveBlending));
@@ -138,9 +138,9 @@ function createGame()
 			addProton(30*x,6.75,30*y);
         }
 	}
-	loadCandle("models/Candle.mtl","models/Candle.obj",-5,5.5,0);
+	loadCandle("models/Candle.mtl","models/Candle.obj",-7,5.5,0);
 	addProton(-7,6.75,0);
-	loadCandle("models/Candle.mtl","models/Candle.obj",5,5.5,0);
+	loadCandle("models/Candle.mtl","models/Candle.obj",7,5.5,0);
 	addProton(7,6.75,0);
 
 	window.addEventListener("keydown", onKeyDown);

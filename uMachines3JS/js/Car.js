@@ -44,7 +44,7 @@ class Car extends Vehicle{
 
 	getHorizon() { return this.children[this.horizonIndex];}
 
-	addHeadLight(x, y, z, color=0xffffff) {
+	addHeadLight(x, y, z, color=new THREE.Color(0xffffff)) {
 		
 		//SpotLight( color, intensity, distance, angle, penumbra, decay )
 		var headlight = new THREE.SpotLight(color, 1.5, 81, 0.5, 0.2, 2.5);

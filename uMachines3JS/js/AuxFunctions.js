@@ -24,7 +24,7 @@ function load3DObject(matPath,objPath,objType,sceneType){
                     car = new Ovni(-5,1,10,scene,object);
                 }else if(objType == 2){
                     object.scale.set(3,3,3);
-                    var p = new Candle(-40,5.5,-10, object, 0xfffc7c, 5, 35, 2);
+                    var p = new Candle(-40,5.5,-10, object, new THREE.Color(0xfffc7c), 5, 35, 2);
                     objectArray.push(p);
                 }
             }
@@ -44,7 +44,7 @@ function loadCandle(matPath,objPath,x,y,z){
         objLoader.setMaterials( materials );
         objLoader.load(objPath, function ( object ) {
             object.scale.set(3,3,3);
-            var p = new Candle(x,y,z, object, 0xfffc7c, 3, 25, 2);
+            var p = new Candle(x,y,z, object, new THREE.Color(0xfffc7c), 3, 25, 2);
             objectArray.push(p);
         },
         // called when loading is in progresses

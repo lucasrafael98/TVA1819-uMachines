@@ -103,8 +103,10 @@ function createScene() {
     arrayButters.push(new Butter());
   } 
   for (i = -1; i <= 1; i+=2){
-    for (var j = -1; j <= 1; j+=2)
-      arrayTrees.push(new Tree(i * 4, j * 4));
+    for (var j = -1; j <= 1; j+=2){
+      arrayTrees.push(new Tree(i * 5, j * 5));
+      arrayTrees.push(new Tree(i * 35, j * 35));
+    }
   }
 }
 
@@ -131,17 +133,17 @@ function createScene2() {
   mat_option = old_mat_option;
 
 
-  //pause plan
-  var geometry = new THREE.BoxGeometry( 50, 1, 20 );
-  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/paused.jpg")} );
+  //pause plane
+  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
+  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/paused.png")} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
   msg_box_array.push(cube);
   scene2.add(cube);
 
-  //Gameover plan
-  var geometry = new THREE.BoxGeometry( 50, 1, 20 );
-  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/gameover.jpg")} );
+  //Gameover plane
+  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
+  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/gameover.png")} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
   msg_box_array.push(cube);
@@ -162,7 +164,7 @@ function createIntroScene()
     sbArray[i].visible = false;
   }
   sbArray[selectedSkyBox].visible = true;
-  new Sun(0,2,0, 0xffffff,1,introScene);
+  new Sun(0,2,0, new THREE.Color(0xffffff),1,introScene);
   promises.push(new Promise(function(resolve,reject){
     load3DObject("models/Lambo.mtl","models/Lambo.obj",0,0);
   }));

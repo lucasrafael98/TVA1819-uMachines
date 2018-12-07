@@ -46,7 +46,7 @@ class Track extends GameElement{
       'use strict';
 
       geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
-      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/stone.png", "textures/tex1.jpg", 1, 0.75);
+      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/roz.jpg", "textures/tex1.jpg", 1, 0.65);
       var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
       var mirror = new THREE.Reflector( geometry, {
         clipBias: 0.003,
@@ -55,7 +55,7 @@ class Track extends GameElement{
       } );
       mirror.rotation.x = -Math.PI / 2;
       mirror.position.copy(new THREE.Vector3(x,0.95,z));
-      scene.add(mirror);
+      //scene.add(mirror);
     }
 }
 
