@@ -39,6 +39,15 @@ function load3DObject(matPath,objPath,objType,sceneType){
     });
 }
 
+function dist(obj1, obj2) {
+    var dx = obj1.position.x - obj2.position.x;
+    var dy = obj1.position.y - obj2.position.y;
+    var dz = obj1.position.z - obj2.position.z;
+    var d_squared = dx*dx + dy*dy + dz*dz;
+    return Math.sqrt(d_squared);
+  }
+  
+
 function loadCandle(matPath,objPath,x,y,z){
     var mtlLoader = new THREE.MTLLoader();
     mtlLoader.load( matPath, function( materials ) {

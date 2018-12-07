@@ -4,6 +4,7 @@ var camera1, camera2, camera3,camera4, introCamera, introScene, scene, scene2, r
 var geometry, material, mesh;
 var introCar,car,track,introOvni,ovni,truck;
 var sbArray,sb;
+var camPos = new THREE.Vector3(0, 70, 0);
 var controls;
 var objectArray;
 var arrayOranges;

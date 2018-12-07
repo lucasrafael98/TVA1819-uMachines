@@ -1,8 +1,13 @@
 
 function objUpdate(dt) {
   if(car == null){return;}
-	 var d,x,z;
-	 var i, j, d;
+  if(track.materialsArray == null){return;}
+  var d,x,z;
+  var i, j, d;
+  // update shader EyePos
+  camPos.copy(cameras[selectedCamera].position);
+  track.materialsArray[0][2].uniforms.eyePosition = camPos;
+  console.log(track.materialsArray[0][2].uniforms.eyePosition);
 	//Car update 
   if (car.right()) {
 	car.rotate(-1, dt);
@@ -76,6 +81,7 @@ function objUpdate(dt) {
         arrayCheerios[i].fb = 2;
   	}
     if (arrayCheerios[i].cheerioCollision) {
+      console.log(arrayCheerios[i].hasCalculated);
       if (arrayCheerios[i].collidesWith &&
         arrayCheerios[i].hasCalculated === false &&
         arrayCheerios[arrayCheerios[i].collidesWith].hasCalculated === false) {

@@ -84,17 +84,17 @@ class GameElement extends THREE.Object3D {
 		bmap.wrapT = THREE.RepeatWrapping;
 		bmap.repeat.set(4,4);
 
-        /*var vertShader = document.getElementById('vert_sh').innerHTML;
+
+        var vertShader = document.getElementById('vert_sh').innerHTML;
         var fragShader = document.getElementById('frag_sh').innerHTML;
-        var uniforms = {    // custom uniforms (your textures)
+        var uniforms = {
             lightColor: { value: new THREE.Color(color)},
             baseTexture: { value: texture },
             normalMap: { value: bmap },
             lightPosition: { value: new THREE.Vector3(60, 10, 60) },
-            eyePosition: { value: new THREE.Vector3(-1, 2, -1) },
-            bumpScale: { value: 1 }
+            eyePosition: { value: camPos }
         };
-
+        /*
         var positionAttributes = geometry.getAttribute('position');
         var uvAttributes = geometry.getAttribute('uv');
 
@@ -112,7 +112,6 @@ class GameElement extends THREE.Object3D {
         var tangents = new Float32Array(positionAttributes.array.length);
         var bitangents = new Float32Array(positionAttributes.array.length);
 
-
         var tangArray = [];
         var bitangentArray = [];
 
@@ -126,15 +125,24 @@ class GameElement extends THREE.Object3D {
             var uv2 = realUvs[i+2]; 
 
 
-            var deltaPos1 =  v1.sub(v0);
+            var deltaPos1 = v1.sub(v0);
             var deltaPos2 = v2.sub(v0);
 
             var deltaUV1 = uv1.sub(uv0);
             var deltaUV2 = uv2.sub(uv0);
 
             var r = 1.0 / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-            var tangent =   deltaPos1.multiplyScalar(deltaUV2.y).sub(  deltaPos2.multiplyScalar(deltaUV1.y) ).multiplyScalar(r); //p1 * uv2.y - p2 * uv1.y
-            var bitangent =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r);
+            var x_t = deltaPos1.multiplyScalar(deltaUV2.y).x - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).x;
+            var y_t = deltaPos1.multiplyScalar(deltaUV2.y).y - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).y;
+            var z_t = deltaPos1.multiplyScalar(deltaUV2.y).z - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).z;
+            var tangent = new THREE.Vector3(x_t, y_t, z_t);
+
+
+            //var tangent =   deltaPos1.multiplyScalar(deltaUV2.y).sub(  deltaPos2.multiplyScalar(deltaUV1.y) ).multiplyScalar(r); //p1 * uv2.y - p2 * uv1.y
+            var x_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).x;
+            var y_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).y;
+            var z_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).z;
+            var bitangent = new THREE.Vector3(x_b, y_b, z_b);
 
             tangArray.push(tangent.x);
             tangArray.push(tangent.y);
@@ -164,15 +172,36 @@ class GameElement extends THREE.Object3D {
         for (var i = 0; i < bitangentArray.length; i++ ){
             tangents[i] =tangArray[i];
             bitangents[i] = bitangentArray[i];
-        }
+        }*/
 
+        var tangs = [
+            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Front
+           -1,  0,  0,  -1,  0,  0,  -1,  0,  0,  -1,  0,  0, // Back
+            0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1, // Right
+            0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1, // Left
+            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Top
+            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Bottom
+       ];
+
+       var bitangs = [
+            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Front
+            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Back
+            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Right
+            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Left
+            0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1, // Top
+            0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1, // Bot
+        ];
+
+        var tangents = new Float32Array(tangs);
+        var bitangents = new Float32Array(bitangs);
 
         geometry.addAttribute( 'tangent',  new THREE.BufferAttribute( tangents, 3 ) );
         geometry.addAttribute( 'bitangent',  new THREE.BufferAttribute( bitangents, 3 ) );
         var material = new THREE.ShaderMaterial({
             uniforms: uniforms,
             vertexShader: vertShader,
-            fragmentShader: fragShader
+            fragmentShader: fragShader,
+            transparent: true
         });
         material.extensions.derivatives = true;
         mats.push(material);
@@ -180,12 +209,12 @@ class GameElement extends THREE.Object3D {
         mats.push(material);
         this.materialsArray.push(mats);
 
-        var mesh = new THREE.Mesh(geometry, mats[mat_option]);*/
+        //var mesh = new THREE.Mesh(geometry, mats[mat_option]);
 
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
+        /*mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats);
+        this.materialsArray.push(mats);*/
 
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
@@ -204,7 +233,7 @@ class GameElement extends THREE.Object3D {
             mesh.children[i].receiveShadow = true;
         }
         mesh.position.set(x,y,z);        
-    	this.add(mesh);
+    	scene.add(mesh);
     }
 	
     changeMaterial() {

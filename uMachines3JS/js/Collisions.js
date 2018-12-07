@@ -17,7 +17,7 @@ function checkColision() {
 				arrayCheerios[i].fb = 1;
 			else if (car.velocity > 0)
 				arrayCheerios[i].fb = -1;
-			car.carVelocity *= 0.9;
+			car.carVelocity *= 0.95;
 		}
 	}
 
@@ -48,7 +48,9 @@ function checkColision() {
 				d2obj2 = Math.pow(arrayCheerios[j].position.x - arrayCheerios[i].position.x, 2) + Math.pow(arrayCheerios[j].position.z - arrayCheerios[i].position.z, 2);
 				if (d >= d2obj2){
 					arrayCheerios[i].cheerioCollision = true;
-					arrayCheerios[i].collidesWith = j;					
+					arrayCheerios[i].collidesWith = j;	
+					arrayCheerios[i].hasCalculated = false;		
+					arrayCheerios[j].hasCalculated = false;			
 				}
 			}
 		}

@@ -25,16 +25,12 @@ class Track extends GameElement{
           new Cheerio(Math.cos(2* Math.PI * i /20) * 9, 1.15, Math.sin(2* Math.PI * i /20) * 9);
         }
 
-        /*for (let i = 0; i < 60; i++) {
-          new Cheerio(Math.cos(2* Math.PI * i /60) * 34, 1.15, Math.sin(2* Math.PI * i /60) * 34);  
-        }*/
         for (let i = 0; i < 70; i++) {
           new Cheerio(Math.cos(2* Math.PI * i /70) * 36, 1.15, Math.sin(2* Math.PI * i /70) * 36);  
         }
         for (let i = 0; i < 80; i++) {
           new Cheerio(Math.cos(2* Math.PI * i /80) * 38, 1.15, Math.sin(2* Math.PI * i /80) * 38);  
         }
-        
         
     }
 
@@ -46,7 +42,7 @@ class Track extends GameElement{
       'use strict';
 
       geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
-      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/roz.jpg", "textures/tex1.jpg", 1, 0.65);
+      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/stone.png", "textures/tex1.jpg", 1, 0.75);
       var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
       var mirror = new THREE.Reflector( geometry, {
         clipBias: 0.003,
@@ -55,7 +51,7 @@ class Track extends GameElement{
       } );
       mirror.rotation.x = -Math.PI / 2;
       mirror.position.copy(new THREE.Vector3(x,0.95,z));
-      //scene.add(mirror);
+      scene.add(mirror);
     }
 }
 

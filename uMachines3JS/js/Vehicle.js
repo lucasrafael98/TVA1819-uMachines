@@ -19,7 +19,7 @@ class Vehicle extends GameElement
 		this.carColidingButter = null;
 		
 		//radius of bounding box sphere
-		this.BBradius = 1.25;
+		this.BBradius = 1.5;
 		
 	}
 
