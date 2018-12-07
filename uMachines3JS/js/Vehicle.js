@@ -12,6 +12,7 @@ class Vehicle extends GameElement
 		this.maxVelocity = 30;
 		this.carFriction = 0;
 		this.turnSpeedFactor = 0.0016;
+		this.spinFactor = 0.05;
 		
 		this.carButterFrontColision = false;
 		this.carButterBackColision = false;

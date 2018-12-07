@@ -23,11 +23,13 @@ function objUpdate(dt) {
 	car.friction(-1, dt);
   }
   car.translate(dt);
+  car.spinWheels();
   
   //Particle update
   for (let i = 0; i < protonArray.length; i++) {
     protonArray[i].update(dt); 
   }
+
 
 
 	//Orange Update
