@@ -134,7 +134,7 @@ function onKeyUp(e) {
 function toggleFog(){
   fogBool = !fogBool;
   if(fogBool){
-    scene.fog.density = 0.03;  
+    scene.fog.density = 0.04;  
     if(lensflare.visible)
       lensflare.visible = !lensflare.visible;
   }else{

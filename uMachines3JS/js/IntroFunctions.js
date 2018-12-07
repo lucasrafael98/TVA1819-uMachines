@@ -91,19 +91,19 @@ function createGame()
 	//Start orange clock speedup timer
 	orangeClock.start();
 	//Directional Light
-	directionalLight = new Sun(40,10,40, 0xffffff,2,scene);
+	directionalLight = new Sun(60, 10, 60, 0xffffff,2.5,scene);
 
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	directionalLight.children[0].castShadow = true;
 	directionalLight.children[0].shadow.mapSize.width = 256;  // default
 	directionalLight.children[0].shadow.mapSize.height = 256;
-	directionalLight.children[0].shadow.camera.top = 50;
-	directionalLight.children[0].shadow.camera.right = 50;
-	directionalLight.children[0].shadow.camera.left = -50;
-	directionalLight.children[0].shadow.camera.bottom = -50;
-	directionalLight.children[0].shadow.camera.near = 0.5;
-	directionalLight.children[0].shadow.camera.far = 100;
+	directionalLight.children[0].shadow.camera.top = 80;
+	directionalLight.children[0].shadow.camera.right = 80;
+	directionalLight.children[0].shadow.camera.left = -80;
+	directionalLight.children[0].shadow.camera.bottom = -80;
+	directionalLight.children[0].shadow.camera.near = 5;
+	directionalLight.children[0].shadow.camera.far = 150;
 	directionalLight.children[0].shadowCameraVisible = true;
 
 	var textureLoader = new THREE.TextureLoader();
@@ -122,26 +122,26 @@ function createGame()
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.7, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 64, 0.5, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare2, 40, 0.4, new THREE.Color(0xff4c00), THREE.AdditiveBlending));
-	lensflare.addElement( new THREE.LensflareElement( textureFlare3, 400, 0.0, new THREE.Color(0xffffff), THREE.AdditiveBlending));
+	lensflare.addElement( new THREE.LensflareElement( textureFlare3, 700, 0.0, new THREE.Color(0xffffff), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare4, 40, 0.9, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.6, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.2, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 	lensflare.addElement( new THREE.LensflareElement( textureFlare1, 40, 0.85, new THREE.Color(0xffae00), THREE.AdditiveBlending));
 
-	lensflare.position.copy(new THREE.Vector3(40, 10, 40));
+	lensflare.position.copy(new THREE.Vector3(60, 10, 60));
 
 	scene.add( lensflare );
 	//Set all candles with same parameters
     for (let x = -1; x < 2; x+=2) {
         for (let y = -1; y < 2; y+=2) {
-			loadCandle("models/Candle.mtl","models/Candle.obj",18*x,5.5,18*y);
-			addProton(18*x,6.75,18*y);
+			loadCandle("models/Candle.mtl","models/Candle.obj",30*x,5.5,30*y);
+			addProton(30*x,6.75,30*y);
         }
 	}
 	loadCandle("models/Candle.mtl","models/Candle.obj",-5,5.5,0);
-	addProton(-5,6.75,0);
+	addProton(-7,6.75,0);
 	loadCandle("models/Candle.mtl","models/Candle.obj",5,5.5,0);
-	addProton(5,6.75,0);
+	addProton(7,6.75,0);
 
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);

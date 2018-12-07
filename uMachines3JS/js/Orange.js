@@ -97,7 +97,7 @@ class Orange extends GameElement{
 
     translate()
     {
-      if(this.position.x > 40/2 || this.position.x < -40/2 || this.position.z > 40/2 || this.position.z < -40/2)
+      if(this.position.x > track.getWidth()/2 || this.position.x < -track.getWidth()/2 || this.position.z > track.getHeight()/2 || this.position.z < -track.getHeight()/2)
       {
         scene.remove(this);
         var index = arrayOranges.indexOf(this);

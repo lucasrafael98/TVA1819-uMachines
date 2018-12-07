@@ -50,7 +50,9 @@ function objUpdate(dt) {
 
       car.move(0, dt);
       car.resetKeyFlags();
-      car.position.set(-5, 1, 10);
+      car.resetPos();
+      car.rotation.y = Math.PI / 2;
+      car.updateDOF();
 
       //else User lost one life
     }

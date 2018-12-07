@@ -13,7 +13,8 @@ class Candle extends GameElement {
 	addLight(x,y,z, color, intensity, distance, decay) {
 		var light = new THREE.PointLight(color, intensity, distance, decay);
 		light.position.set(x, y, z);
-		light.castShadow = true;
+		// enable this if you want to kill your gpu lol
+		/*light.castShadow = true;
 		light.shadow.mapSize.width = 128;  // default
 		light.shadow.mapSize.height = 128;
 		light.shadow.camera.top = 10;
@@ -22,7 +23,7 @@ class Candle extends GameElement {
 		light.shadow.camera.bottom = -10;
 		light.shadow.camera.near = 0.1;
 		light.shadow.camera.far = 20;
-		light.shadowCameraVisible = true;
+		light.shadowCameraVisible = true;*/
 		this.add(light);
 	}
 	

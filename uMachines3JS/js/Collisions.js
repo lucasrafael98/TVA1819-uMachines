@@ -11,12 +11,14 @@ function checkColision() {
 	for (var i = 0; i < arrayCheerios.length; i++) {
 		x = arrayCheerios[i].position.x;
 		z = arrayCheerios[i].position.z;
-		if (dcarc >= Math.pow(car.position.x - x, 2) + Math.pow(car.position.z - z, 2))
+		if (dcarc >= Math.pow(car.position.x - x, 2) + Math.pow(car.position.z - z, 2)){
 			arrayCheerios[i].carCollision = true;
 			if(car.velocity > 0)
 				arrayCheerios[i].fb = 1;
 			else if (car.velocity > 0)
 				arrayCheerios[i].fb = -1;
+			car.carVelocity *= 0.9;
+		}
 	}
 
 	//car- butter colision

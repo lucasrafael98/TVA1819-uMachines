@@ -18,7 +18,7 @@ function load3DObject(matPath,objPath,objType,sceneType){
             }
             else if(sceneType == 1){
                 if(objType == 0){
-                    car = new Car(-5,1,10,scene,object);
+                    car = new Car(-5,1,20,scene,object);
                 }
                 else if(objType == 1){
                     car = new Ovni(-5,1,10,scene,object);
