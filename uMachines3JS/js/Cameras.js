@@ -18,7 +18,7 @@ function createCameraOrtho()
 }
 
 function createCameraPersp(x,y,z) {
-  camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 2000);
+  camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.01, 2000);
   camera2.position.x = x;
   camera2.position.y = y;
   camera2.position.z = z;

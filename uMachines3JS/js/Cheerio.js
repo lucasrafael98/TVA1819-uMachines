@@ -2,10 +2,10 @@ class Cheerio extends GameElement
 {
     constructor(x, y, z) {
     	super();
-        geometry = new THREE.TorusGeometry(0.7, 0.2, 8, 14);
-        this.addMesh(geometry,0xc4be05, 5, 0xffffff);
+        geometry = new THREE.TorusGeometry(0.7, 0.2, 6, 10);
+        this.addMesh(geometry, new THREE.Color(0xc4be05), 5, new THREE.Color(0xffffff));
         //material = new THREE.MeshBasicMaterial( {color: 0xc4be05, wireframe: true} );
-        this.color = 0xc4be05;
+        this.color = new THREE.Color(0xc4be05);
         this.rotation.x = Math.PI / 2;
         this.position.x = x;
         this.position.y = y;

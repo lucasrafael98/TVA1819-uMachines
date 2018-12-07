@@ -7,7 +7,7 @@ class GameElement extends THREE.Object3D {
     }
 
     storeInitPos(){
-        this.initPos = this.position;
+        this.initPos = new THREE.Vector3(this.position.x, this.position.y, this.position.z);
     }
 
     resetPos(){
@@ -28,7 +28,9 @@ class GameElement extends THREE.Object3D {
         mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status}));
         mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular}));
         this.materialsArray.push(mats);
-    	this.add(new THREE.Mesh(geometry, mats[mat_option]));
+        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        mesh.castShadow = true;
+    	this.add(mesh);
     }
 
     addMeshPosition(x,y,z, geometry, color, shininess=30, specular=0x111111)
@@ -41,11 +43,12 @@ class GameElement extends THREE.Object3D {
         this.materialsArray.push(mats);
 
         var mesh = new THREE.Mesh(geometry, mats[mat_option]);
-        mesh.position.set(x,y,z);        
+        mesh.position.set(x,y,z);
+        mesh.castShadow = true;        
     	this.add(mesh);
     }
 	
-	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, specular=0x111111)
+	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, opacity=1, specular=0x111111)
     {
         var mats = new Array();
 		
@@ -54,12 +57,152 @@ class GameElement extends THREE.Object3D {
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set(4,4);
 		
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture}));
+        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, transparent:true, opacity: opacity}));
         this.materialsArray.push(mats);
 
         var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        mesh.position.set(x,y,z);    
+        mesh.castShadow = true;    
+        mesh.receiveShadow = true;
+    	this.add(mesh);
+    }
+
+    addMeshPositionMultiTexture(x,y,z, geometry, color, tex_path, tex_path1, shininess=30, opacity=1, specular=0x111111)
+    {
+        var mats = new Array();
+        var mats1 = new Array();
+
+        var texture = new THREE.TextureLoader().load(tex_path);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(4,4);
+        
+        var bmap = new THREE.TextureLoader().load("textures/normal.png");
+		bmap.wrapS = THREE.RepeatWrapping;
+		bmap.wrapT = THREE.RepeatWrapping;
+		bmap.repeat.set(4,4);
+
+        /*var vertShader = document.getElementById('vert_sh').innerHTML;
+        var fragShader = document.getElementById('frag_sh').innerHTML;
+        var uniforms = {    // custom uniforms (your textures)
+            lightColor: { value: new THREE.Color(color)},
+            baseTexture: { value: texture },
+            normalMap: { value: bmap },
+            lightPosition: { value: new THREE.Vector3(60, 10, 60) },
+            eyePosition: { value: new THREE.Vector3(-1, 2, -1) },
+            bumpScale: { value: 1 }
+        };
+
+        var positionAttributes = geometry.getAttribute('position');
+        var uvAttributes = geometry.getAttribute('uv');
+
+        var realVertices = [];
+        var realUvs = [];
+
+        for (var i = 0; i < positionAttributes.array.length ; i += 3){
+            realVertices.push(new THREE.Vector3(positionAttributes.array[i+0], positionAttributes.array[i+1], positionAttributes.array[i+2] ));
+        }
+
+        for (var i = 0; i < uvAttributes.array.length; i+= 2){
+            realUvs.push (new  THREE.Vector2( uvAttributes.array[i], uvAttributes.array[i+1] )   );
+        }
+
+        var tangents = new Float32Array(positionAttributes.array.length);
+        var bitangents = new Float32Array(positionAttributes.array.length);
+
+
+        var tangArray = [];
+        var bitangentArray = [];
+
+        for (var i = 0; i < realVertices.length ; i += 3){
+            var v0 = realVertices[i+0];
+            var v1 = realVertices[i+1];
+            var v2 = realVertices[i+2];
+
+            var uv0 = realUvs[i+0];
+            var uv1 = realUvs[i+1];
+            var uv2 = realUvs[i+2]; 
+
+
+            var deltaPos1 =  v1.sub(v0);
+            var deltaPos2 = v2.sub(v0);
+
+            var deltaUV1 = uv1.sub(uv0);
+            var deltaUV2 = uv2.sub(uv0);
+
+            var r = 1.0 / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+            var tangent =   deltaPos1.multiplyScalar(deltaUV2.y).sub(  deltaPos2.multiplyScalar(deltaUV1.y) ).multiplyScalar(r); //p1 * uv2.y - p2 * uv1.y
+            var bitangent =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r);
+
+            tangArray.push(tangent.x);
+            tangArray.push(tangent.y);
+            tangArray.push(tangent.z);
+
+            tangArray.push(tangent.x);
+            tangArray.push(tangent.y);
+            tangArray.push(tangent.z);
+
+            tangArray.push(tangent.x);
+            tangArray.push(tangent.y);
+            tangArray.push(tangent.z);
+
+            bitangentArray.push (bitangent.x);
+            bitangentArray.push (bitangent.y);
+            bitangentArray.push (bitangent.z);
+
+            bitangentArray.push (bitangent.x);
+            bitangentArray.push (bitangent.y);
+            bitangentArray.push (bitangent.z);
+
+            bitangentArray.push (bitangent.x);
+            bitangentArray.push (bitangent.y);
+            bitangentArray.push (bitangent.z);
+        } 
+
+        for (var i = 0; i < bitangentArray.length; i++ ){
+            tangents[i] =tangArray[i];
+            bitangents[i] = bitangentArray[i];
+        }
+
+
+        geometry.addAttribute( 'tangent',  new THREE.BufferAttribute( tangents, 3 ) );
+        geometry.addAttribute( 'bitangent',  new THREE.BufferAttribute( bitangents, 3 ) );
+        var material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vertShader,
+            fragmentShader: fragShader
+        });
+        material.extensions.derivatives = true;
+        mats.push(material);
+        mats.push(material);
+        mats.push(material);
+        this.materialsArray.push(mats);
+
+        var mesh = new THREE.Mesh(geometry, mats[mat_option]);*/
+
+        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
+        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
+        this.materialsArray.push(mats);
+
+        var texture1 = new THREE.TextureLoader().load(tex_path1);
+		texture1.wrapS = THREE.RepeatWrapping;
+		texture1.wrapT = THREE.RepeatWrapping;
+		texture1.repeat.set(4,4);
+		
+        mats1.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
+        mats1.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
+        mats1.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture1, transparent:true, opacity: opacity}));
+        this.materialsArray.push(mats1);
+
+        var materials = [mats[mat_option], mats1[mat_option]];
+        var mesh = new THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
+        for( var i = 0; i != 2; i++){
+            mesh.children[i].castShadow = true;
+            mesh.children[i].receiveShadow = true;
+        }
         mesh.position.set(x,y,z);        
     	this.add(mesh);
     }

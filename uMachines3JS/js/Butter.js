@@ -7,9 +7,6 @@
   {
     'use strict';
     super();
-    geometry = new THREE.CubeGeometry(6, 1, 3);
-
-    this.addMesh(geometry, 0xf2d604);
     this.w = track.getWidth();
     this.h = track.getHeight();
     var x,z;
@@ -20,9 +17,14 @@
 
     } while (this.anotherAlreadyExists(x,z,arrayButters));
     
-    this.color = 0xf2d604;
+    this.addPlate(0, 0, 0);
+    this.addButterStick(0, 1, 0);
+    this.addTriPrism(0, 0, 1.775, 0.25, 0.5, 6, -Math.PI/2, 0x7a7a7a, 150, 0x7a7a7a);
+    this.addTriPrism(0, 0, -1.775, 0.25, 0.5, 6, Math.PI/2, 0x7a7a7a, 150, 0x7a7a7a);
+    this.addTriPrism(3.125, 0, 0, 0.25, 0.5, 3.3, 0, 0x7a7a7a, 150, 0x7a7a7a);
+    this.addTriPrism(-3.125, 0, 0, 0.25, 0.5, 3.3, Math.PI, 0x7a7a7a, 150, 0x7a7a7a);
     this.position.set(x, 1.5, z);
-	  this.BBox = new THREE.Box3( new THREE.Vector3(x - 4,-1.5,z - 2.5), new THREE.Vector3(x + 4,1.5,z + 2.5));
+	  this.BBox = new THREE.Box3( new THREE.Vector3(x - 5,-1.5,z - 3.7), new THREE.Vector3(x + 5,1.5,z + 3.7));
     scene.add(this);
     this.storeInitPos();
   }
@@ -43,5 +45,61 @@
         }  
       }
       return false;
+    }
+
+    addButterStick(x, y, z){
+      'use strict';
+      var colour = 0xffa100;
+      geometry = new THREE.CubeGeometry(4.5*1.1, 2*1.1, 1.8*1.15);
+      material = new THREE.MeshPhongMaterial({color: colour, shininess: 10, specular: 0x3d311c});
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: colour});
+      mesh.phongMaterial = new THREE.MeshPhongMaterial({color: colour, shininess: 10, specular: 0x3d311c});
+      mesh.basicMaterial = new THREE.MeshBasicMaterial({color: 0xffa100});
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      this.add(mesh);
+    }
+    
+    addPlate(x, y, z){
+      'use strict';
+      var colour = new THREE.Color(0.19225, 0.19225, 0.19225);
+      geometry = new THREE.CubeGeometry(6, 0.5, 3.3);
+      material = new THREE.MeshPhongMaterial({color: colour, shininess: 150});
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: colour});
+      mesh.phongMaterial = new THREE.MeshPhongMaterial({color: colour, shininess: 150});
+      mesh.basicMaterial = new THREE.MeshBasicMaterial({color: 0x7a7a7a});
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      this.add(mesh);
+    }
+    
+    addTriPrism(x, y, z, lgh, hgh, wdh, rot, pr_color, shine, spec){
+      var geometry = new THREE.Geometry();
+      geometry.vertices.push( new THREE.Vector3( -lgh/2, -hgh/2, wdh/2 ) );
+      geometry.vertices.push( new THREE.Vector3( -lgh/2, -hgh/2, -wdh/2) );
+      geometry.vertices.push( new THREE.Vector3( -lgh/2, hgh/2, wdh/2) );
+      geometry.vertices.push( new THREE.Vector3( -lgh/2, hgh/2, -wdh/2 ) );
+      geometry.vertices.push( new THREE.Vector3( lgh/2, -hgh/2, wdh/2 ) );
+      geometry.vertices.push( new THREE.Vector3( lgh/2, -hgh/2, -wdh/2 ) );
+      geometry.faces.push(new THREE.Face3(2,1,0));
+      geometry.faces.push(new THREE.Face3(4,3,2));
+      geometry.faces.push(new THREE.Face3(4,1,0));
+      geometry.faces.push(new THREE.Face3(1,2,3));
+      geometry.faces.push(new THREE.Face3(3,4,5));
+      geometry.faces.push(new THREE.Face3(1,4,5));
+      geometry.faces.push(new THREE.Face3(0,2,4));
+      geometry.faces.push(new THREE.Face3(1,3,5));
+      geometry.computeFaceNormals();
+      geometry.computeVertexNormals();
+      mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color: pr_color, shininess: shine, side: THREE.DoubleSide, specular: spec}));
+      mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: pr_color, side: THREE.DoubleSide});
+      mesh.phongMaterial = new THREE.MeshPhongMaterial({color: pr_color, shininess: shine, side: THREE.DoubleSide, specular: spec});
+      mesh.basicMaterial = new THREE.MeshBasicMaterial({color: pr_color, side: THREE.DoubleSide});
+      mesh.position.set(x, y, z);
+      mesh.rotateY(rot);
+      mesh.castShadow = true;
+      this.add(mesh);
     }
 }

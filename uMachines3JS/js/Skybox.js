@@ -9,12 +9,12 @@ class Skybox extends THREE.Object3D
 		{
 			cubeMaterials = 
 			[
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide}),
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide}),
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide}),
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide}),
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide}),
-				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/s-l640.jpg"),side: THREE.DoubleSide})
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_ft.png"),side: THREE.DoubleSide}),
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_bk.png"),side: THREE.DoubleSide}),
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_up.png"),side: THREE.DoubleSide}),
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_dn.png"),side: THREE.DoubleSide}),
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_rt.png"),side: THREE.DoubleSide}),
+				new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/darkcity_lf.png"),side: THREE.DoubleSide})
 			];
 		}
 		else if(sb_type == 1)

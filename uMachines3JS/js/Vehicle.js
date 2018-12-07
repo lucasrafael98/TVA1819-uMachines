@@ -151,8 +151,8 @@ class Vehicle extends GameElement
 
 	addCamera() {
 		//Settings for moving camera fixed with the car
-		var cam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
-		var cam2 = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+		var cam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 2000);
+		var cam2 = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 2000);
 		//Car camera position according car's reference
 		cam.position.set(0,4,-10);
 		cam.lookAt(new THREE.Vector3(0,1,7));

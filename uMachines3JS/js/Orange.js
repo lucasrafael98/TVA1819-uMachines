@@ -12,7 +12,7 @@ class Orange extends GameElement{
       'use strict';
       super();
       geometry = new THREE.SphereGeometry( 3, 15, 15 );
-      this.addMesh(geometry,0xf48c42, 1);
+      this.addMesh(geometry,new THREE.Color(0xf48c42), 1);
       //material = new THREE.MeshBasicMaterial( {color: 0xf48c42, wireframe: wireframe_status} );
       this.w = track.getWidth();
       this.h = track.getHeight();
@@ -97,7 +97,7 @@ class Orange extends GameElement{
 
     translate()
     {
-      if(this.position.x > 40/2 || this.position.x < -40/2 || this.position.z > 40/2 || this.position.z < -40/2)
+      if(this.position.x > track.getWidth()/2 || this.position.x < -track.getWidth()/2 || this.position.z > track.getHeight()/2 || this.position.z < -track.getHeight()/2)
       {
         scene.remove(this);
         var index = arrayOranges.indexOf(this);

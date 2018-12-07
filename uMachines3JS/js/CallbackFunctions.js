@@ -55,25 +55,37 @@ function onKeyDown(e) {
 
       case 49: //tecla 1
 				selectedCamera = 0;
-      	onResizeOrtho();
+        onResizeOrtho();
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = false;
       	break;
 
       case 50: //tecla 2
         selectedCamera = 1;
-      	onResizePerspective();
+        onResizePerspective();
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = false;
       	break;
 
       case 51: //tecla 3
         selectedCamera = 2;
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = true;
       	onResizePerspective();
       	break;
 			case 52: //tecla 3
         selectedCamera = 3;
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = true;
       	onResizePerspective();
       	break;
 			case 78: //Tecla n
         //toggle function to enable/disable direction light
         directionalLight.toggleVisible();
+        if(lensflare.visible)
+          lensflare.visible = !lensflare.visible;
+        else if(!lensflare.visible)
+          lensflare.visible = !lensflare.visible;
       	break;
       case 90:
       case 122:
@@ -122,10 +134,13 @@ function onKeyUp(e) {
 function toggleFog(){
   fogBool = !fogBool;
   if(fogBool){
-    scene.fog = new THREE.Fog("0x7a7a7a", 0.0025, 20);    
+    scene.fog.density = 0.04;  
+    if(lensflare.visible)
+      lensflare.visible = !lensflare.visible;
   }else{
-    scene.fog.near = 0.1;
-    scene.fog.far = 0;
+    scene.fog.density = 0;
+    if(!lensflare.visible)
+      lensflare.visible = !lensflare.visible;
   }
 }
 

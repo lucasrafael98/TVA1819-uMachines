@@ -6,8 +6,8 @@ class Track extends GameElement{
     constructor(x,y,z) {
         super();
         //Track size
-        this.width = 40;
-        this.height = 40;
+        this.width = 80;
+        this.height = 80;
         this.thickness = 0.5;
 
         this.addTableTop(0, 0, 0);
@@ -18,12 +18,21 @@ class Track extends GameElement{
 
         scene.add(this);
 
+        for (let i = 0; i < 30; i++) {
+          new Cheerio(Math.cos(2* Math.PI * i /30) * 12, 1.15, Math.sin(2* Math.PI * i /30) * 12);
+        }
         for (let i = 0; i < 20; i++) {
-          new Cheerio(Math.cos(2* Math.PI * i /20) * 6.5, 1.5, Math.sin(2* Math.PI * i /20) * 6.5);
+          new Cheerio(Math.cos(2* Math.PI * i /20) * 9, 1.15, Math.sin(2* Math.PI * i /20) * 9);
         }
 
-        for (let i = 0; i < 40; i++) {
-          new Cheerio(Math.cos(2* Math.PI * i /40) * 16, 1.5, Math.sin(2* Math.PI * i /40) * 16);  
+        /*for (let i = 0; i < 60; i++) {
+          new Cheerio(Math.cos(2* Math.PI * i /60) * 34, 1.15, Math.sin(2* Math.PI * i /60) * 34);  
+        }*/
+        for (let i = 0; i < 70; i++) {
+          new Cheerio(Math.cos(2* Math.PI * i /70) * 36, 1.15, Math.sin(2* Math.PI * i /70) * 36);  
+        }
+        for (let i = 0; i < 80; i++) {
+          new Cheerio(Math.cos(2* Math.PI * i /80) * 38, 1.15, Math.sin(2* Math.PI * i /80) * 38);  
         }
         
         
@@ -36,8 +45,17 @@ class Track extends GameElement{
     addTableTop(x, y, z) {
       'use strict';
 
-      geometry = new THREE.CubeGeometry(this.width, 2, this.height);
-      this.addMeshPositionTexture(x,y,z,geometry,0x666666, "textures/ground.jpg", 1);
+      geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
+      this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/roz.jpg", "textures/tex1.jpg", 1, 0.65);
+      var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
+      var mirror = new THREE.Reflector( geometry, {
+        clipBias: 0.003,
+        textureWidth: window.innerWidth * window.devicePixelRatio,
+        textureHeight: window.innerHeight * window.devicePixelRatio
+      } );
+      mirror.rotation.x = -Math.PI / 2;
+      mirror.position.copy(new THREE.Vector3(x,0.95,z));
+      //scene.add(mirror);
     }
 }
 
