@@ -30,6 +30,7 @@
     <script src="js/OrbitControls.js"></script>
     <script src="js/Reflector.js"></script>
     <script src="js/Lensflare.js"></script>
+    <script src="js/SceneUtils.js"></script>
     <script src="js/OBJLoader.js"></script>
     <script src="js/MTLLoader.js"></script>
     <script src="js/Main.js"></script>
@@ -47,7 +48,9 @@
       animate();
     </script>
     <script id="frag_sh" type="x-shader/x-fragment">
-      #version 330 core
+      #ifdef GL_ES
+      precision highp float;
+      #endif
       struct LightProperties {
         bool isEnabled;
         bool isLocal;
@@ -119,11 +122,12 @@
         }
     </script>
     <script id="vert_sh" type="x-shader/x-vertex">
-      #version 330
-      uniform mat4 MVPMatrix;
-      uniform mat4 MVMatrix;
-      uniform mat3 NormalMatrix;
-      in vec4 VertexColor;
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+      varying mat4 MVPMatrix;
+      varying mat4 MVMatrix;
+      varying mat3 NormalMatrix;
       in vec3 VertexNormal;
       in vec4 VertexPosition;
       in vec4 texCoord;

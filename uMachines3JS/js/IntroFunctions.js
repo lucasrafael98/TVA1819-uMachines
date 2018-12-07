@@ -86,6 +86,8 @@ function createGame()
 	createScene();
 	createScene2(); 
 
+	scene.fog = new THREE.FogExp2(new THREE.Color(0x7a7a7a), 0);
+
 	//Start orange clock speedup timer
 	orangeClock.start();
 	//Directional Light

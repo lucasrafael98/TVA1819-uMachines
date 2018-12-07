@@ -55,20 +55,28 @@ function onKeyDown(e) {
 
       case 49: //tecla 1
 				selectedCamera = 0;
-      	onResizeOrtho();
+        onResizeOrtho();
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = false;
       	break;
 
       case 50: //tecla 2
         selectedCamera = 1;
-      	onResizePerspective();
+        onResizePerspective();
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = false;
       	break;
 
       case 51: //tecla 3
         selectedCamera = 2;
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = true;
       	onResizePerspective();
       	break;
 			case 52: //tecla 3
         selectedCamera = 3;
+        for (var i = 0; i != arrayTrees.length; i++)
+          arrayTrees[i].visible = true;
       	onResizePerspective();
       	break;
 			case 78: //Tecla n
@@ -126,11 +134,11 @@ function onKeyUp(e) {
 function toggleFog(){
   fogBool = !fogBool;
   if(fogBool){
-    scene.fog = new THREE.FogExp2("0x7a7a7a", 0.03);   
+    scene.fog.density = 0.03;  
     if(lensflare.visible)
       lensflare.visible = !lensflare.visible;
   }else{
-    scene.fog.density = 0
+    scene.fog.density = 0;
     if(!lensflare.visible)
       lensflare.visible = !lensflare.visible;
   }
