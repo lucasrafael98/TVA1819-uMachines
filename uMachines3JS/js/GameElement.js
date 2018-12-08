@@ -207,7 +207,7 @@ class GameElement extends THREE.Object3D {
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
 		texture1.wrapT = THREE.RepeatWrapping;
-		texture1.repeat.set(4,4);
+		texture1.repeat.set(10, 10);
 		
         mats1.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
         mats1.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
@@ -216,7 +216,7 @@ class GameElement extends THREE.Object3D {
 
         var materials = [mats[mat_option], mats1[mat_option]];
         var mesh = new THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
-        mesh.children[0].position.y -= 0.025;
+        mesh.children[0].position.y -= 0.03;
         for( var i = 0; i != 2; i++){
             mesh.children[i].castShadow = true;
             mesh.children[i].receiveShadow = true;
