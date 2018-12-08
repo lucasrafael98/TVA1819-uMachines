@@ -85,8 +85,26 @@ class GameElement extends THREE.Object3D {
 		bmap.repeat.set(4,4);
 
 
-        var vertShader = document.getElementById('vert_sh').innerHTML;
-        var fragShader = document.getElementById('frag_sh').innerHTML;
+        var vertShader, fragShader;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: 'shaders/bumpMap.vert',
+            success: function(data) {
+                vertShader = data;
+            }
+        });
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: 'shaders/bumpMap.frag',
+            success: function(data) {
+                fragShader = data;
+            }
+        });
+
+        console.log(fragShader);
+        console.log(vertShader);
         var uniforms = {
             lightColor: { value: new THREE.Color(color)},
             baseTexture: { value: texture },
@@ -185,13 +203,6 @@ class GameElement extends THREE.Object3D {
         mats.push(material);
         mats.push(material);
         this.materialsArray.push(mats);
-
-        //var mesh = new THREE.Mesh(geometry, mats[mat_option]);
-
-        /*mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats);*/
 
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
