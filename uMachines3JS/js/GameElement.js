@@ -91,10 +91,9 @@ class GameElement extends THREE.Object3D {
             lightColor: { value: new THREE.Color(color)},
             baseTexture: { value: texture },
             normalMap: { value: bmap },
-            lightPosition: { value: new THREE.Vector3(60, 10, 60) },
-            eyePosition: { value: new THREE.Vector3(0, 70, 0) }
+            lightPosition: { value: new THREE.Vector3(60, 10, 60) }
         };
-        /*
+        
         var positionAttributes = geometry.getAttribute('position');
         var uvAttributes = geometry.getAttribute('uv');
 
@@ -125,23 +124,22 @@ class GameElement extends THREE.Object3D {
             var uv2 = realUvs[i+2]; 
 
 
-            var deltaPos1 = v1.sub(v0);
-            var deltaPos2 = v2.sub(v0);
+            var deltaPos1 = new THREE.Vector3(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+            var deltaPos2 = new THREE.Vector3(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
 
-            var deltaUV1 = uv1.sub(uv0);
-            var deltaUV2 = uv2.sub(uv0);
+            var deltaUV1 = new THREE.Vector3(uv1.x - uv0.x, uv1.y - uv0.y, uv1.z - uv0.z);
+            var deltaUV2 = new THREE.Vector3(uv2.x - uv0.x, uv2.y - uv0.y, uv2.z - uv0.z);
 
             var r = 1.0 / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-            var x_t = deltaPos1.multiplyScalar(deltaUV2.y).x - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).x;
-            var y_t = deltaPos1.multiplyScalar(deltaUV2.y).y - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).y;
-            var z_t = deltaPos1.multiplyScalar(deltaUV2.y).z - deltaPos2.multiplyScalar(deltaUV1.y).multiplyScalar(r).z;
+            var x_t = ((deltaPos1.x * deltaUV2.y) - (deltaPos2.x * deltaUV1.y)) * r;
+            var y_t = ((deltaPos1.y * deltaUV2.y) - (deltaPos2.y * deltaUV1.y)) * r;
+            var z_t = ((deltaPos1.z * deltaUV2.y) - (deltaPos2.z * deltaUV1.y)) * r;
             var tangent = new THREE.Vector3(x_t, y_t, z_t);
 
 
-            //var tangent =   deltaPos1.multiplyScalar(deltaUV2.y).sub(  deltaPos2.multiplyScalar(deltaUV1.y) ).multiplyScalar(r); //p1 * uv2.y - p2 * uv1.y
-            var x_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).x;
-            var y_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).y;
-            var z_b =  deltaPos2.multiplyScalar(deltaUV2.x).sub(  deltaPos1.multiplyScalar(deltaUV2.x) ).multiplyScalar(r).z;
+            var x_b =  ((deltaPos2.x * deltaUV1.x) - (deltaPos1.x * deltaUV2.x)) * r;
+            var y_b =  ((deltaPos2.y * deltaUV1.x) - (deltaPos1.y * deltaUV2.x)) * r;
+            var z_b =  ((deltaPos2.z * deltaUV1.x) - (deltaPos1.z * deltaUV2.x)) * r;
             var bitangent = new THREE.Vector3(x_b, y_b, z_b);
 
             tangArray.push(tangent.x);
@@ -172,28 +170,7 @@ class GameElement extends THREE.Object3D {
         for (var i = 0; i < bitangentArray.length; i++ ){
             tangents[i] =tangArray[i];
             bitangents[i] = bitangentArray[i];
-        }*/
-
-        var tangs = [
-            40,  0,  0,   40,  0,  0,   40,  0,  0,   40,  0,  0, // Front
-           -40,  0,  0,  -40,  0,  0,  -40,  0,  0,  -40,  0,  0, // Back
-            0,  0, -40,   0,  0, -40,   0,  0, -40,   0,  0, -40, // Right
-            0,  0,  40,   0,  0,  40,   0,  0,  40,   0,  0,  40, // Left
-            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Top
-            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Bottom
-       ];
-
-       var bitangs = [
-            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Front
-            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Back
-            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Right
-            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Left
-            0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1, // Top
-            0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1, // Bot
-        ];
-
-        var tangents = new Float32Array(tangs);
-        var bitangents = new Float32Array(bitangs);
+        }
 
         geometry.addAttribute( 'tangent',  new THREE.BufferAttribute( tangents, 3 ) );
         geometry.addAttribute( 'bitangent',  new THREE.BufferAttribute( bitangents, 3 ) );
@@ -209,12 +186,12 @@ class GameElement extends THREE.Object3D {
         mats.push(material);
         this.materialsArray.push(mats);
 
-        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        //var mesh = new THREE.Mesh(geometry, mats[mat_option]);
 
         /*mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats);
+        this.materialsArray.push(mats);*/
 
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
@@ -228,10 +205,11 @@ class GameElement extends THREE.Object3D {
 
         var materials = [mats[mat_option], mats1[mat_option]];
         var mesh = new THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
+        mesh.children[0].position.y -= 0.025;
         for( var i = 0; i != 2; i++){
             mesh.children[i].castShadow = true;
             mesh.children[i].receiveShadow = true;
-        }*/
+        }
         mesh.position.set(x,y,z);        
     	scene.add(mesh);
     }

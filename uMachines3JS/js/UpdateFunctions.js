@@ -3,12 +3,6 @@ function objUpdate(dt) {
   if(car == null){return;}
   var d,x,z;
   var i, j, d;
-  // update shader EyePos
-  track.materialsArray[0][2].uniforms.eyePosition.x = cameras[selectedCamera].position.x;
-  track.materialsArray[0][2].uniforms.eyePosition.y = cameras[selectedCamera].position.y;
-  track.materialsArray[0][2].uniforms.eyePosition.z = cameras[selectedCamera].position.z;
-  console.log(track.materialsArray[0][2].uniforms.eyePosition);
-  console.log(cameras[selectedCamera].position);
 	//Car update 
   if (car.right()) {
   car.rotate(-1, dt);
