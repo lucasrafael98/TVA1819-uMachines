@@ -45,7 +45,8 @@ class GameElement extends THREE.Object3D {
         var mesh = new THREE.Mesh(geometry, mats[mat_option]);
         mesh.position.set(x,y,z);
         mesh.castShadow = true;        
-    	this.add(mesh);
+        this.add(mesh);
+        return mesh;
     }
 	
 	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, opacity=1, specular=0x111111)

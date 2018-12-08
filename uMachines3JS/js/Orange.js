@@ -11,7 +11,7 @@ class Orange extends GameElement{
     constructor(track, obj_array) {
       'use strict';
       super();
-      geometry = new THREE.SphereGeometry( 3, 15, 15 );
+      geometry = new THREE.SphereGeometry( 3, 20, 20 );
       this.addMesh(geometry,new THREE.Color(0xf48c42), 1);
       //material = new THREE.MeshBasicMaterial( {color: 0xf48c42, wireframe: wireframe_status} );
       this.w = track.getWidth();
@@ -30,9 +30,10 @@ class Orange extends GameElement{
       this.position.y = 4;
       this.position.z = z;
 
-      this.addLeaf(0, 4, 0);
+      this.addLeaf(0, 3.2, 0, -Math.PI*(1/2-1/12));
+      this.addLeaf(0, 3.2, 0, Math.PI*(1/2-1/12));
 
-      this.addBranch(0, 3.5, 0);
+      this.addBranch(0, 3.1, 0);
 
       this.DOF = new THREE.Vector3(0,0,0);
       this.rotationFactor = 0.5;
@@ -81,17 +82,24 @@ class Orange extends GameElement{
       return false;
     }
 
-    addLeaf(x, y, z) {
+    addLeaf(x, y, z, rot) {
       'use strict';
 
-      geometry = new THREE.CubeGeometry(0.15, 0.15, 0.15);
-      this.addMeshPosition(x,y,z,geometry,0x04f72d);
+      var leafShape = new THREE.Shape();
+      var x_sh = 0, y_sh = 0;
+      leafShape.moveTo( x_sh, y_sh );
+      leafShape.bezierCurveTo( x_sh, y_sh, x_sh+1, y_sh+1.6, x_sh, y_sh + 2 );
+      leafShape.bezierCurveTo( x_sh-1, y_sh+1.6, x_sh, y_sh, x_sh, y_sh );
+      var geometry = new THREE.ShapeGeometry( leafShape, 10);
+      var leaf = this.addMeshPosition(x,y,z,geometry,0x04f72d);
+      leaf.rotation.x = rot;
+      leaf.material.side = THREE.DoubleSide;
     }
 
     addBranch(x, y, z) {
       'use strict';
 
-      geometry = new THREE.CubeGeometry(0.05, 1, 0.05);
+      geometry = new THREE.CubeGeometry(0.05, 0.2, 0.05);
       this.addMeshPosition(x,y,z,geometry,0x5b322c);
     }
 
