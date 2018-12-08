@@ -92,7 +92,7 @@ class GameElement extends THREE.Object3D {
             baseTexture: { value: texture },
             normalMap: { value: bmap },
             lightPosition: { value: new THREE.Vector3(60, 10, 60) },
-            eyePosition: { value: camPos }
+            eyePosition: { value: new THREE.Vector3(0, 70, 0) }
         };
         /*
         var positionAttributes = geometry.getAttribute('position');
@@ -175,19 +175,19 @@ class GameElement extends THREE.Object3D {
         }*/
 
         var tangs = [
-            1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Front
-           -1,  0,  0,  -1,  0,  0,  -1,  0,  0,  -1,  0,  0, // Back
-            0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1, // Right
-            0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1, // Left
+            40,  0,  0,   40,  0,  0,   40,  0,  0,   40,  0,  0, // Front
+           -40,  0,  0,  -40,  0,  0,  -40,  0,  0,  -40,  0,  0, // Back
+            0,  0, -40,   0,  0, -40,   0,  0, -40,   0,  0, -40, // Right
+            0,  0,  40,   0,  0,  40,   0,  0,  40,   0,  0,  40, // Left
             1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Top
             1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0, // Bottom
        ];
 
        var bitangs = [
-            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Front
-            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Back
-            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Right
-            0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0, // Left
+            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Front
+            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Back
+            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Right
+            0, -40,  0,   0, -40,  0,   0, -40,  0,   0, -40,  0, // Left
             0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1, // Top
             0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1, // Bot
         ];
@@ -209,12 +209,12 @@ class GameElement extends THREE.Object3D {
         mats.push(material);
         this.materialsArray.push(mats);
 
-        //var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
 
         /*mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
         mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, bumpMap: bmap, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats);*/
+        this.materialsArray.push(mats);
 
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
@@ -231,7 +231,7 @@ class GameElement extends THREE.Object3D {
         for( var i = 0; i != 2; i++){
             mesh.children[i].castShadow = true;
             mesh.children[i].receiveShadow = true;
-        }
+        }*/
         mesh.position.set(x,y,z);        
     	scene.add(mesh);
     }
