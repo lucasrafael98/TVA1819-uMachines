@@ -45,6 +45,7 @@ var orthocam2;
 var msg_box_array;
 var ready = false;
 var stats = new Stats();
+var points = 0;
 
 // Teste //
 
@@ -53,6 +54,15 @@ var proton, emitter;
 
 // Teste //
 
+function increasePoints(){
+  points++;
+  document.getElementById("pointsNumber").innerHTML = points.toString();
+}
+
+function resetPoints(){
+  points = 0;
+  document.getElementById("pointsNumber").innerHTML = points.toString();
+}
 
 
 function createScene() {
@@ -130,8 +140,6 @@ function createScene2() {
     scene2.add(cube);
     livesArray.push(cube);
   }
-  
-
 
   var wire = wireframe_status;
   wireframe_status = false;
@@ -188,12 +196,6 @@ function createIntroScene()
 
 function removeCarLife() {
   livesArray[--lives].visible = false;
-  for (i = 0; i < scene2.children.length; i++) {
-    if ((scene2.children[i] instanceof Car) && (scene2.children[i].visible)) {
-      scene2.children[i].visible = false;
-      break;
-    }
-  }
 }
 
 function render() {

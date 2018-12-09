@@ -146,11 +146,13 @@ function createGame()
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
 
+	resetPoints();
 	render();
 	ready = true;
 }
 
 function resetGame(){
+	resetPoints();
 	car.resetPos();
 	car.velocity = 0;
 	car.rotation.y = Math.PI / 2;

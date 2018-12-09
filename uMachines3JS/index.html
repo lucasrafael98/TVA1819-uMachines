@@ -4,6 +4,7 @@
     <title>&mu;Machines | AVT Group 2</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Anton|Audiowide|Kumar+One+Outline|Righteous|Shrikhand|Russo+One" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/three.min.js"></script>
     <script src="js/three.proton.min.js"></script>
@@ -45,6 +46,11 @@
     <button id="startButton" onclick="clicked(2)">PLAY</button>
     <button id="changeSkyBoxButton" onclick="clicked(3)">CHANGE VIEW</button>
   </div>
+
+  <div id="pointsDiv">
+    <span class="pointsSpan"><strong>POINTS: </strong></span><span class="pointsSpan" id="pointsNumber">0</span>
+  </div>
+  
     <script>
       init();
       animate();
