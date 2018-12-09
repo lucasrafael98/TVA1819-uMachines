@@ -38,6 +38,7 @@ var lensflare;
 var lights = new Array();
 var pause = false;
 var lives = 5;
+var livesArray = [];
 var alreadyLost = false;
 var h = 1.5;
 var orthocam2;
@@ -120,11 +121,16 @@ function createScene2() {
   orthocam2.position.set(0,70,0);
   orthocam2.lookAt(scene2.position);
 
-  var geometry = new THREE.BoxGeometry( 20, 1, 5 );
-  var material = new THREE.MeshBasicMaterial( {color: 0x5b5b5b} );
-  var cube = new THREE.Mesh( geometry, material );
-  cube.position.set(-47,0,-40);
-  scene2.add(cube);
+
+  for(var i = 0; i < lives; i++){
+    var geometry = new THREE.BoxGeometry( 10, 1, 7 );
+    var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/life.png"), transparent: true} );
+    var cube = new THREE.Mesh( geometry, material );
+    cube.position.set(-80 + i*10,0, 40);
+    scene2.add(cube);
+    livesArray.push(cube);
+  }
+  
 
 
   var wire = wireframe_status;
@@ -136,16 +142,16 @@ function createScene2() {
 
 
   //pause plane
-  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
-  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/paused.png")} );
+  var geometry = new THREE.BoxGeometry( 60, 1, 40 );
+  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/paused.png"), transparent: true} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
   msg_box_array.push(cube);
   scene2.add(cube);
 
   //Gameover plane
-  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
-  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/gameover.png")} );
+  var geometry = new THREE.BoxGeometry( 60, 1, 40 );
+  var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/gameover.png"), transparent: true} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
   msg_box_array.push(cube);
@@ -180,7 +186,8 @@ function createIntroScene()
   });
 }
 
-function removeCarIndicator() {
+function removeCarLife() {
+  livesArray[--lives].visible = false;
   for (i = 0; i < scene2.children.length; i++) {
     if ((scene2.children[i] instanceof Car) && (scene2.children[i].visible)) {
       scene2.children[i].visible = false;

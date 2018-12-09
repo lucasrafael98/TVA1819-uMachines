@@ -20,6 +20,9 @@ function onKeyDown(e) {
       alreadyLost = false;
       pause = false;
       lives = 5;
+      for(var i = 0; i < lives; i++){
+        livesArray[i].visible = true;
+      }
       resetGame();
     }
 
