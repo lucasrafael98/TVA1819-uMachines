@@ -136,7 +136,7 @@ function createScene2() {
 
 
   //pause plane
-  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
+  var geometry = new THREE.BoxGeometry( 40, 1, 25 );
   var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/paused.png")} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
@@ -144,7 +144,7 @@ function createScene2() {
   scene2.add(cube);
 
   //Gameover plane
-  var geometry = new THREE.BoxGeometry( 40, 1, 40 );
+  var geometry = new THREE.BoxGeometry( 40, 1, 25 );
   var material = new THREE.MeshBasicMaterial( {map: new THREE.TextureLoader().load("textures/gameover.png")} );
   var cube = new THREE.Mesh( geometry, material );
   cube.visible = false;
