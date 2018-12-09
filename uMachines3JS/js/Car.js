@@ -22,10 +22,10 @@ class Car extends Vehicle{
 		this.resetKeyFlags();
 		
 
-		this.wheelsIndexes = [148,190,229,250,341,30,59,63,246,331,108,319,305,76,109,161,235,255,283];
-		this.steeringWheelIndexes = [6,13,103,267]
-		this.Fwheel_indexes = [ 148,190,229,250,341,30,59,63,246,331];
-		this.brakeHeadIndexes = [59,305,341,235,]
+		this.wheelsIndexes = [0,1,2,4,15,16,17,18,19,21,23,34,45,46,48,59,60,61,131,132,133,134,135,136];
+		this.steeringWheelIndexes = [241];
+		this.Fwheel_indexes = [0,1,2,4,15,16,17,46,48,59,60,61];
+		this.brakeHeadIndexes = [2,18,19,46]
 		this.wheelsPivots = [];
 		this.steeringWheelPivots = [];
 
@@ -102,12 +102,11 @@ class Car extends Vehicle{
 	}
 
 	turnWheels(type){
-		let mesh;
+		let mesh, rotationAxis;
 		for (let i = 0; i < this.Fwheel_indexes.length; i++) {
 		  mesh = this.children[0].children[this.Fwheel_indexes[i]];
 		  mesh.geometry.center();
 		  mesh.position.set(this.wheelsPivots[i].x,this.wheelsPivots[i].y,this.wheelsPivots[i].z);
-		  console.log(mesh.rotation.y);
 		  if(mesh.rotation.y < -0.5 || mesh.rotation.y > 0.5){continue;}
 		  if(type == 1){
 			  if(this.carVelocity < 0){
@@ -128,13 +127,14 @@ class Car extends Vehicle{
 	turnSteeringWheel(type){
 		let mesh;
 		for (let i = 0; i < this.steeringWheelIndexes.length; i++) {
+
 		  mesh = this.children[0].children[this.steeringWheelIndexes[i]];
 		  mesh.geometry.center();
 		  mesh.position.set(this.steeringWheelPivots[i].x,this.steeringWheelPivots[i].y,this.steeringWheelPivots[i].z);
 		  if(type == 1){
-			mesh.rotation.x += this.carVelocity * this.turnSpeedFactor;
+				mesh.rotation.x += this.carVelocity * this.turnSpeedFactor;
 		  }else if(type == -1){
-			mesh.rotation.x -= this.carVelocity * this.turnSpeedFactor;
+				mesh.rotation.x -= this.carVelocity * this.turnSpeedFactor;
 		  }
 		}
 	}

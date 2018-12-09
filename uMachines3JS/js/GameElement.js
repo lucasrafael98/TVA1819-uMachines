@@ -104,8 +104,6 @@ class GameElement extends THREE.Object3D {
             }
         });
 
-        console.log(fragShader);
-        console.log(vertShader);
         var uniforms = {
             lightColor: { value: new THREE.Color(color)},
             baseTexture: { value: texture },

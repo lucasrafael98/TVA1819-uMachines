@@ -23,6 +23,6 @@ void main() {
     vec3 halfDir = normalize(lightDir + viewDir);
 
     float diffuse = max(dot(normal, lightDir), 0.0);
-    gl_FragColor = vec4(diffuse * color, 0.75); 
+    gl_FragColor = vec4(diffuse * color, 0.65); 
 
 }

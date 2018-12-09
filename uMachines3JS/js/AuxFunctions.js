@@ -6,10 +6,13 @@ function load3DObject(matPath,objPath,objType,sceneType){
         objLoader.setMaterials( materials );
         objLoader.load(objPath, function ( object ) {
             object.rotation.y = Math.PI / 2;
+            json_to_print = [];
             for (let i = 0; i < object.children.length; i++) {
                 object.children[i].castShadow = true;
-                object.children[i].geometry.computeBoundingBox();   
+                object.children[i].geometry.computeBoundingBox(); 
+                json_to_print.push({name:object.children[i].name, index: i});  
             }
+            console.log(json_to_print);
             if(sceneType == 0){
                 if(objType == 0){
                     introCar = new Car(0,0,6,introScene,object);

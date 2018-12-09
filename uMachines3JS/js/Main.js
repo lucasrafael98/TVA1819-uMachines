@@ -73,7 +73,7 @@ function createScene() {
   promises = [];
   if(selectedCar == 0){
     promises.push(new Promise(function(resolve,reject){
-      load3DObject("models/Lambo.mtl","models/Lambo.obj",0,1);
+      load3DObject("models/Lambo/Avent.mtl","models/Lambo/Avent.obj",0,1);
     }));
   }
   else if(selectedCar == 1)
@@ -168,7 +168,7 @@ function createIntroScene()
   sbArray[selectedSkyBox].visible = true;
   new Sun(0,2,0, new THREE.Color(0xffffff),1,introScene);
   promises.push(new Promise(function(resolve,reject){
-    load3DObject("models/Lambo.mtl","models/Lambo.obj",0,0);
+    load3DObject("models/Lambo/Avent.mtl","models/Lambo/Avent.obj",0,0);
   }));
   promises.push(new Promise(function(resolve,reject){
     load3DObject("models/Bmw.mtl","models/Bmw.obj",1,0);
@@ -238,6 +238,9 @@ function init() {
 
   mul_width = window.innerWidth * scale;
   mul_height = window.innerHeight * scale * aspect_ratio;
+
+  stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+  document.body.appendChild( stats.dom );
 
   document.body.appendChild(renderer.domElement);
 
