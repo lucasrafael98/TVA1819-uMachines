@@ -106,8 +106,10 @@ function onKeyDown(e) {
 				break;
       case 70: //tecla f
         toggleFog();
-				break;
-
+        break;
+      case 86: //tecle v
+        changeVRMode();
+        break;
     }
   }
 }

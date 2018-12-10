@@ -46,6 +46,35 @@ var msg_box_array;
 var ready = false;
 var stats = new Stats();
 var points = 0;
+var vrMode = false;
+
+// VIEWS //
+
+var windowWidth, windowHeight;
+
+var views = [
+  { //default
+    left: 0,
+    top: 0,
+    width: 1.0,
+    height: 1.0,
+    fov: 50
+  },
+  { //left
+    left: 0,
+    top: 0,
+    width: 0.5,
+    height: 1.0,
+    fov: 50
+  },
+  { //right
+    left: 0.5,
+    top: 0,
+    width: 1.0,
+    height: 1.0,
+    fov: 50
+  } 
+];
 
 // Teste //
 
@@ -188,15 +217,34 @@ function removeCarLife() {
 
 function render() {
   'use strict';
-  if(selectedScene == 0)
-  {
-    renderer.render(introScene,introCamera);    
-  }
-  else
-  {
-    renderer.render(scene,cameras[selectedCamera]);
-    renderer.clearDepth();
-    renderer.render(scene2,orthocam2);
+
+  var viewsToRender = (vrMode) ? views.slice(1) : views.slice(0,1);
+
+  for(var viewIdx in viewsToRender){
+    var view = viewsToRender[viewIdx];
+    var left = Math.floor( window.innerWidth * view.left );
+    var top = Math.floor( window.innerHeight * view.top );
+    var width = Math.floor( window.innerWidth * view.width );
+    var height = Math.floor( window.innerHeight * view.height );
+
+    renderer.setViewport( left, top, width, height );
+    renderer.setScissor( left, top, width, height );
+    renderer.setScissorTest( true );
+
+    if(selectedScene == 0)
+    {
+      introCamera.aspect = width / height;
+      introCamera.updateProjectionMatrix();
+      renderer.render(introScene,introCamera);    
+    }
+    else
+    {
+      cameras[selectedCamera].aspect = width / height;
+      cameras[selectedCamera].updateProjectionMatrix();
+      renderer.render(scene,cameras[selectedCamera]);
+      renderer.clearDepth();
+      renderer.render(scene2,orthocam2);
+    }
   }
 }
 
