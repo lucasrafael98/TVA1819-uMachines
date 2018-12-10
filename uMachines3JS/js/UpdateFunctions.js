@@ -46,8 +46,7 @@ function objUpdate(dt) {
     z = arrayOranges[i].position.z;
     //if the orange and car colide then remove one live
     if (car.isOutsideTrack() || (d >= Math.pow(car.position.x - x, 2) + Math.pow(car.position.z - z, 2))){
-      lives--;
-      removeCarIndicator();
+      removeCarLife();
 
       if (lives == 0) {
         alreadyLost = true;

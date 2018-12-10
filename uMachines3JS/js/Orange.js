@@ -111,6 +111,7 @@ class Orange extends GameElement{
         var index = arrayOranges.indexOf(this);
         arrayOranges.splice(index, 1);
         window.setTimeout(function(){arrayOranges.push(new Orange(track, objectArray));}, Math.random()*10000);
+        increasePoints();
       }
 
       this.position.x +=  this.velocity* this.DOF.x;

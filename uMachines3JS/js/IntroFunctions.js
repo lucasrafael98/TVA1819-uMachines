@@ -60,13 +60,15 @@ function clicked(type)
 			createGame();
 			selectedScene = 1;
 			document.getElementById("introMenu").style.display = "none";
+			document.getElementById("pointsDiv").style.display = "block";
 		}
 		else if(choosen == 1)
 		{
 			selectedCar = 1;
 			createGame();
 			selectedScene = 1;
-			document.getElementById("introMenu").style.display = "none";		
+			document.getElementById("introMenu").style.display = "none";	
+			document.getElementById("pointsDiv").style.display = "block";	
 		}
 	}
 	else if(type == 3)
@@ -146,6 +148,7 @@ function createGame()
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
 
+	resetPoints();
 	render();
 	ready = true;
 }
