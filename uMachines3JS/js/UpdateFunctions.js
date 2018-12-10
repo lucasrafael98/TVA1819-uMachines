@@ -26,7 +26,6 @@ function objUpdate(dt) {
   if (car.stopB()) {
 	car.friction(-1, dt);
   }
-  console.log(car.speed());
   car.translate(dt);
   car.spinWheels();
   car.turnWheels(0);
@@ -78,7 +77,6 @@ function objUpdate(dt) {
         arrayCheerios[i].fb = 2;
   	}
     if (arrayCheerios[i].cheerioCollision) {
-      console.log(arrayCheerios[i].hasCalculated);
       if (arrayCheerios[i].collidesWith &&
         arrayCheerios[i].hasCalculated === false &&
         arrayCheerios[arrayCheerios[i].collidesWith].hasCalculated === false) {

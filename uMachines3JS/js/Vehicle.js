@@ -223,7 +223,7 @@ class Vehicle extends GameElement
 	}
 
 	turnWheels(type){
-		let mesh, rotationAxis;
+		let mesh;
 		for (let i = 0; i < this.Fwheel_indexes.length; i++) {
 		  mesh = this.children[0].children[this.Fwheel_indexes[i]];
 		  mesh.geometry.center();

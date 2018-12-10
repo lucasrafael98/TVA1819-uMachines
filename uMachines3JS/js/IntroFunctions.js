@@ -137,13 +137,13 @@ function createGame()
     for (let x = -1; x < 2; x+=2) {
         for (let y = -1; y < 2; y+=2) {
 			loadCandle("models/Candle.mtl","models/Candle.obj",30*x,5.5,30*y);
-			addProton(30*x,6.75,30*y);
+			addProton(30*x,5,30*y);
         }
 	}
 	loadCandle("models/Candle.mtl","models/Candle.obj",-7,5.5,0);
-	addProton(-7,6.75,0);
+	addProton(-7,5,0);
 	loadCandle("models/Candle.mtl","models/Candle.obj",7,5.5,0);
-	addProton(7,6.75,0);
+	addProton(7,5,0);
 
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);

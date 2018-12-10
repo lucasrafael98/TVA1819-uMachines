@@ -12,9 +12,9 @@ class Ovni extends Vehicle
 		this.rotation.y = Math.PI / 2;
 		this.resetKeyFlags();
 
-		this.wheelsIndexes = [1,2,3,40,41,42,69,70,71,101,102,103];
-		this.steeringWheelIndexes = [144];
-		this.Fwheel_indexes = [40,41,42,101,102,103];
+		this.wheelsIndexes = [37,67,68,69,70,127,128,129,130,136,166,167,168,169,3,121,99,100,101,102];
+		this.steeringWheelIndexes = [26];
+		this.Fwheel_indexes = [37,67,68,69,70,127,128,129,130,136];
 		this.brakeHeadIndexes = [];
 		this.wheelsPivots = [];
 		this.steeringWheelPivots = [];
