@@ -162,7 +162,7 @@ function createIntroScene()
   introCamera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 2000);
   introCamera.position.set(4,2,3);
   introCamera.lookAt(new THREE.Vector3(0,0,3));
-  for (var i = 0; i < 5; ++i) 
+  for (var i = 0; i < 6; ++i) 
   {
     sbArray.push(new Skybox(0,0,0,introScene,i))
     sbArray[i].visible = false;

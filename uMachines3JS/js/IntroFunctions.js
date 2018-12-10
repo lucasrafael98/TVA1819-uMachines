@@ -74,7 +74,7 @@ function clicked(type)
 	else if(type == 3)
 	{
 		sbArray[selectedSkyBox].visible = false;
-		if(selectedSkyBox == 4)
+		if(selectedSkyBox == 5)
 			selectedSkyBox = 0;
 		else
 			selectedSkyBox++;

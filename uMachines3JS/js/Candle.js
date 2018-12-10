@@ -40,7 +40,18 @@ class Candle extends GameElement {
 		this.addMeshPosition(x,y,z,geometry,color);
 	}
 	
-	toggleVisible() {this.children[1].visible = !this.children[1].visible;}
+	toggleVisible() {
+		this.children[1].visible = !this.children[1].visible;
+		for (let i = 0; i < protonArray.length; i++) {
+			if(this.children[1].visible){
+				protonArray[i].emitters[0].emit();
+			}
+			else{
+				protonArray[i].emitters[0].stopEmit();
+			}
+			
+		}
+	}
 	
 }
 
