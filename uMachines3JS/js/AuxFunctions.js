@@ -10,6 +10,8 @@ function increasePoints(){
 
   function changeVRMode(){
     vrMode = !vrMode;
+    if(vrMode)
+        document.getElementById("pointsDiv").style.display = "none";
   }
 
 function load3DObject(matPath,objPath,objType,sceneType){

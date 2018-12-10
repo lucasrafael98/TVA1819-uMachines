@@ -242,8 +242,10 @@ function render() {
       cameras[selectedCamera].aspect = width / height;
       cameras[selectedCamera].updateProjectionMatrix();
       renderer.render(scene,cameras[selectedCamera]);
-      renderer.clearDepth();
-      renderer.render(scene2,orthocam2);
+      if(!vrMode){
+        renderer.clearDepth();
+        renderer.render(scene2,orthocam2);
+      }
     }
   }
 }
