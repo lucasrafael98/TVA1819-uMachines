@@ -28,7 +28,8 @@ function load3DObject(matPath,objPath,objType,sceneType){
                     car = new Car(-5,1,20,scene,object);
                 }
                 else if(objType == 1){
-                    car = new Ovni(-5,1,10,scene,object);
+                    object.scale.set(1.4,1.4,1.4);
+                    car = new Ovni(-5,1,20,scene,object);
                 }else if(objType == 2){
                     object.scale.set(3,3,3);
                     var p = new Candle(-40,5.5,-10, object, new THREE.Color(0xfffc7c), 5, 35, 2);

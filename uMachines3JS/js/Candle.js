@@ -8,6 +8,7 @@ class Candle extends GameElement {
 		this.position.set(x,y,z);
 		scene.add(this);
 		this.storeInitPos();
+		console.log(this);
     }
 	
 	addLight(x,y,z, color, intensity, distance, decay) {
@@ -39,7 +40,7 @@ class Candle extends GameElement {
 		this.addMeshPosition(x,y,z,geometry,color);
 	}
 	
-	toggleVisible() {this.children[0].visible = !this.children[0].visible;}
+	toggleVisible() {this.children[1].visible = !this.children[1].visible;}
 	
 }
 

@@ -26,8 +26,11 @@ function objUpdate(dt) {
   if (car.stopB()) {
 	car.friction(-1, dt);
   }
+  console.log(car.speed());
   car.translate(dt);
   car.spinWheels();
+  car.turnWheels(0);
+  car.turnSteeringWheel(0);
   
   //Particle update
   for (let i = 0; i < protonArray.length; i++) {
@@ -54,11 +57,7 @@ function objUpdate(dt) {
         return;
       }
 
-      car.move(0, dt);
-      car.resetKeyFlags();
-      car.resetPos();
-      car.rotation.y = Math.PI / 2;
-      car.updateDOF();
+      car.reset();
 
       //else User lost one life
     }

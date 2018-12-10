@@ -151,11 +151,7 @@ function createGame()
 }
 
 function resetGame(){
-	car.resetPos();
-	car.velocity = 0;
-	car.rotation.y = Math.PI / 2;
-	car.DOF = new THREE.Vector3(0,0,0);
-	car.resetKeyFlags();
+	car.reset();
 	for(var i = 0; i != arrayCheerios.length; i++){
 		arrayCheerios[i].resetPos();
 		arrayCheerios[i].velocity = 0;

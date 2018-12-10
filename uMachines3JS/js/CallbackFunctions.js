@@ -92,7 +92,7 @@ function onKeyDown(e) {
         sb.visible = !sb.visible;
         break;
 			case 67: //Tecla c
-				for (var i = 0; i < objectArray.length; i++) {
+				for (var i = 1; i < objectArray.length; i++) {
 					if (objectArray[i].type == "Candle"){
 						objectArray[i].toggleVisible();
 					}
