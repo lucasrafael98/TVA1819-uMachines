@@ -22,7 +22,7 @@ class Car extends Vehicle{
 		this.resetKeyFlags();
 		
 
-		this.wheelsIndexes = [116,117,118,213,214,215,268,269,270,311,312,313];
+		this.wheelsIndexes = [116,117,118,268,269,270,213,214,215,311,312,313];
 		this.steeringWheelIndexes = [216];
 		this.Fwheel_indexes = [116,117,118,268,269,270];
 		this.brakeHeadIndexes = [64,139,183,277]
