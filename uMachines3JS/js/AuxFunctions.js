@@ -12,6 +12,8 @@ function increasePoints(){
     vrMode = !vrMode;
     if(vrMode)
         document.getElementById("pointsDiv").style.display = "none";
+    else
+    document.getElementById("pointsDiv").style.display = "block";
   }
 
 function load3DObject(matPath,objPath,objType,sceneType){
