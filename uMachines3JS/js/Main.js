@@ -53,18 +53,6 @@ var protonArray = [];
 var proton, emitter;
 
 // Teste //
-
-function increasePoints(){
-  points++;
-  document.getElementById("pointsNumber").innerHTML = points.toString();
-}
-
-function resetPoints(){
-  points = 0;
-  document.getElementById("pointsNumber").innerHTML = points.toString();
-}
-
-
 function createScene() {
   'use strict';
 

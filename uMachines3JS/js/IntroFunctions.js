@@ -155,6 +155,7 @@ function createGame()
 
 function resetGame(){
 	car.reset();
+	resetPoints();
 	for(var i = 0; i != arrayCheerios.length; i++){
 		arrayCheerios[i].resetPos();
 		arrayCheerios[i].velocity = 0;
@@ -187,6 +188,9 @@ function resetGame(){
 		arrayOranges[i].position.y = 4;
 		arrayOranges[i].position.z = z;
 		arrayOranges[i].DOF = new THREE.Vector3(0,0,0);
+		arrayOranges[i].rotation.x = 0;
+		arrayOranges[i].rotation.y = 0;
+		arrayOranges[i].rotation.z = 0;
 		arrayOranges[i].rotationFactor = 0.5;
 
 		arrayOranges[i].velocity = Math.random()/10 + 0.05 + velocityDificulty;
