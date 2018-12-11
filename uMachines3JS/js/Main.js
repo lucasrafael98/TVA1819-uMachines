@@ -46,7 +46,7 @@ var points = 0;
 var alreadyLoaded = false;
 var vrMode = false;
 var effect;
-
+var raycaster = new THREE.Raycaster();
 // VIEWS //
 
 var windowWidth, windowHeight;
@@ -284,6 +284,7 @@ function init() {
   renderer.autoClear = false;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.domElement.addEventListener("click", chooseCar, true);
+  renderer.domElement.addEventListener("mousemove", onDocumentMouseMove, true);
 
   effect = new THREE.StereoEffect( renderer );
 	effect.setSize( window.innerWidth, window.innerHeight );

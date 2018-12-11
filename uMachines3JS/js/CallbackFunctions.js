@@ -202,15 +202,14 @@ function onResize()
 }
 
 function chooseCar(event){
-  var raycaster = new THREE.Raycaster();
   var mouse = new THREE.Vector2();
   event.preventDefault();
   mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
   mouse.y =  - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, introCamera);
   var intersects = raycaster.intersectObjects(introCars, true); //array
-  console.log(intersects,introCars);
   if (intersects.length > 0) {
+    document.getElementById("warning-msg").style.display = "none";
     selectedObject = intersects[0].object.parent.parent;
     if(selectedObject instanceof Lambo){
       choosen = 0;
@@ -222,5 +221,19 @@ function chooseCar(event){
       introCars[0].scale.set(1.4,1.4,1.4);
       introCars[1].scale.set(1,1,1);
     }
+  }
+}
+
+function onDocumentMouseMove(event) {
+  var mouse = new THREE.Vector2();
+  event.preventDefault();
+  mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+  mouse.y =  - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, introCamera);
+  var intersects = raycaster.intersectObjects(introCars, true); //array
+  if(intersects.length > 0) {
+      $('html,body').css('cursor', 'pointer');
+  } else {
+      $('html,body').css('cursor', 'default');
   }
 }
