@@ -1,0 +1,10 @@
+body
+{
+  margin: 0px;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.indicador {
+    display: none;
+}
