@@ -47,6 +47,7 @@ var ready = false;
 var stats = new Stats();
 var points = 0;
 var vrMode = false;
+var effect;
 
 // VIEWS //
 
@@ -70,7 +71,7 @@ var views = [
   { //right
     left: 0.5,
     top: 0,
-    width: 1.0,
+    width: 0.5,
     height: 1.0,
     fov: 50
   } 
@@ -219,34 +220,44 @@ function render() {
   'use strict';
 
   var viewsToRender = (vrMode) ? views.slice(1) : views.slice(0,1);
+  var cameraToUse = (selectedScene == 0) ? introCamera : cameras[selectedCamera];
+  var sceneToUse = (selectedScene == 0) ? introScene : scene;
 
-  for(var viewIdx in viewsToRender){
+  /*for(var viewIdx in viewsToRender){    
     var view = viewsToRender[viewIdx];
-    var left = Math.floor( window.innerWidth * view.left );
+    var left = Math.floor( window.innerWidth * view.left);
     var top = Math.floor( window.innerHeight * view.top );
     var width = Math.floor( window.innerWidth * view.width );
     var height = Math.floor( window.innerHeight * view.height );
-
     renderer.setViewport( left, top, width, height );
     renderer.setScissor( left, top, width, height );
     renderer.setScissorTest( true );
-
-    if(selectedScene == 0)
-    {
-      introCamera.aspect = width / height;
-      introCamera.updateProjectionMatrix();
-      renderer.render(introScene,introCamera);    
-    }
+    cameraToUse.aspect = width / height;
+    cameraToUse.updateProjectionMatrix();
+    if(vrMode)
+      effect.render(sceneToUse, cameraToUse);
     else
-    {
-      cameras[selectedCamera].aspect = width / height;
-      cameras[selectedCamera].updateProjectionMatrix();
-      renderer.render(scene,cameras[selectedCamera]);
-      if(!vrMode){
-        renderer.clearDepth();
-        renderer.render(scene2,orthocam2);
-      }
-    }
+      renderer.render(sceneToUse,cameraToUse);
+  }*/
+
+  var view = views[0];
+  var left = Math.floor( window.innerWidth * view.left);
+  var top = Math.floor( window.innerHeight * view.top );
+  var width = Math.floor( window.innerWidth * view.width );
+  var height = Math.floor( window.innerHeight * view.height );
+  renderer.setViewport( left, top, width, height );
+  renderer.setScissor( left, top, width, height );
+  renderer.setScissorTest( true );
+  cameraToUse.aspect = width / height;
+  cameraToUse.updateProjectionMatrix();
+  if(vrMode)
+    effect.render(sceneToUse, cameraToUse);
+  else
+    renderer.render(sceneToUse,cameraToUse);
+
+  if(!vrMode && selectedScene == 1){
+    renderer.clearDepth();
+    renderer.render(scene2,orthocam2);
   }
 }
 
@@ -282,6 +293,9 @@ function init() {
   renderer = new THREE.WebGLRenderer( {antialias: true, alpha: true} );
   renderer.autoClear = false;
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  effect = new THREE.StereoEffect( renderer );
+	effect.setSize( window.innerWidth, window.innerHeight );
 
   mul_width = window.innerWidth * scale;
   mul_height = window.innerHeight * scale * aspect_ratio;
