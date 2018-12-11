@@ -89,7 +89,6 @@ class Vehicle extends GameElement
 		headlight.shadow.camera.bottom = -50;
 		headlight.shadow.camera.near = 0.5;
 		headlight.shadow.camera.far = 100;
-		headlight.shadowCameraVisible = true;
 		this.add(headlight);
 	}
 
@@ -204,10 +203,10 @@ class Vehicle extends GameElement
 	
 	getPivots(){
 		for (let i = 0; i < this.wheelsIndexes.length; i++) {
-			this.wheelsPivots.push(this.children[0].children[this.wheelsIndexes[i]].geometry.boundingBox.getCenter());
+			this.wheelsPivots.push(this.children[0].children[this.wheelsIndexes[i]].geometry.boundingBox.getCenter(new THREE.Vector3()));
 		}
 		for (let i = 0; i < this.steeringWheelIndexes.length; i++) {
-			this.steeringWheelPivots.push(this.children[0].children[this.steeringWheelIndexes[i]].geometry.boundingBox.getCenter());
+			this.steeringWheelPivots.push(this.children[0].children[this.steeringWheelIndexes[i]].geometry.boundingBox.getCenter(new THREE.Vector3()));
 		}
 	}
 

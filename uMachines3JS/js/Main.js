@@ -1,8 +1,8 @@
 /* global THREE */
 
 var camera1, camera2, camera3,camera4, introCamera, introScene, scene, scene2, renderer;
-var geometry, material, mesh;
-var introCar,car,track,introOvni,ovni,truck;
+var introCars = [];
+var car,track;
 var sbArray,sb;
 var camPos = new THREE.Vector3(0, 70, 0);
 var controls;
@@ -27,12 +27,9 @@ var selectedSkyBox = 0;
 var cameras = [];
 var promises = [];
 var orangeClock = new THREE.Clock();
-var et;
 var lastSecond = 0;
 var velocityDificulty = 0;
-var wireframe_status = false;
 var fogBool = false;
-var mat_option = 2;
 var directionalLight;
 var lensflare;
 var lights = new Array();
@@ -46,16 +43,12 @@ var msg_box_array;
 var ready = false;
 var stats = new Stats();
 var points = 0;
-
-// Teste //
-
+var alreadyLoaded = false;
 var protonArray = [];
 var proton, emitter;
 
-// Teste //
 function createScene() {
   'use strict';
-
   objectArray = new Array();
   arrayOranges = new Array();
   arrayCheerios = new Array();
@@ -78,7 +71,7 @@ function createScene() {
   else if(selectedCar == 1)
   {
     promises.push(new Promise(function(resolve,reject){
-      load3DObject("models/Bmw.mtl","models/Bmw.obj",1,1);
+      load3DObject("models/Bmw/Bmw.mtl","models/Bmw/Bmw.obj",1,1);
     }));
   }
 
@@ -129,13 +122,6 @@ function createScene2() {
     livesArray.push(cube);
   }
 
-  var wire = wireframe_status;
-  wireframe_status = false;
-  var old_mat_option = mat_option;
-  mat_option = 2;
-  wireframe_status = wire;
-  mat_option = old_mat_option;
-
 
   //pause plane
   var geometry = new THREE.BoxGeometry( 60, 1, 40 );
@@ -173,13 +159,8 @@ function createIntroScene()
     load3DObject("models/Lambo/Avent.mtl","models/Lambo/Avent.obj",0,0);
   }));
   promises.push(new Promise(function(resolve,reject){
-    load3DObject("models/Bmw.mtl","models/Bmw.obj",1,0);
+    load3DObject("models/Bmw/Bmw.mtl","models/Bmw/Bmw.obj",1,0);
   }));
-
-  Promise.all(promises).then(function(){
-    introCar.traverse(function (node) {  if (node instanceof THREE.Mesh) {node.material.wireframe = false;}});
-    introOvni.traverse(function (node) {  if (node instanceof THREE.Mesh) {node.material.wireframe = false;}});
-  });
 }
 
 function removeCarLife() {
@@ -207,6 +188,9 @@ function animate() {
   {
     if(ready)
     {
+      if(!alreadyLoaded && objectArray.length == 7 && car != null){
+        toggleLSVisibility(false);
+      }
       delta = clock.getDelta();
       objUpdate(delta);
       controls.update();
@@ -214,9 +198,12 @@ function animate() {
     }
     else
     {
-      if(introCar != null && introOvni != null){
-        introCar.rotation.y += 0.01;
-        introOvni.rotation.y += 0.01;
+      if(introCars.length == 2){
+        if(!alreadyLoaded && document.getElementById("loadingScreen").style.visibility == ""){
+          toggleLSVisibility(false)
+        }
+        introCars[0].rotation.y += 0.01;
+        introCars[1].rotation.y += 0.01;
       }
     }
     render();
@@ -232,6 +219,7 @@ function init() {
   renderer = new THREE.WebGLRenderer( {antialias: true, alpha: true} );
   renderer.autoClear = false;
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.domElement.addEventListener("click", chooseCar, true);
 
   mul_width = window.innerWidth * scale;
   mul_height = window.innerHeight * scale * aspect_ratio;

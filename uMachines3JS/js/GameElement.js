@@ -23,26 +23,25 @@ class GameElement extends THREE.Object3D {
 
     addMesh(geometry,color, shininess=30, specular=0x111111)
     {
-        var mats = new Array();
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular}));
-        this.materialsArray.push(mats);
-        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        var material = new THREE.MeshPhongMaterial( {
+            color: color, 
+            shininess: shininess, 
+            specular: specular
+        });
+        var mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = true;
     	this.add(mesh);
     }
 
     addMeshPosition(x,y,z, geometry, color, shininess=30, specular=0x111111)
     {
-        var mats = new Array();
-		
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular}));
-        this.materialsArray.push(mats);
+        var material = new THREE.MeshPhongMaterial( {
+            color: color, 
+            shininess: shininess, 
+            specular: specular
+        });
 
-        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        var mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x,y,z);
         mesh.castShadow = true;        
         this.add(mesh);
@@ -51,19 +50,14 @@ class GameElement extends THREE.Object3D {
 	
 	addMeshPositionTexture(x,y,z, geometry, color, tex_path, shininess=30, opacity=1, specular=0x111111)
     {
-        var mats = new Array();
+        var material = new THREE.MeshPhongMaterial( {color: color, shininess: shininess, specular: specular, map: texture, transparent:true, opacity: opacity});
 		
 		var texture = new THREE.TextureLoader().load(tex_path);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set(4,4);
-		
-        mats.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
-        mats.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture, transparent:true, opacity: opacity}));
-        mats.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats);
 
-        var mesh = new THREE.Mesh(geometry, mats[mat_option]);
+        var mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x,y,z);    
         mesh.castShadow = true;    
         mesh.receiveShadow = true;
@@ -72,9 +66,6 @@ class GameElement extends THREE.Object3D {
 
     addMeshPositionMultiTexture(x,y,z, geometry, color, tex_path, tex_path1, shininess=30, opacity=1, specular=0x111111)
     {
-        var mats = new Array();
-        var mats1 = new Array();
-
         var texture = new THREE.TextureLoader().load(tex_path);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
@@ -198,22 +189,22 @@ class GameElement extends THREE.Object3D {
             transparent: true
         });
         material.extensions.derivatives = true;
-        mats.push(material);
-        mats.push(material);
-        mats.push(material);
-        this.materialsArray.push(mats);
 
         var texture1 = new THREE.TextureLoader().load(tex_path1);
 		texture1.wrapS = THREE.RepeatWrapping;
 		texture1.wrapT = THREE.RepeatWrapping;
-		texture1.repeat.set(20, 20);
-		
-        mats1.push(new THREE.MeshBasicMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
-        mats1.push(new THREE.MeshLambertMaterial( {color: color, wireframe: wireframe_status, map: texture1, transparent:true, opacity: opacity}));
-        mats1.push(new THREE.MeshPhongMaterial( {color: color, wireframe: wireframe_status, shininess: shininess, specular: specular, map: texture1, transparent:true, opacity: opacity}));
-        this.materialsArray.push(mats1);
+        texture1.repeat.set(20, 20);
+        
+        var material1 = new THREE.MeshPhongMaterial( {
+            color: color, 
+            shininess: shininess, 
+            specular: specular, 
+            map: texture1, 
+            transparent:true, 
+            opacity: opacity
+        });
 
-        var materials = [mats[mat_option], mats1[mat_option]];
+        var materials = [material, material1];
         var mesh = new THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
         mesh.children[0].position.y -= 0.03;
         for( var i = 0; i != 2; i++){
@@ -223,22 +214,7 @@ class GameElement extends THREE.Object3D {
         mesh.position.set(x,y,z);        
     	scene.add(mesh);
     }
-	
-    changeMaterial() {
-        var i = 0,j = 0;
-        for (; i < this.children.length; i++) {
-            if (this.children[i].type == "Mesh") {
-                this.children[i].material = this.materialsArray[j][mat_option];
-                /*if the wireframe had change we need to update otherwise 
-                  we activate the wireframe and change material and the
-                  wireframe status will be lost. */
-                this.children[i].material.wireframe = wireframe_status;
-                j++;
-            }
-            
-        }       
-    }
-    
+  
 	translate(dt) 
 	{
 	  	this.position.x +=  this.carVelocity*dt * this.DOF.x;

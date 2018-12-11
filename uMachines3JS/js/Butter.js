@@ -50,9 +50,9 @@
     addButterStick(x, y, z){
       'use strict';
       var colour = 0xffa100;
-      geometry = new THREE.CubeGeometry(4.5*1.1, 2*1.1, 1.8*1.15);
-      material = new THREE.MeshPhongMaterial({color: colour, shininess: 10, specular: 0x3d311c});
-      mesh = new THREE.Mesh(geometry, material);
+      var geometry = new THREE.CubeGeometry(4.5*1.1, 2*1.1, 1.8*1.15);
+      var material = new THREE.MeshPhongMaterial({color: colour, shininess: 10, specular: 0x3d311c});
+      var mesh = new THREE.Mesh(geometry, material);
       mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: colour});
       mesh.phongMaterial = new THREE.MeshPhongMaterial({color: colour, shininess: 10, specular: 0x3d311c});
       mesh.basicMaterial = new THREE.MeshBasicMaterial({color: 0xffa100});
@@ -64,9 +64,9 @@
     addPlate(x, y, z){
       'use strict';
       var colour = new THREE.Color(0.19225, 0.19225, 0.19225);
-      geometry = new THREE.CubeGeometry(6, 0.5, 3.3);
-      material = new THREE.MeshPhongMaterial({color: colour, shininess: 150});
-      mesh = new THREE.Mesh(geometry, material);
+      var geometry = new THREE.CubeGeometry(6, 0.5, 3.3);
+      var material = new THREE.MeshPhongMaterial({color: colour, shininess: 150});
+      var mesh = new THREE.Mesh(geometry, material);
       mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: colour});
       mesh.phongMaterial = new THREE.MeshPhongMaterial({color: colour, shininess: 150});
       mesh.basicMaterial = new THREE.MeshBasicMaterial({color: 0x7a7a7a});
@@ -93,7 +93,7 @@
       geometry.faces.push(new THREE.Face3(1,3,5));
       geometry.computeFaceNormals();
       geometry.computeVertexNormals();
-      mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color: pr_color, shininess: shine, side: THREE.DoubleSide, specular: spec}));
+      var mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color: pr_color, shininess: shine, side: THREE.DoubleSide, specular: spec}));
       mesh.gouraudMaterial = new THREE.MeshLambertMaterial({color: pr_color, side: THREE.DoubleSide});
       mesh.phongMaterial = new THREE.MeshPhongMaterial({color: pr_color, shininess: shine, side: THREE.DoubleSide, specular: spec});
       mesh.basicMaterial = new THREE.MeshBasicMaterial({color: pr_color, side: THREE.DoubleSide});

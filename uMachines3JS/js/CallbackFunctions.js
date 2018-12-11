@@ -55,21 +55,18 @@ function onKeyDown(e) {
         car.carBreak = true;
         car.carStopB = false;
         break;
-
       case 49: //tecla 1
 				selectedCamera = 0;
         onResizeOrtho();
         for (var i = 0; i != arrayTrees.length; i++)
           arrayTrees[i].visible = false;
       	break;
-
       case 50: //tecla 2
         selectedCamera = 1;
         onResizePerspective();
         for (var i = 0; i != arrayTrees.length; i++)
           arrayTrees[i].visible = false;
       	break;
-
       case 51: //tecla 3
         selectedCamera = 2;
         for (var i = 0; i != arrayTrees.length; i++)
@@ -199,5 +196,29 @@ function onResize()
   else
   {
     onResizePerspective();
+  }
+}
+
+function chooseCar(event){
+  var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2();
+  event.preventDefault();
+  mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+  mouse.y =  - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, introCamera);
+  var intersects = raycaster.intersectObjects(introCars, true); //array
+  console.log(intersects,introCars);
+  if (intersects.length > 0) {
+    selectedObject = intersects[0].object.parent.parent;
+    if(selectedObject instanceof Lambo){
+      choosen = 0;
+      introCars[1].scale.set(1.4,1.4,1.4);
+      introCars[0].scale.set(1,1,1);
+    }
+    else if(selectedObject instanceof Bmw){
+      choosen = 1;
+      introCars[0].scale.set(1.4,1.4,1.4);
+      introCars[1].scale.set(1,1,1);
+    }
   }
 }

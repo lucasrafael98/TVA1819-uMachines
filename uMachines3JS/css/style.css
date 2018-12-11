@@ -39,31 +39,6 @@ body
     text-shadow: -5px 0 black, 0 5px black, 1px 0 black, 0 -1px black;
     color: darkblue;
 }
-
-#introCarBox
-{
-    border: none;
-    position: absolute;
-    top: 35%;
-    left: 12%;
-    width: 450px;
-    height: 250px;
-    box-shadow: none;
-    cursor: pointer;   
-}
-
-#introOvniBox
-{
-    border: none;
-    position: absolute;
-    top: 35%;
-    right: 12%;
-    width: 450px;
-    height: 250px;
-    box-shadow: none;
-    cursor: pointer;
-}
-
 #startButton
 {
     font-family: 'Russo One', sans-serif;
@@ -114,4 +89,49 @@ body
     font-size: 20px;
     text-align: center;
     display: none;
+}
+#loadingScreen {
+    font-family: 'Raleway';
+    min-height: 100%;
+    width: 100%;
+    background-color: black;
+    color: white;
+    z-index: 1;
+    position: absolute;
+    visibility:visible;
+    opacity:1;
+    transition:visibility 0.3s linear,opacity 0.3s linear;
+}
+.wrapper{
+    text-align: center;
+}
+#title{
+    position: relative;
+    top: 40%;
+    font-size: 80px; 
+}
+
+.lds-dual-ring {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+}
+.lds-dual-ring:after {
+    content: " ";
+    display: block;
+    width: 46px;
+    height: 46px;
+    margin: 1px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

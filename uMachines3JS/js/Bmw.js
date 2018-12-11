@@ -1,4 +1,4 @@
-class Ovni extends Vehicle
+class Bmw extends Vehicle
 {
 	constructor(x, y, z,activeScene,model) 
 	{

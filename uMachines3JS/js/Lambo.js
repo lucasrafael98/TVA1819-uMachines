@@ -3,7 +3,7 @@
   *
   */
 
-class Car extends Vehicle{
+class Lambo extends Vehicle{
 	/**
 	  * @param x position
 	  * @param y position

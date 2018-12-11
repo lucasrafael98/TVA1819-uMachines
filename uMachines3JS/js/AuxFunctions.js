@@ -22,34 +22,29 @@ function load3DObject(matPath,objPath,objType,sceneType){
                 object.children[i].geometry.computeBoundingBox(); 
                 json_to_print.push({name:object.children[i].name, index: i});  
             }
-            console.log(json_to_print);
             if(sceneType == 0){
                 if(objType == 0){
-                    introCar = new Car(0,0,6,introScene,object);
-                    introCar.scale.set(0.6,0.6,0.6);
+                    object.scale.set(0.6,0.6,0.6);
+                    introCars.push(new Lambo(0,0,6,introScene,object));
                 }
                 else{
-                    introOvni = new Ovni(0,-0.2,-0.4,introScene,object);
-                    introOvni.scale.set(0.6,0.6,0.6);
+                    object.scale.set(0.6,0.6,0.6);
+                    introCars.push(new Bmw(0,-0.2,-0.4,introScene,object));
                 }
             }
             else if(sceneType == 1){
                 if(objType == 0){
-                    car = new Car(-5,1,20,scene,object);
+                    car = new Lambo(-5,1,20,scene,object);
                 }
                 else if(objType == 1){
                     object.scale.set(1.4,1.4,1.4);
-                    car = new Ovni(-5,1,20,scene,object);
+                    car = new Bmw(-5,1,20,scene,object);
                 }else if(objType == 2){
                     object.scale.set(3,3,3);
                     var p = new Candle(-40,5.5,-10, object, new THREE.Color(0xfffc7c), 5, 35, 2);
                     objectArray.push(p);
                 }
             }
-        },
-        // called when loading is in progresses
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         });
     });
 }
@@ -73,10 +68,6 @@ function loadCandle(matPath,objPath,x,y,z){
             object.scale.set(3,3,3);
             var p = new Candle(x,y,z, object, new THREE.Color(0xfffc7c), 3, 25, 2);
             objectArray.push(p);
-        },
-        // called when loading is in progresses
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         });
     });
 }
@@ -86,4 +77,16 @@ function vectorbetween(obj1, obj2) {
     var dy = obj1.position.y - obj2.position.y;
     var dz = obj1.position.z - obj2.position.z;
     return new THREE.Vector3(-dx, -dy, -dz);
+}
+
+function toggleLSVisibility(type){
+    if(type){
+        document.getElementById("loadingScreen").style.visibility = "visible";
+        document.getElementById("loadingScreen").style.opacity = "1";
+        alreadyLoaded = false;
+    }else{
+        document.getElementById("loadingScreen").style.visibility = "hidden";
+        document.getElementById("loadingScreen").style.opacity = "0";
+        alreadyLoaded = true;
+    }
 }

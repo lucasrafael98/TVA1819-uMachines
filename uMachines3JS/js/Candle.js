@@ -8,7 +8,6 @@ class Candle extends GameElement {
 		this.position.set(x,y,z);
 		scene.add(this);
 		this.storeInitPos();
-		console.log(this);
     }
 	
 	addLight(x,y,z, color, intensity, distance, decay) {
@@ -26,18 +25,6 @@ class Candle extends GameElement {
 		light.shadow.camera.far = 20;
 		light.shadowCameraVisible = true;*/
 		this.add(light);
-	}
-	
-	addWax(x,y,z, color)
-	{
-		geometry = new THREE.CylinderGeometry( 2, 2, 5, 10 );
-		this.addMeshPosition(x,y,z,geometry,color);
-	}
-	
-	addFlame(x,y,z, color)
-	{
-		geometry = new THREE.CylinderGeometry(0, 1, 2.5, 10 );
-		this.addMeshPosition(x,y,z,geometry,color);
 	}
 	
 	toggleVisible() {

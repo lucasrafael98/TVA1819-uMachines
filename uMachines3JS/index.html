@@ -15,14 +15,12 @@
     <script src="js/Butter.js"></script>
     <script src="js/Cheerio.js"></script>
     <script src="js/Vehicle.js"></script>
-    <script src="js/Car.js"></script>
+    <script src="js/Lambo.js"></script>
     <script src="js/Tree.js"></script>
-    <script src="js/Ovni.js"></script>
+    <script src="js/Bmw.js"></script>
     <script src="js/Sun.js"></script>
     <script src="js/Skybox.js"></script>
     <script src="js/Candle.js"></script>
-    <script src="js/Materials.js"></script>
-    <script src="js/UI.js"></script>
     <script src="js/Collisions.js"></script>
     <script src="js/CallbackFunctions.js"></script>
     <script src="js/AuxFunctions.js"></script>
@@ -39,18 +37,20 @@
     <script src="js/Main.js"></script>
   </head>
   <body>
+  <div id="loadingScreen">
+    <div class="wrapper">
+      <p id="title">Loading...</p>
+      <div class="lds-dual-ring"></div>
+    </div>
+  </div>
   <div id="introMenu">
     <div id="introName">&mu;Machines</div>
-    <div id="introCarBox" onmouseover="mouseOver(0)" onmouseleave="mouseLeave(0)" onclick="clicked(0)"></div>
-    <div id="introOvniBox" onmouseover="mouseOver(1)" onmouseleave="mouseLeave(1)" onclick="clicked(1)"></div>
-    <button id="startButton" onclick="clicked(2)">PLAY</button>
-    <button id="changeSkyBoxButton" onclick="clicked(3)">CHANGE VIEW</button>
+    <button id="startButton" onclick="clicked(0)">PLAY</button>
+    <button id="changeSkyBoxButton" onclick="clicked(1)">CHANGE VIEW</button>
   </div>
-
   <div id="pointsDiv" style="display: none;">
     <span class="pointsSpan"><strong>POINTS: </strong></span><span class="pointsSpan" id="pointsNumber">0</span>
   </div>
-  
     <script>
       init();
       animate();

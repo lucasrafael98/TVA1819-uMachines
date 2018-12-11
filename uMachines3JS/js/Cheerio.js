@@ -2,7 +2,7 @@ class Cheerio extends GameElement
 {
     constructor(x, y, z) {
     	super();
-        geometry = new THREE.TorusGeometry(0.7, 0.2, 6, 10);
+        var geometry = new THREE.TorusGeometry(0.7, 0.2, 6, 10);
         this.addMesh(geometry, new THREE.Color(0xc4be05), 5, new THREE.Color(0xffffff));
         //material = new THREE.MeshBasicMaterial( {color: 0xc4be05, wireframe: true} );
         this.color = new THREE.Color(0xc4be05);

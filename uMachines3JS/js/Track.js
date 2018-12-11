@@ -41,7 +41,7 @@ class Track extends GameElement{
     addTableTop(x, y, z) {
       'use strict';
 
-      geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
+      var geometry = new THREE.BoxBufferGeometry(this.width, 2, this.height);
       this.addMeshPositionMultiTexture(x,y,z,geometry,0x666666, "textures/stone.png", "textures/tex1.jpg", 1, 0.65);
       var geometry = new THREE.PlaneBufferGeometry( this.width, this.height );
       var mirror = new THREE.Reflector( geometry, {
