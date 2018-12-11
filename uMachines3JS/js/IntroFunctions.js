@@ -4,7 +4,9 @@ function clicked(type)
 {
 	if(type == 0)
 	{
-		toggleLSVisibility(true);
+		if(choosen != -1){
+			toggleLSVisibility(true);
+		}
 		if(choosen == 0)
 		{
 			selectedCar = 0;
