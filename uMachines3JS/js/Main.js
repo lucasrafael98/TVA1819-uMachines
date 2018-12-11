@@ -44,6 +44,39 @@ var ready = false;
 var stats = new Stats();
 var points = 0;
 var alreadyLoaded = false;
+var vrMode = false;
+var effect;
+
+// VIEWS //
+
+var windowWidth, windowHeight;
+
+var views = [
+  { //default
+    left: 0,
+    top: 0,
+    width: 1.0,
+    height: 1.0,
+    fov: 50
+  },
+  { //left
+    left: 0,
+    top: 0,
+    width: 0.5,
+    height: 1.0,
+    fov: 50
+  },
+  { //right
+    left: 0.5,
+    top: 0,
+    width: 0.5,
+    height: 1.0,
+    fov: 50
+  } 
+];
+
+// Teste //
+
 var protonArray = [];
 var proton, emitter;
 
@@ -169,13 +202,44 @@ function removeCarLife() {
 
 function render() {
   'use strict';
-  if(selectedScene == 0)
-  {
-    renderer.render(introScene,introCamera);    
-  }
+
+  var viewsToRender = (vrMode) ? views.slice(1) : views.slice(0,1);
+  var cameraToUse = (selectedScene == 0) ? introCamera : cameras[selectedCamera];
+  var sceneToUse = (selectedScene == 0) ? introScene : scene;
+
+  /*for(var viewIdx in viewsToRender){    
+    var view = viewsToRender[viewIdx];
+    var left = Math.floor( window.innerWidth * view.left);
+    var top = Math.floor( window.innerHeight * view.top );
+    var width = Math.floor( window.innerWidth * view.width );
+    var height = Math.floor( window.innerHeight * view.height );
+    renderer.setViewport( left, top, width, height );
+    renderer.setScissor( left, top, width, height );
+    renderer.setScissorTest( true );
+    cameraToUse.aspect = width / height;
+    cameraToUse.updateProjectionMatrix();
+    if(vrMode)
+      effect.render(sceneToUse, cameraToUse);
+    else
+      renderer.render(sceneToUse,cameraToUse);
+  }*/
+
+  var view = views[0];
+  var left = Math.floor( window.innerWidth * view.left);
+  var top = Math.floor( window.innerHeight * view.top );
+  var width = Math.floor( window.innerWidth * view.width );
+  var height = Math.floor( window.innerHeight * view.height );
+  renderer.setViewport( left, top, width, height );
+  renderer.setScissor( left, top, width, height );
+  renderer.setScissorTest( true );
+  cameraToUse.aspect = width / height;
+  cameraToUse.updateProjectionMatrix();
+  if(vrMode)
+    effect.render(sceneToUse, cameraToUse);
   else
-  {
-    renderer.render(scene,cameras[selectedCamera]);
+    renderer.render(sceneToUse,cameraToUse);
+
+  if(!vrMode && selectedScene == 1){
     renderer.clearDepth();
     renderer.render(scene2,orthocam2);
   }
@@ -220,6 +284,9 @@ function init() {
   renderer.autoClear = false;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.domElement.addEventListener("click", chooseCar, true);
+
+  effect = new THREE.StereoEffect( renderer );
+	effect.setSize( window.innerWidth, window.innerHeight );
 
   mul_width = window.innerWidth * scale;
   mul_height = window.innerHeight * scale * aspect_ratio;

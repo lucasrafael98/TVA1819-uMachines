@@ -8,6 +8,14 @@ function increasePoints(){
     document.getElementById("pointsNumber").innerHTML = points.toString();
   }
 
+  function changeVRMode(){
+    vrMode = !vrMode;
+    if(vrMode)
+        document.getElementById("pointsDiv").style.display = "none";
+    else
+    document.getElementById("pointsDiv").style.display = "block";
+  }
+
 function load3DObject(matPath,objPath,objType,sceneType){
     var mtlLoader = new THREE.MTLLoader();
     mtlLoader.load( matPath, function( materials ) {
